@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="异环海特洛市超自然鉴定指南，包含角色图鉴、武器库、攻略、地图点位等完整信息">
+    <meta name="keywords" content="异环, 海特洛市, 攻略, 角色图鉴, 武器库, 异象猎人">
+    <title>异环：海特洛市超自然鉴定指南</title>
+    <style>
+        /* ========================================
+           全局CSS变量定义
+           ======================================== */
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #121a2b;
+            --bg-card: #161f33;
+            --bg-hover: #1d2942;
+            --primary-color: #00e5ff;
+            --secondary-color: #7c4dff;
+            --accent-color: #00ff9d;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --font-size-base: 16px;
+            --transition-speed: 0.3s;
+        }
+
+        /* 明亮主题变量 */
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #e2e8f0;
+            --bg-card: #ffffff;
+            --bg-hover: #f1f5f9;
+            --primary-color: #0066cc;
+            --secondary-color: #6d28d9;
+            --accent-color: #059669;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* ========================================
+           全局重置与基础样式
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: var(--font-size-base);
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            line-height: 1.7;
+            min-height: 100vh;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color var(--transition-speed);
+        }
+
+        a:hover {
+            color: var(--accent-color);
+        }
+
+        ul, ol {
+            list-style: none;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-family: inherit;
+        }
+
+        /* ========================================
+           滚动条样式
+           ======================================== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* ========================================
+           顶部导航栏
+           ======================================== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(10, 14, 23, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            transition: background-color var(--transition-speed);
+        }
+
+        [data-theme="light"] .navbar {
+            background-color: rgba(248, 250, 252, 0.95);
+        }
+
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 5px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 10px 18px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all var(--transition-speed);
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--primary-color);
+            background-color: var(--bg-hover);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        /* 移动端菜单按钮 */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            padding: 10px;
+        }
+
+        .menu-toggle span {
+            width: 24px;
+            height: 2px;
+            background-color: var(--text-primary);
+            transition: all var(--transition-speed);
+        }
+
+        /* ========================================
+           侧边工具栏
+           ======================================== */
+        .sidebar {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 999;
+        }
+
+        .sidebar-btn {
+            width: 44px;
+            height: 44px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            transition: all var(--transition-speed);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .sidebar-btn:hover {
+            background-color: var(--bg-hover);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* ========================================
+           主内容区域
+           ======================================== */
+        .main-content {
+            padding-top: 84px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ========================================
+           英雄区域
+           ======================================== */
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(124, 77, 255, 0.15) 0%, transparent 70%);
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all var(--transition-speed);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-color);
+            background-color: var(--bg-hover);
+        }
+
+        /* ========================================
+           搜索区域
+           ======================================== */
+        .search-section {
+            padding: 40px 0;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 50px 16px 20px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all var(--transition-speed);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* ========================================
+           筛选标签区域
+           ======================================== */
+        .filter-section {
+            padding: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tag {
+            padding: 8px 20px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: all var(--transition-speed);
+        }
+
+        .filter-tag:hover,
+        .filter-tag.active {
+            background-color: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        /* ========================================
+           卡片网格布局
+           ======================================== */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            padding: 40px 0;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all var(--transition-speed);
+        }
+
+        .card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 40px var(--shadow-color);
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .card-tag {
+            padding: 4px 12px;
+            background-color: var(--bg-hover);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .card-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-link {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-link:hover {
+            color: var(--accent-color);
+        }
+
+        /* ========================================
+           折叠面板
+           ======================================== */
+        .accordion {
+            margin: 20px 0;
+        }
+
+        .accordion-item {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+        }
+
+        .accordion-header:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .accordion-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .accordion-icon {
+            transition: transform var(--transition-speed);
+        }
+
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed) ease-out;
+        }
+
+        .accordion-body {
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        /* ========================================
+           表格样式
+           ======================================== */
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        td {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        tr:hover td {
+            background-color: var(--bg-hover);
+        }
+
+        /* ========================================
+           进度条样式
+           ======================================== */
+        .progress-bar {
+            height: 6px;
+            background-color: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 3px;
+            transition: width var(--transition-speed);
+        }
+
+        /* ========================================
+           分页组件
+           ======================================== */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 40px 0;
+        }
+
+        .page-item {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all var(--transition-speed);
+        }
+
+        .page-item:hover,
+        .page-item.active {
+            background-color: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .page-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ========================================
+           模态框
+           ======================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-speed);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform var(--transition-speed);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            transition: color var(--transition-speed);
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        /* ========================================
+           页脚
+           ======================================== */
+        .footer {
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-column h4 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-column ul li a {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: color var(--transition-speed);
+        }
+
+        .footer-column ul li a:hover {
+            color: var(--primary-color);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ========================================
+           回到顶部按钮
+           ======================================== */
+        .back-to-top {
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            width: 44px;
+            height: 44px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-speed);
+            z-index: 998;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        /* ========================================
+           加载动画
+           ======================================== */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity var(--transition-speed);
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========================================
+           通知提示
+           ======================================== */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 2001;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            padding: 14px 20px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            transform: translateX(120%);
+            transition: transform var(--transition-speed);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success { border-left: 4px solid var(--success-color); }
+        .toast.error { border-left: 4px solid var(--danger-color); }
+        .toast.warning { border-left: 4px solid var(--warning-color); }
+
+        /* ========================================
+           响应式设计
+           ======================================== */
+        @media (max-width: 1024px) {
+            .hero-title { font-size: 2.5rem; }
+            .card-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                top: 64px;
+                left: 0;
+                right: 0;
+                background-color: var(--bg-card);
+                flex-direction: column;
+                padding: 20px;
+                gap: 0;
+                border-bottom: 1px solid var(--border-color);
+                transform: translateY(-100%);
+                opacity: 0;
+                visibility: hidden;
+                transition: all var(--transition-speed);
+            }
+
+            .nav-menu.active {
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .nav-link {
+                padding: 15px;
+                border-radius: 0;
+            }
+
+            .menu-toggle { display: flex; }
+
+            .hero-title { font-size: 2rem; }
+            .hero-subtitle { font-size: 1rem; padding: 0 20px; }
+
+            .sidebar {
+                right: 10px;
+                bottom: 10px;
+            }
+
+            .sidebar-btn {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero { padding: 60px 0; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .btn { width: 100%; max-width: 280px; text-align: center; }
+            .card-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ========================================
+           打印样式
+           ======================================== */
+        @media print {
+            .navbar, .sidebar, .back-to-top, .search-section, .filter-section {
+                display: none !important;
+            }
+            body {
+                background-color: #fff;
+                color: #000;
+            }
+            .card {
+                break-inside: avoid;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- 通知容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">异环 · 鉴定指南</div>
+            <div class="nav-menu" id="navMenu">
+                <div class="nav-item">
+                    <a href="#home" class="nav-link active" data-page="home">首页</a>
+                </div>
+                <div class="nav-item">
+                    <a href="#characters" class="nav-link" data-page="characters">角色图鉴</a>
+                </div>
+                <div class="nav-item">
+                    <a href="#weapons" class="nav-link" data-page="weapons">武器库</a>
+                </div>
+                <div class="nav-item">
+                    <a href="#guides" class="nav-link" data-page="guides">攻略中心</a>
+                </div>
+                <div class="nav-item">
+                    <a href="#map" class="nav-link" data-page="map">地图点位</a>
+                </div>
+                <div class="nav-item">
+                    <a href="#settings" class="nav-link" data-page="settings">设置</a>
+                </div>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="切换菜单">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        <!-- 首页 -->
+        <section id="home" class="page-section">
+            <div class="hero">
+                <h1 class="hero-title">欢迎来到海特洛市</h1>
+                <p class="hero-subtitle">
+                    这里是《异环》超自然现象的完整鉴定指南。收录了角色图鉴、武器数据、战斗攻略、隐藏点位等全方位信息，助你成为最出色的异象猎人。
+                </p>
+                <div class="hero-buttons">
+                    <a href="https://yh.wanmei.com/hot/20260423/baidupcpz/index.html?request_id=2026063017283472986d0623f14f419001e31a02919847" target="_blank" class="btn btn-primary">🌐 访问官方网站</a>
+                    <a href="https://space.bilibili.com/3546636978489848?spm_id_from=333.337.0.0" target="_blank" class="btn btn-outline">📺 B站官方频道</a>
+                    <a href="https://weibo.com/异环" target="_blank" class="btn btn-outline">📱 官方微博</a>
+                    <a href="https://www.taptap.cn/app/238065" target="_blank" class="btn btn-outline">📥 TapTap预约</a>
+                </div>
+            </div>
+
+            <!-- 快捷入口卡片 -->
+            <div class="container">
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">🎭</div>
+                            <h3 class="card-title">角色图鉴</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">收录所有可操作角色的详细资料，包括技能机制、异能属性、配队建议与培养路线。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">全角色</span>
+                                <span class="card-tag">技能解析</span>
+                                <span class="card-tag">配队推荐</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="#characters" class="card-link">查看详情 →</a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">⚔️</div>
+                            <h3 class="card-title">武器库</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">完整武器数据库，包含所有武器的属性面板、特效说明、获取途径与适用角色推荐。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">全武器</span>
+                                <span class="card-tag">属性对比</span>
+                                <span class="card-tag">获取方式</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="#weapons" class="card-link">查看详情 →</a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">📖</div>
+                            <h3 class="card-title">攻略中心</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">从新手入门到高手进阶，涵盖战斗机制、异象收容、资源规划等全方位攻略内容。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">新手指南</span>
+                                <span class="card-tag">进阶技巧</span>
+                                <span class="card-tag">资源规划</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="#guides" class="card-link">查看详情 →</a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">🗺️</div>
+                            <h3 class="card-title">地图点位</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">海特洛市全区域探索指南，标注所有隐藏宝箱、异象刷新点、NPC位置与彩蛋地点。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">宝箱位置</span>
+                                <span class="card-tag">异象刷新</span>
+                                <span class="card-tag">彩蛋收集</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="#map" class="card-link">查看详情 →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 角色图鉴页面 -->
+        <section id="characters" class="page-section" style="display: none;">
+            <div class="container">
+                <h2 style="font-size: 2rem; margin: 40px 0 20px; color: var(--text-primary);">角色图鉴</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 30px;">
+                    收录《异环》中所有可操作角色的详细资料，点击角色卡片可查看完整技能解析与培养建议。
+                </p>
+
+                <!-- 角色筛选标签 -->
+                <div class="filter-section">
+                    <button class="filter-tag active" data-filter="all">全部角色</button>
+                    <button class="filter-tag" data-filter="fire">炎系</button>
+                    <button class="filter-tag" data-filter="ice">冰系</button>
+                    <button class="filter-tag" data-filter="electric">雷系</button>
+                    <button class="filter-tag" data-filter="wind">风系</button>
+                    <button class="filter-tag" data-filter="dark">暗系</button>
+                </div>
+
+                <!-- 角色卡片网格 -->
+                <div class="card-grid" id="characterGrid">
+                    <!-- 角色卡片 1 -->
+                    <div class="card character-card" data-type="fire">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">🔥</div>
+                            <h3 class="card-title">凌焰</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">炎系异能者，擅长近距离爆发输出。技能可以叠加燃烧效果，对敌人造成持续伤害。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">炎系</span>
+                                <span class="card-tag">近战</span>
+                                <span class="card-tag">爆发型</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 85%;"></div>
+                            </div>
+                            <small style="color: var(--text-muted);">输出能力：★★★★☆</small>
+                        </div>
+                        <div class="card-footer">
+                            <button class="card-link" onclick="openCharacterModal('凌焰')">查看详情 →</button>
+                        </div>
+                    </div>
+
+                    <!-- 角色卡片 2 -->
+                    <div class="card character-card" data-type="ice">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: linear-gradient(135deg, #6bcfff, #6b8eff);">❄️</div>
+                            <h3 class="card-title">霜语</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">冰系异能者，擅长控制与减速。技能可以冻结敌人，为队友创造良好的输出环境。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">冰系</span>
+                                <span class="card-tag">控制</span>
+                                <span class="card-tag">辅助型</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 60%;"></div>
+                            </div>
+                            <small style="color: var(--text-muted);">输出能力：★★★☆☆</small>
+                        </div>
+                        <div class="card-footer">
+                            <button class="card-link" onclick="openCharacterModal('霜语')">查看详情 →</button>
+                        </div>
+                    </div>
+
+                    <!-- 角色卡片 3 -->
+                    <div class="card character-card" data-type="electric">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: linear-gradient(135deg, #ffd96b, #ff9f6b);">⚡</div>
+                            <h3 class="card-title">雷霆</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">雷系异能者，拥有极高的机动性。技能附带麻痹效果，可以快速穿梭战场进行收割。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">雷系</span>
+                                <span class="card-tag">机动</span>
+                                <span class="card-tag">收割型</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 75%;"></div>
+                            </div>
+                            <small style="color: var(--text-muted);">输出能力：★★★★☆</small>
+                        </div>
+                        <div class="card-footer">
+                            <button class="card-link" onclick="openCharacterModal('雷霆')">查看详情 →</button>
+                        </div>
+                    </div>
+
+                    <!-- 角色卡片 4 -->
+                    <div class="card character-card" data-type="wind">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: linear-gradient(135deg, #8effa0, #6bff7d);">🌪️</div>
+                            <h3 class="card-title">风吟</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">风系异能者，擅长群体伤害与位移。技能可以制造龙卷风，将敌人聚集后造成范围伤害。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">风系</span>
+                                <span class="card-tag">群攻</span>
+                                <span class="card-tag">机动型</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 70%;"></div>
+                            </div>
+                            <small style="color: var(--text-muted);">输出能力：★★★☆☆</small>
+                        </div>
+                        <div class="card-footer">
+                            <button class="card-link" onclick="openCharacterModal('风吟')">查看详情 →</button>
+                        </div>
+                    </div>
+
+                    <!-- 角色卡片 5 -->
+                    <div class="card character-card" data-type="dark">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: linear-gradient(135deg, #7c4dff, #512da8);">🌑</div>
+                            <h3 class="card-title">夜枭</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">暗系异能者，擅长削弱敌人与持续伤害。技能可以降低敌人防御，适合持久战。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">暗系</span>
+                                <span class="card-tag">削弱</span>
+                                <span class="card-tag">持续型</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 65%;"></div>
+                            </div>
+                            <small style="color: var(--text-muted);">输出能力：★★★☆☆</small>
+                        </div>
+                        <div class="card-footer">
+                            <button class="card-link" onclick="openCharacterModal('夜枭')">查看详情 →</button>
+                        </div>
+                    </div>
+
+                    <!-- 角色卡片 6 -->
+                    <div class="card character-card" data-type="ice">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: linear-gradient(135deg, #a0e7ff, #7cc9ff);">🧊</div>
+                            <h3 class="card-title">冰璃</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">冰系异能者，拥有强大的防御能力。技能可以制造冰墙阻挡敌人，保护队友。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">冰系</span>
+                                <span class="card-tag">防御</span>
+                                <span class="card-tag">坦克型</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 45%;"></div>
+                            </div>
+                            <small style="color: var(--text-muted);">输出能力：★★☆☆☆</small>
+                        </div>
+                        <div class="card-footer">
+                            <button class="card-link" onclick="openCharacterModal('冰璃')">查看详情 →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 分页 -->
+                <div class="pagination">
+                    <button class="page-item disabled">←</button>
+                    <button class="page-item active">1</button>
+                    <button class="page-item">2</button>
+                    <button class="page-item">3</button>
+                    <button class="page-item">→</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 武器库页面 -->
+        <section id="weapons" class="page-section" style="display: none;">
+            <div class="container">
+                <h2 style="font-size: 2rem; margin: 40px 0 20px; color: var(--text-primary);">武器库</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 30px;">
+                    完整收录《异环》中所有武器的详细数据，包括属性面板、特效说明、获取途径与适用角色。
+                </p>
+
+                <!-- 武器筛选 -->
+                <div class="filter-section">
+                    <button class="filter-tag active" data-filter="all">全部武器</button>
+                    <button class="filter-tag" data-filter="sword">剑</button>
+                    <button class="filter-tag" data-filter="gun">枪</button>
+                    <button class="filter-tag" data-filter="staff">法杖</button>
+                    <button class="filter-tag" data-filter="blade">刃</button>
+                </div>
+
+                <!-- 武器表格 -->
+                <div class="table-container">
+                    <table id="weaponTable">
+                        <thead>
+                            <tr>
+                                <th>武器名称</th>
+                                <th>类型</th>
+                                <th>稀有度</th>
+                                <th>攻击力</th>
+                                <th>特效</th>
+                                <th>适用角色</th>
+                                <th>获取途径</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>炎狱斩</td>
+                                <td>剑</td>
+                                <td><span style="color: #ffd700;">★★★★★</span></td>
+                                <td>680</td>
+                                <td>攻击时有20%概率触发燃烧，持续5秒</td>
+                                <td>凌焰、雷霆</td>
+                                <td>卡池抽取</td>
+                            </tr>
+                            <tr>
+                                <td>霜华</td>
+                                <td>剑</td>
+                                <td><span style="color: #ffd700;">★★★★★</span></td>
+                                <td>650</td>
+                                <td>命中冻结目标时伤害提升30%</td>
+                                <td>霜语、冰璃</td>
+                                <td>卡池抽取</td>
+                            </tr>
+                            <tr>
+                                <td>雷切</td>
+                                <td>刃</td>
+                                <td><span style="color: #ffd700;">★★★★★</span></td>
+                                <td>720</td>
+                                <td>暴击时附带麻痹效果，持续3秒</td>
+                                <td>雷霆、夜枭</td>
+                                <td>卡池抽取</td>
+                            </tr>
+                            <tr>
+                                <td>风语者</td>
+                                <td>法杖</td>
+                                <td><span style="color: #c0c0c0;">★★★★</span></td>
+                                <td>580</td>
+                                <td>技能范围扩大15%</td>
+                                <td>风吟、霜语</td>
+                                <td>卡池抽取/任务奖励</td>
+                            </tr>
+                            <tr>
+                                <td>暗影之拥</td>
+                                <td>刃</td>
+                                <td><span style="color: #c0c0c0;">★★★★</span></td>
+                                <td>620</td>
+                                <td>攻击降低目标10%防御，持续8秒</td>
+                                <td>夜枭</td>
+                                <td>卡池抽取</td>
+                            </tr>
+                            <tr>
+                                <td>冰晶长枪</td>
+                                <td>枪</td>
+                                <td><span style="color: #c0c0c0;">★★★★</span></td>
+                                <td>590</td>
+                                <td>命中时有15%概率冻结目标</td>
+                                <td>冰璃、霜语</td>
+                                <td>卡池抽取/副本掉落</td>
+                            </tr>
+                            <tr>
+                                <td>烈焰步枪</td>
+                                <td>枪</td>
+                                <td><span style="color: #cd7f32;">★★★</span></td>
+                                <td>480</td>
+                                <td>连续命中同一目标伤害递增</td>
+                                <td>凌焰</td>
+                                <td>副本掉落</td>
+                            </tr>
+                            <tr>
+                                <td>疾风之弓</td>
+                                <td>枪</td>
+                                <td><span style="color: #cd7f32;">★★★</span></td>
+                                <td>500</td>
+                                <td>移动速度提升10%</td>
+                                <td>风吟、雷霆</td>
+                                <td>副本掉落/商店兑换</td>
+                            </tr>
+                            <tr>
+                                <td>新手训练剑</td>
+                                <td>剑</td>
+                                <td><span style="color: #a8a8a8;">★★</span></td>
+                                <td>320</td>
+                                <td>无</td>
+                                <td>全角色</td>
+                                <td>初始赠送</td>
+                            </tr>
+                            <tr>
+                                <td>异象探测器</td>
+                                <td>法杖</td>
+                                <td><span style="color: #cd7f32;">★★★</span></td>
+                                <td>450</td>
+                                <td>异象探测范围扩大20%</td>
+                                <td>全角色</td>
+                                <td>主线任务奖励</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 攻略中心页面 -->
+        <section id="guides" class="page-section" style="display: none;">
+            <div class="container">
+                <h2 style="font-size: 2rem; margin: 40px 0 20px; color: var(--text-primary);">攻略中心</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 30px;">
+                    从新手入门到高手进阶，涵盖战斗机制、异象收容、资源规划等全方位攻略内容。
+                </p>
+
+                <!-- 攻略折叠面板 -->
+                <div class="accordion">
+                    <!-- 攻略 1 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">新手入门：异象猎人第一天该做什么？</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p>欢迎来到海特洛市！作为刚入职的异象猎人，第一天的时间非常宝贵。以下是建议的优先事项：</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">主线任务优先</h4>
+                                <p>前期主线任务不仅提供大量经验，还会解锁核心功能。建议优先推进主线到第3章，解锁异能环合系统和都市生活功能。</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">不要急于抽卡</h4>
+                                <p>系统赠送的御三家角色（凌焰、霜语、雷霆）在前期完全够用。建议先攒资源，等了解各角色机制后再决定抽取方向。前期抽卡资源非常有限，盲目抽取容易导致后期核心角色资源不足。</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">探索地图角落</h4>
+                                <p>海特洛市的每个街区都隐藏着宝箱和彩蛋。特别注意以下地点：</p>
+                                <ul style="margin: 10px 0 10px 20px; list-style: disc;">
+                                    <li>中央广场喷泉后面的小巷</li>
+                                    <li>旧城区废弃工厂的屋顶</li>
+                                    <li>港口区集装箱堆场的角落</li>
+                                    <li>住宅区楼顶的水塔旁边</li>
+                                </ul>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">完成每日委托</h4>
+                                <p>每日委托是前期获取资源的主要途径之一。建议每天完成全部5个委托，可以获得大量金币、经验道具和抽卡券。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 攻略 2 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">战斗机制详解：异能环合系统</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p>异能环合是《异环》的核心战斗机制，理解它是成为高手的关键。</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">什么是环合？</h4>
+                                <p>当队伍中不同异能属性的角色依次释放技能时，会触发"环合反应"。环合反应的效果取决于参与角色的异能属性组合。</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">基础环合反应表</h4>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>属性组合</th>
+                                                <th>反应名称</th>
+                                                <th>效果</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>炎 + 冰</td>
+                                                <td>蒸汽爆发</td>
+                                                <td>造成范围伤害并降低敌人命中率</td>
+                                            </tr>
+                                            <tr>
+                                                <td>炎 + 雷</td>
+                                                <td>过载爆炸</td>
+                                                <td>造成基于敌人最大生命值的真实伤害</td>
+                                            </tr>
+                                            <tr>
+                                                <td>冰 + 雷</td>
+                                                <td>超导传导</td>
+                                                <td>连锁伤害，跳跃至附近敌人</td>
+                                            </tr>
+                                            <tr>
+                                                <td>风 + 炎</td>
+                                                <td>烈焰风暴</td>
+                                                <td>持续范围伤害，附带击退效果</td>
+                                            </tr>
+                                            <tr>
+                                                <td>风 + 冰</td>
+                                                <td>暴风雪</td>
+                                                <td>大范围减速，持续冻结</td>
+                                            </tr>
+                                            <tr>
+                                                <td>暗 + 任意</td>
+                                                <td>暗影侵蚀</td>
+                                                <td>降低敌人防御和抗性</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">环合技巧</h4>
+                                <p>环合反应有10秒的触发窗口。在第一个角色释放技能后，10秒内切换至第二个角色释放技能即可触发。建议将高伤害技能安排在环合反应之后释放，以最大化伤害输出。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 攻略 3 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">资源规划：如何高效分配培养资源？</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p>资源管理是《异环》中最重要的长期策略之一。以下是详细的资源规划建议：</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">角色培养优先级</h4>
+                                <p>建议集中资源培养2-3个核心角色，而不是平均分配。推荐的主C培养路线：</p>
+                                <ul style="margin: 10px 0 10px 20px; list-style: disc;">
+                                    <li>等级：优先拉满，等级压制效果明显</li>
+                                    <li>技能：主输出技能优先升至最高级</li>
+                                    <li>武器：匹配角色属性的五星武器优先精炼</li>
+                                    <li>异象核心：选择与角色定位匹配的核心套装</li>
+                                </ul>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">金币使用建议</h4>
+                                <p>金币在前期非常紧缺，建议按以下优先级使用：</p>
+                                <ol style="margin: 10px 0 10px 20px; list-style: decimal;">
+                                    <li>角色等级提升</li>
+                                    <li>核心技能升级</li>
+                                    <li>武器强化</li>
+                                    <li>异象核心升级</li>
+                                    <li>商店购买每日必买资源</li>
+                                </ol>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">抽卡资源管理</h4>
+                                <p>每月可获得约60-80抽（含免费和付费）。建议攒到160抽（一个大保底）再抽取限定角色，避免资源浪费。日常抽卡券不要急于使用，等活动限定角色UP时集中抽取。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 攻略 4 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">隐藏任务：都市传说全收集指南</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p>海特洛市隐藏着12个"都市传说"系列隐藏任务，完成全部可获得限定称号和稀有奖励。</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">都市传说触发条件</h4>
+                                <p>都市传说任务没有明确的任务标记，需要在特定时间、特定地点与特定NPC对话才能触发。以下是已知的触发条件：</p>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>任务名称</th>
+                                                <th>触发地点</th>
+                                                <th>触发时间</th>
+                                                <th>奖励</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>午夜电台</td>
+                                                <td>中央广场广播塔</td>
+                                                <td>凌晨0:00-2:00</td>
+                                                <td>限定头像框</td>
+                                            </tr>
+                                            <tr>
+                                                <td>消失的列车</td>
+                                                <td>旧城区地铁站</td>
+                                                <td>雨天任意时间</td>
+                                                <td>稀有武器图纸</td>
+                                            </tr>
+                                            <tr>
+                                                <td>镜中倒影</td>
+                                                <td>购物中心试衣间</td>
+                                                <td>夜晚20:00-22:00</td>
+                                                <td>异象核心碎片</td>
+                                            </tr>
+                                            <tr>
+                                                <td>无人接听</td>
+                                                <td>住宅区公用电话亭</td>
+                                                <td>凌晨3:00-4:00</td>
+                                                <td>限定称号</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">收集提示</h4>
+                                <p>建议在完成主线第5章后再开始收集，此时所有区域均已解锁。部分任务需要特定的天气条件，可以通过游戏内的"时间跳过"功能调整时间和天气。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 攻略 5 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">异象收容：全等级异象应对策略</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p>异象分为E、D、C、B、A、S六个等级，不同等级需要不同的应对策略。</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">E-D级（普通游荡物）</h4>
+                                <p>最常见的异象类型，威胁较低。单人即可轻松应对，建议使用低等级角色练手。掉落基础强化材料和金币。</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">C-B级（危险异象）</h4>
+                                <p>具有一定攻击性和特殊能力，建议组队挑战。注意观察异象的攻击模式，利用环合反应可以快速压制。掉落中级强化材料和异象核心。</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">A级（高危异象）</h4>
+                                <p>拥有复杂的攻击机制和阶段转换，必须组队挑战。建议队伍配置：1名坦克 + 1名辅助 + 2名输出。战斗前准备好足够的回复道具。掉落高级强化材料和稀有武器图纸。</p>
+                                <br>
+                                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">S级（灾厄体）</h4>
+                                <p>最危险的异象等级，拥有毁灭性的力量。需要全服玩家协作挑战的世界Boss。建议提前组织公会成员，分配好各队伍的职责。掉落限定武器和顶级异象核心。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 地图点位页面 -->
+        <section id="map" class="page-section" style="display: none;">
+            <div class="container">
+                <h2 style="font-size: 2rem; margin: 40px 0 20px; color: var(--text-primary);">地图点位</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 30px;">
+                    海特洛市全区域探索指南，标注所有隐藏宝箱、异象刷新点、NPC位置与彩蛋地点。
+                </p>
+
+                <!-- 地图筛选 -->
+                <div class="filter-section">
+                    <button class="filter-tag active" data-filter="all">全部区域</button>
+                    <button class="filter-tag" data-filter="central">中央区</button>
+                    <button class="filter-tag" data-filter="old">旧城区</button>
+                    <button class="filter-tag" data-filter="port">港口区</button>
+                    <button class="filter-tag" data-filter="residential">住宅区</button>
+                </div>
+
+                <!-- 地图点位卡片 -->
+                <div class="card-grid" id="mapGrid">
+                    <!-- 点位 1 -->
+                    <div class="card map-card" data-area="central">
+                        <div class="card-header">
+                            <div class="card-icon">📍</div>
+                            <h3 class="card-title">中央广场隐藏宝箱</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">位于中央广场喷泉正后方，需要绕到喷泉背面才能发现。宝箱内含：金币×5000、中级强化石×3。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">中央区</span>
+                                <span class="card-tag">宝箱</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-link">坐标：X125, Y89</span>
+                        </div>
+                    </div>
+
+                    <!-- 点位 2 -->
+                    <div class="card map-card" data-area="old">
+                        <div class="card-header">
+                            <div class="card-icon">📍</div>
+                            <h3 class="card-title">旧城区废弃工厂异象点</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">废弃工厂二楼办公室内，每晚22:00-24:00刷新C级异象"锈蚀幽灵"。击败后掉落稀有材料"锈铁碎片"。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">旧城区</span>
+                                <span class="card-tag">异象刷新</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-link">坐标：X203, Y156</span>
+                        </div>
+                    </div>
+
+                    <!-- 点位 3 -->
+                    <div class="card map-card" data-area="port">
+                        <div class="card-header">
+                            <div class="card-icon">📍</div>
+                            <h3 class="card-title">港口区集装箱彩蛋</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">在港口区最东侧的红色集装箱顶部，可以找到开发者的签名彩蛋。互动后获得限定表情"码头工人"。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">港口区</span>
+                                <span class="card-tag">彩蛋</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-link">坐标：X312, Y78</span>
+                        </div>
+                    </div>
+
+                    <!-- 点位 4 -->
+                    <div class="card map-card" data-area="residential">
+                        <div class="card-header">
+                            <div class="card-icon">📍</div>
+                            <h3 class="card-title">住宅区楼顶宝箱</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">住宅区7号楼楼顶水塔旁边，需要利用风系角色的二段跳才能到达。宝箱内含：抽卡券×1、高级强化石×2。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">住宅区</span>
+                                <span class="card-tag">宝箱</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-link">坐标：X89, Y234</span>
+                        </div>
+                    </div>
+
+                    <!-- 点位 5 -->
+                    <div class="card map-card" data-area="central">
+                        <div class="card-header">
+                            <div class="card-icon">📍</div>
+                            <h3 class="card-title">中央图书馆NPC任务</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">图书馆二楼角落的老图书管理员，与其对话可触发隐藏任务"遗失的古籍"。完成任务后获得限定武器"知识之杖"。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">中央区</span>
+                                <span class="card-tag">NPC任务</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-link">坐标：X156, Y112</span>
+                        </div>
+                    </div>
+
+                    <!-- 点位 6 -->
+                    <div class="card map-card" data-area="old">
+                        <div class="card-header">
+                            <div class="card-icon">📍</div>
+                            <h3 class="card-title">旧城区地下通道</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">地铁站B出口的隐藏通道，通往一个未标记的地下区域。内部有A级异象"深渊凝视者"，击败后掉落传说级异象核心。</p>
+                            <div class="card-tags">
+                                <span class="card-tag">旧城区</span>
+                                <span class="card-tag">隐藏区域</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-link">坐标：X189, Y167</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 设置页面 -->
+        <section id="settings" class="page-section" style="display: none;">
+            <div class="container">
+                <h2 style="font-size: 2rem; margin: 40px 0 20px; color: var(--text-primary);">设置</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 30px;">
+                    自定义你的浏览体验，包括主题切换、字体大小调节等选项。
+                </p>
+
+                <div class="card-grid" style="max-width: 800px; margin: 0 auto;">
+                    <!-- 主题切换 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">🎨</div>
+                            <h3 class="card-title">主题模式</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">切换网站的显示主题，暗黑模式适合夜间浏览，明亮模式适合白天使用。</p>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="btn btn-primary" onclick="setTheme('dark')" style="flex: 1;">暗黑模式</button>
+                                <button class="btn btn-outline" onclick="setTheme('light')" style="flex: 1;">明亮模式</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 字体大小 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">🔤</div>
+                            <h3 class="card-title">字体大小</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">调整网站的整体字体大小，找到最适合你的阅读体验。</p>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="btn btn-outline" onclick="setFontSize('small')" style="flex: 1;">小</button>
+                                <button class="btn btn-outline" onclick="setFontSize('medium')" style="flex: 1;">中</button>
+                                <button class="btn btn-outline" onclick="setFontSize('large')" style="flex: 1;">大</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 数据同步 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">🔄</div>
+                            <h3 class="card-title">数据同步</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">将你的浏览设置同步到云端，在不同设备上保持一致的浏览体验。</p>
+                            <button class="btn btn-primary" style="margin-top: 15px;" onclick="showToast('设置已同步到云端', 'success')">同步设置</button>
+                        </div>
+                    </div>
+
+                    <!-- 清除缓存 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">🗑️</div>
+                            <h3 class="card-title">清除缓存</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">清除本地缓存数据，解决可能出现的显示异常问题。清除后需要重新加载部分资源。</p>
+                            <button class="btn btn-outline" style="margin-top: 15px; border-color: var(--danger-color); color: var(--danger-color);" onclick="clearCache()">清除缓存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 回到顶部按钮 -->
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()" aria-label="回到顶部">↑</button>
+
+    <!-- 侧边工具栏 -->
+    <div class="sidebar">
+        <button class="sidebar-btn" onclick="showToast('已复制链接', 'success')" title="复制链接">🔗</button>
+        <button class="sidebar-btn" onclick="showToast('已反馈', 'success')" title="反馈问题">💬</button>
+    </div>
+
+    <!-- 角色详情模态框 -->
+    <div class="modal-overlay" id="characterModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">角色详情</h3>
+                <button class="modal-close" onclick="closeCharacterModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 动态内容 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h4>关于异环</h4>
+                    <ul>
+                        <li><a href="https://yihuan.hotta.com/" target="_blank">官方网站</a></li>
+                        <li><a href="https://space.bilibili.com/异环官方" target="_blank">B站官方</a></li>
+                        <li><a href="https://weibo.com/异环" target="_blank">官方微博</a></li>
+                        <li><a href="https://www.taptap.cn/app/238065" target="_blank">TapTap</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>快速导航</h4>
+                    <ul>
+                        <li><a href="#home">首页</a></li>
+                        <li><a href="#characters">角色图鉴</a></li>
+                        <li><a href="#weapons">武器库</a></li>
+                        <li><a href="#guides">攻略中心</a></li>
+                        <li><a href="#map">地图点位</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>社区</h4>
+                    <ul>
+                        <li><a href="#">玩家论坛</a></li>
+                        <li><a href="#">攻略投稿</a></li>
+                        <li><a href="#">问题反馈</a></li>
+                        <li><a href="#">更新日志</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>联系方式</h4>
+                    <ul>
+                        <li><a href="mailto:contact@yihuan-guide.com">邮箱联系</a></li>
+                        <li><a href="#">商务合作</a></li>
+                        <li><a href="#">加入我们</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 异环鉴定指南. 本网站为粉丝制作，与游戏官方无关. 数据来源：游戏公开资料</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript 功能 -->
+    <script>
+        // ========================================
+        // 页面加载完成事件
+        // ========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 隐藏加载动画
+            setTimeout(function() {
+                document.getElementById('loader').classList.add('hidden');
+            }, 500);
+
+            // 恢复保存的主题
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+
+            // 恢复保存的字体大小
+            const savedFontSize = localStorage.getItem('fontSize') || 'medium';
+            setFontSize(savedFontSize);
+        });
+
+        // ========================================
+        // 导航菜单切换（移动端）
+        // ========================================
+        const menuToggle = document.getElementById('menuToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        menuToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+        });
+
+        // ========================================
+        // 页面导航
+        // ========================================
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pageSections = document.querySelectorAll('.page-section');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 更新激活状态
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+
+                // 隐藏所有页面，显示目标页面
+                const targetPage = this.getAttribute('data-page');
+                pageSections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                document.getElementById(targetPage).style.display = 'block';
+
+                // 移动端点击后关闭菜单
+                navMenu.classList.remove('active');
+
+                // 滚动到顶部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // ========================================
+        // 折叠面板功能
+        // ========================================
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            const content = item.querySelector('.accordion-content');
+            const isActive = item.classList.contains('active');
+
+            // 关闭所有面板
+            document.querySelectorAll('.accordion-item').forEach(accItem => {
+                accItem.classList.remove('active');
+                accItem.querySelector('.accordion-content').style.maxHeight = '0';
+            });
+
+            // 如果点击的不是当前激活的面板，则展开它
+            if (!isActive) {
+                item.classList.add('active');
+                content.style.maxHeight = content.scrollHeight + 'px';
+            }
+        }
+
+        // ========================================
+        // 回到顶部功能
+        // ========================================
+        const backToTopBtn = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ========================================
+        // 主题切换功能
+        // ========================================
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            showToast('已切换到' + (theme === 'dark' ? '暗黑' : '明亮') + '模式', 'success');
+        }
+
+        // ========================================
+        // 字体大小调节功能
+        // ========================================
+        function setFontSize(size) {
+            const sizes = {
+                small: '14px',
+                medium: '16px',
+                large: '18px'
+            };
+            document.documentElement.style.setProperty('--font-size-base', sizes[size]);
+            localStorage.setItem('fontSize', size);
+            showToast('字体大小已调整', 'success');
+        }
+
+        // ========================================
+        // 通知提示功能
+        // ========================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span>${type === 'success' ? '✓' : type === 'error' ? '✕' : '⚠'}</span>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+
+            // 触发动画
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            // 3秒后移除
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ========================================
+        // 角色详情模态框功能
+        // ========================================
+        const characterModal = document.getElementById('characterModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+
+        const characterData = {
+            '凌焰': {
+                type: '炎系',
+                role: '近战输出',
+                rarity: '★★★★★',
+                skills: [
+                    { name: '普通攻击·炎刃', desc: '连续挥砍，最后一击造成额外炎属性伤害' },
+                    { name: '技能·烈焰冲锋', desc: '向前冲锋，对路径上的敌人造成炎属性伤害并附加燃烧效果' },
+                    { name: '异能·炎狱降临', desc: '召唤炎狱领域，持续对范围内敌人造成大量炎属性伤害' },
+                    { name: '环合技·焚天', desc: '与冰系角色触发环合，造成基于敌人最大生命值的真实伤害' }
+                ],
+                tips: '凌焰是前期最强的主C角色之一，建议优先培养。搭配冰系角色可以触发强力环合反应。'
+            },
+            '霜语': {
+                type: '冰系',
+                role: '控制辅助',
+                rarity: '★★★★★',
+                skills: [
+                    { name: '普通攻击·霜华', desc: '释放冰晶，命中敌人有概率附加减速效果' },
+                    { name: '技能·冰封领域', desc: '在目标区域制造冰面，减速敌人并提高友方闪避率' },
+                    { name: '异能·绝对零度', desc: '冻结所有敌人，持续5秒，期间敌人无法行动' },
+                    { name: '环合技·极寒风暴', desc: '与雷系角色触发环合，造成连锁冻结伤害' }
+                ],
+                tips: '霜语是队伍中不可或缺的控制核心，适合所有需要控制的副本。'
+            },
+            '雷霆': {
+                type: '雷系',
+                role: '机动收割',
+                rarity: '★★★★★',
+                skills: [
+                    { name: '普通攻击·雷闪', desc: '快速连击，每次命中提高移动速度' },
+                    { name: '技能·雷霆万钧', desc: '瞬移到敌人身后发动斩击，附带麻痹效果' },
+                    { name: '异能·雷神之怒', desc: '召唤雷暴，对全场敌人造成雷属性伤害' },
+                    { name: '环合技·超导湮灭', desc: '与冰系角色触发环合，造成连锁传导伤害' }
+                ],
+                tips: '雷霆拥有极高的机动性，适合快速清理小怪和收割残血敌人。'
+            },
+            '风吟': {
+                type: '风系',
+                role: '群攻机动',
+                rarity: '★★★★',
+                skills: [
+                    { name: '普通攻击·风刃', desc: '释放风刃，对直线上的敌人造成伤害' },
+                    { name: '技能·龙卷天升', desc: '制造龙卷风，将敌人聚集并造成持续伤害' },
+                    { name: '异能·飓风之眼', desc: '进入飓风状态，免疫控制并大幅提高移动速度' },
+                    { name: '环合技·烈焰风暴', desc: '与炎系角色触发环合，造成大范围持续燃烧伤害' }
+                ],
+                tips: '风吟是清理群怪的最佳选择，探索地图时也非常实用。'
+            },
+            '夜枭': {
+                type: '暗系',
+                role: '削弱持续',
+                rarity: '★★★★',
+                skills: [
+                    { name: '普通攻击·暗影', desc: '释放暗影能量，降低目标防御' },
+                    { name: '技能·暗影缠绕', desc: '束缚敌人，持续造成暗属性伤害并降低抗性' },
+                    { name: '异能·深渊凝视', desc: '标记所有敌人，使其受到的伤害提高20%' },
+                    { name: '环合技·暗影侵蚀', desc: '与任意属性触发环合，大幅降低敌人防御和抗性' }
+                ],
+                tips: '夜枭适合持久战和高难度副本，削弱效果对Boss战非常有效。'
+            },
+            '冰璃': {
+                type: '冰系',
+                role: '防御坦克',
+                rarity: '★★★★',
+                skills: [
+                    { name: '普通攻击·冰锤', desc: '重击地面，造成范围伤害并短暂减速' },
+                    { name: '技能·冰墙', desc: '制造冰墙阻挡敌人，保护后方队友' },
+                    { name: '异能·绝对壁垒', desc: '获得护盾，吸收大量伤害，持续10秒' },
+                    { name: '环合技·永冻领域', desc: '与雷系角色触发环合，制造持续减速领域' }
+                ],
+                tips: '冰璃是队伍中的主坦克，高难度副本必备角色。'
+            }
+        };
+
+        function openCharacterModal(characterName) {
+            const data = characterData[characterName];
+            if (!data) return;
+
+            modalTitle.textContent = characterName;
+            modalBody.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <span style="color: var(--text-muted);">属性：</span>
+                    <span style="color: var(--primary-color);">${data.type}</span> |
+                    <span style="color: var(--secondary-color);">${data.role}</span> |
+                    <span style="color: #ffd700;">${data.rarity}</span>
+                </div>
+                <h4 style="color: var(--text-primary); margin: 15px 0 10px;">技能列表</h4>
+                <ul style="margin: 10px 0;">
+                    ${data.skills.map(skill => `
+                        <li style="margin-bottom: 8px;">
+                            <strong style="color: var(--text-primary);">${skill.name}</strong>：
+                            <span style="color: var(--text-secondary);">${skill.desc}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+                <div style="margin-top: 15px; padding: 12px; background-color: var(--bg-hover); border-radius: 8px;">
+                    <strong style="color: var(--accent-color);">培养建议：</strong>
+                    <span style="color: var(--text-secondary);">${data.tips}</span>
+                </div>
+            `;
+            characterModal.classList.add('active');
+        }
+
+        function closeCharacterModal() {
+            characterModal.classList.remove('active');
+        }
+
+        // 点击模态框外部关闭
+        characterModal.addEventListener('click', function(e) {
+            if (e.target === characterModal) {
+                closeCharacterModal();
+            }
+        });
+
+        // ========================================
+        // 筛选功能
+        // ========================================
+        const filterTags = document.querySelectorAll('.filter-tag');
+
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // 更新激活状态
+                const parent = this.parentElement;
+                parent.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // 执行筛选
+                const filter = this.getAttribute('data-filter');
+                const container = parent.nextElementSibling || parent.parentElement.nextElementSibling;
+                const cards = container.querySelectorAll('.card');
+
+                cards.forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-type') === filter || card.getAttribute('data-area') === filter) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // ========================================
+        // 清除缓存功能
+        // ========================================
+        function clearCache() {
+            localStorage.clear();
+            sessionStorage.clear();
+            showToast('缓存已清除，页面将刷新', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    </script>
+</body>
+</html>
