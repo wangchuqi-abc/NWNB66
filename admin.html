@@ -3,84 +3,333 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BliBli_week副站排名</title>
+    <title>管理员身份验证</title>
     <style>
-        body {
-            background-color: #121212;
-            color: #fff;
-            font-family: 'Microsoft YaHei', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; min-height: 100vh; }
+
+        /* ========== 登录区域 ========== */
+        .login-section {
+            width: 100%;
             min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee);
         }
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 30px;
+        .login-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px 35px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 380px;
             text-align: center;
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
         }
-        .video-container {
-            width: 100%;
-            max-width: 900px;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        .login-title {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
         }
-        iframe {
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+        .form-group input {
             width: 100%;
-            height: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #888;
+            box-shadow: 0 0 5px rgba(136, 136, 136, 0.5);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #666;
+            color: #fff;
             border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        .login-btn:hover { background-color: #555; }
+        .error-msg {
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* ========== 后台管理区域 ========== */
+        .admin-section {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            flex-direction: row;
+        }
+        .sidebar {
+            width: 220px;
+            background-color: #2c3e50;
+            color: #fff;
+            flex-shrink: 0;
+            padding: 0;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #34495e;
+            font-size: 13px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .nav-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 15px;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover { background-color: #34495e; }
+        .nav-item.active {
+            background-color: #34495e;
+            border-left-color: #3498db;
+        }
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            background: #f5f5f5;
+        }
+        .page-title {
+            color: #000;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        .content-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            max-width: 600px;
+        }
+        .content-card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 16px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .content-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .content-card p span {
+            color: #333;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 15px;
+        }
+        .content-card input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            margin-bottom: 15px;
+        }
+        .content-card input[type="text"]:focus {
+            border-color: #888;
+            box-shadow: 0 0 5px rgba(136, 136, 136, 0.5);
+        }
+        .replace-btn {
+            padding: 12px 30px;
+            background-color: #666;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .replace-btn:hover { background-color: #555; }
+        .success-msg {
+            color: #2e7d32;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+            background: #e8f5e9;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #c8e6c9;
+        }
+        .hint {
+            color: #999;
+            font-size: 12px;
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
 
-    <h1>BliBli_week副站排名</h1>
-
-    <div class="video-container">
-        <!-- 默认先加载你之前的BV号保底 -->
-        <iframe 
-            id="bili-player"
-            src="//player.bilibili.com/player.html?bvid=BV1Z4b96sEWy&high_quality=1" 
-            allowfullscreen="true">
-        </iframe>
+    <!-- ===== 登录区域 ===== -->
+    <div class="login-section" id="loginSection">
+        <div class="login-card">
+            <h1 class="login-title">管理员身份验证</h1>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" placeholder="请输入管理员账号" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="login-btn">登 录</button>
+                <div id="errorMsg" class="error-msg">用户名或密码错误，请重试</div>
+            </form>
+        </div>
     </div>
 
-    <!-- 底部管理员跳转链接 -->
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="http://nianwan.cn.mt/admin.html" style="color: #00a1d6; font-size: 14px; text-decoration: none;">管理员界面</a>
+    <!-- ===== 后台管理区域 ===== -->
+    <div class="admin-section" id="adminSection">
+        <div class="sidebar">
+            <div class="sidebar-header">管理菜单</div>
+            <div class="nav-item active">周榜BV号替换</div>
+        </div>
+        <div class="main-content">
+            <h1 class="page-title">哔哩哔哩WEEK工作人员后台</h1>
+            <div class="content-card">
+                <h3>周榜BV号替换</h3>
+                <p>当前BV号：<span id="currentBV">BV1Z4b96sEWy</span></p>
+                <input type="text" id="newBV" placeholder="请输入新的BV号（例如 BV1xxx）">
+                <button class="replace-btn" id="replaceBtn">确认替换</button>
+                <div id="successMsg" class="success-msg">
+                    替换成功！已生成新的 index.html 文件，请下载并上传到服务器覆盖原文件。
+                </div>
+                <div class="hint">提示：下载后将 index.html 上传覆盖服务器上的原文件即可生效。</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // 站长，你的 UID 已经写在这里了
-        const UID = '2001549048';
-        // 保底用的旧 BV号（防止接口抽风时黑屏）
-        const FALLBACK_BV = 'BV1Z4b96sEWy';
+        // ===== 登录验证 =====
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var username = document.getElementById('username').value.trim();
+            var password = document.getElementById('password').value;
 
-        // 网页加载时自动去 B站 抓取最新视频
-        fetch(`https://api.bilibili.com/x/space/wbi/arc/search?mid=${UID}&ps=1&pn=1`)
-            .then(res => res.json())
-            .then(data => {
-                // 如果成功拿到了最新视频的 BV号
-                if (data.code === 0 && data.data?.list?.vlist?.length > 0) {
-                    const latestBV = data.data.list.vlist[0].bvid;
-                    // 动态替换播放器的 src
-                    document.getElementById('bili-player').src = 
-                        `//player.bilibili.com/player.html?bvid=${latestBV}&high_quality=1`;
-                    console.log('🎉 成功加载站长最新视频:', latestBV);
-                }
-            })
-            .catch(err => {
-                // 如果抓取失败（比如跨域限制），保持原来的保底视频不动
-                console.warn('⚠️ 自动抓取失败，使用保底视频:', err);
-            });
+            if (username === 'admin' && password === '123456789@') {
+                // 登录成功，隐藏登录区
+                document.getElementById('loginSection').style.display = 'none';
+                // 过两秒显示后台
+                setTimeout(function() {
+                    document.getElementById('adminSection').style.display = 'flex';
+                }, 2000);
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+                setTimeout(function() {
+                    document.getElementById('errorMsg').style.display = 'none';
+                }, 3000);
+            }
+        });
+
+        // ===== BV号替换：生成新的 index.html 并下载 =====
+        document.getElementById('replaceBtn').addEventListener('click', function() {
+            var newBV = document.getElementById('newBV').value.trim();
+            if (!newBV) {
+                alert('请输入BV号');
+                return;
+            }
+
+            // 生成更新后的 index.html 完整内容
+            var newHtml = [
+                '<!DOCTYPE html>',
+                '<html lang="zh-CN">',
+                '<head>',
+                '    <meta charset="UTF-8">',
+                '    <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+                '    <title>BliBli_week副站排名</title>',
+                '    <style>',
+                '        body {',
+                '            background-color: #121212;',
+                '            color: #fff;',
+                '            font-family: \'Microsoft YaHei\', sans-serif;',
+                '            display: flex;',
+                '            flex-direction: column;',
+                '            align-items: center;',
+                '            justify-content: center;',
+                '            min-height: 100vh;',
+                '            margin: 0;',
+                '            padding: 20px;',
+                '            box-sizing: border-box;',
+                '        }',
+                '        h1 {',
+                '            font-size: 2.5rem;',
+                '            margin-bottom: 30px;',
+                '            text-align: center;',
+                '            text-shadow: 0 0 10px rgba(255,255,255,0.3);',
+                '        }',
+                '        .video-container {',
+                '            width: 100%;',
+                '            max-width: 900px;',
+                '            aspect-ratio: 16 / 9;',
+                '            background: #000;',
+                '            border-radius: 8px;',
+                '            overflow: hidden;',
+                '            box-shadow: 0 4px 20px rgba(0,0,0,0.5);',
+                '        }',
+                '        iframe {',
+                '            width: 100%;',
+                '            height: 100%;',
+                '            border: none;',
+                '        }',
+                '    </style>',
+                '</head>',
+                '<body>',
+                '    <h1>BliBli_week副站排名</h1>',
+                '    <div class="video-container">',
+                '        <iframe src="//player.bilibili.com/player.html?bvid=' + newBV + '&high_quality=1" allowfullscreen="true"></iframe>',
+                '    </div>',
+                '    <div style="text-align: center; margin-top: 20px;">',
+                '        <a href="http://nianwan.cn.mt/admin.html" style="color: #00a1d6; font-size: 14px; text-decoration: none;">管理员界面</a>',
+                '    </div>',
+                '</body>',
+                '</html>'
+            ].join('\n');
+
+            // 创建下载链接
+            var blob = new Blob([newHtml], { type: 'text/html' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // 显示成功提示
+            document.getElementById('successMsg').style.display = 'block';
+        });
     </script>
 
 </body>
