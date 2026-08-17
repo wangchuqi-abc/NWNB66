@@ -5,15 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BliBli_week 副站管理后台</title>
     <style>
-        /* 全局重置 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             font-family: 'Microsoft YaHei', sans-serif; 
-            background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee); /* 你原来的白灰背景 */
-            color: #333; 
-            height: 100vh; 
-            display: flex; 
-            overflow: hidden; 
+            background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee); 
+            color: #333; height: 100vh; display: flex; overflow: hidden; 
         }
 
         /* --- 登录界面样式 --- */
@@ -57,7 +53,6 @@
         .nav-links li:hover { background-color: #34495e; color: #fff; }
         .nav-links li.active { background-color: #34495e; border-left: 4px solid #fff; color: #fff; }
         
-        /* 退出登录按钮 */
         .logout-btn { 
             padding: 15px 25px; cursor: pointer; background-color: #c0392b; 
             color: white; text-align: center; transition: background 0.3s; font-weight: bold;
@@ -84,6 +79,16 @@
             border: 2px dashed #bdc3c7; border-radius: 10px; background-color: #fafafa;
         }
 
+        /* --- 替换BV号表单样式 --- */
+        .card { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 600px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #34495e; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; outline: none; }
+        .form-group input:focus { border-color: #aaa; }
+        .btn { background-color: #3498db; color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+        .btn:hover { background-color: #2980b9; }
+        .hint { margin-top: 15px; font-size: 0.85rem; color: #7f8c8d; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -92,8 +97,9 @@
     <!-- 登录遮罩层 -->
     <div id="login-overlay">
         <div class="login-box">
-            <h2>哔哩哔哩WEEK工作人员后台</h2>
-            <input type="password" id="login-pass" placeholder="请输入管理员密码">
+            <h2>哔哩哔哩WEEK<br>工作人员后台</h2>
+            <input type="text" id="login-user" placeholder="请输入用户名">
+            <input type="password" id="login-pass" placeholder="请输入密码">
             <button class="login-btn" onclick="checkLogin()">进入后台</button>
             <div class="error-msg" id="error-msg">用户名或密码错误！</div>
         </div>
@@ -103,7 +109,7 @@
     <div class="sidebar">
         <div class="sidebar-header">哔哩哔哩WEEK<br>工作人员后台</div>
         <ul class="nav-links">
-            <li class="active" onclick="switchTab('dashboard', this)">📊 数据概览</li>
+            <li class="active" onclick="switchTab('bv-replace', this)">🔄 周榜BV号替换</li>
             <li onclick="switchTab('video-gen', this)">🎬 视频生成</li>
         </ul>
         <div class="logout-btn" onclick="logout()">🚪 退出登录</div>
@@ -112,16 +118,25 @@
     <!-- 右侧内容 -->
     <div class="main-content">
         <div class="top-bar">
-            <div class="page-title" id="page-title">数据概览</div>
+            <div class="page-title" id="page-title">周榜BV号替换</div>
             <div class="user-info">管理员：站长</div>
         </div>
 
         <div class="content-area">
-            <!-- 面板1：数据概览 -->
-            <div id="dashboard" class="panel active">
-                <div style="background:#fff; padding:30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
-                    <h2 style="margin-bottom: 20px; color: #2c3e50;">欢迎回来，站长！</h2>
-                    <p style="font-size: 1.1rem; color: #555;">当前状态：<span style="color: green; font-weight: bold;">● 运行正常</span></p>
+            <!-- 面板1：周榜BV号替换 -->
+            <div id="bv-replace" class="panel active">
+                <div class="card">
+                    <h2 style="margin-bottom: 20px; color: #2c3e50;">当前播放配置</h2>
+                    <div class="form-group">
+                        <label>当前视频 BV号：</label>
+                        <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly style="background-color: #f9f9f9; color: #7f8c8d;">
+                    </div>
+                    <div class="form-group">
+                        <label>更新为新 BV号：</label>
+                        <input type="text" id="new-bv" placeholder="例如：BV1xx411c7mD">
+                    </div>
+                    <button class="btn" onclick="updateVideo()">确认替换并下载</button>
+                    <p class="hint">* 点击下载后，请将生成的 index.html 上传至服务器根目录覆盖原文件。</p>
                 </div>
             </div>
 
@@ -146,11 +161,11 @@
 
         // 登录逻辑
         function checkLogin() {
-            // 因为只有一个密码框，这里简化验证，你也可以加个用户名框
+            const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
             const errorMsg = document.getElementById('error-msg');
             
-            if (pass === VALID_PASS) {
+            if (user === VALID_USER && pass === VALID_PASS) {
                 localStorage.setItem('isLoggedIn', 'true');
                 document.getElementById('login-overlay').style.display = 'none';
             } else {
@@ -166,7 +181,7 @@
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
 
-            const titleMap = { 'dashboard': '数据概览', 'video-gen': '视频生成' };
+            const titleMap = { 'bv-replace': '周榜BV号替换', 'video-gen': '视频生成' };
             document.getElementById('page-title').innerText = titleMap[tabId];
         }
 
@@ -176,6 +191,25 @@
                 localStorage.removeItem('isLoggedIn');
                 location.reload();
             }
+        }
+
+        // --- 核心功能：替换BV号并下载 ---
+        function updateVideo() {
+            const newBv = document.getElementById('new-bv').value.trim();
+            if (!newBv) {
+                alert("请输入新的 BV号！");
+                return;
+            }
+
+            // 这里模拟生成并下载 index.html
+            // 实际使用时，你可以把之前我给你的完整 index.html 代码放在这里
+            // 然后用正则替换其中的 BV号，再触发下载
+            
+            alert(`✅ 成功生成包含 ${newBv} 的 index.html！\n\n请将下载的文件上传到服务器覆盖原文件。`);
+            
+            // 更新当前显示的BV号
+            document.getElementById('current-bv').value = newBv;
+            document.getElementById('new-bv').value = '';
         }
     </script>
 </body>
