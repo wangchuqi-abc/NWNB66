@@ -21,22 +21,33 @@
         h1 {
             font-size: 2.5rem;
             margin-bottom: 30px;
-            text-align: center;
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
         .video-container {
+            position: relative;
             width: 100%;
-            max-width: 900px;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            border-radius: 8px;
+            max-width: 960px; /* 限制最大宽度，保持美观 */
+            aspect-ratio: 16 / 9; /* 保持16:9比例 */
+            background-color: #000;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #333;
         }
         iframe {
             width: 100%;
             height: 100%;
             border: none;
+        }
+        .admin-link {
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        .admin-link:hover {
+            color: #fff;
         }
     </style>
 </head>
@@ -44,43 +55,45 @@
 
     <h1>BliBli_week副站排名</h1>
 
+    <!-- 视频播放区域 -->
     <div class="video-container">
-        <!-- 默认先加载你之前的BV号保底 -->
+        <!-- 默认播放视频：BV1Z4b96sEWy -->
+        <!-- 以后更新时，只需修改 src 中的 BV号 即可 -->
         <iframe 
             id="bili-player"
-            src="//player.bilibili.com/player.html?bvid=BV1Z4b96sEWy&high_quality=1" 
-            allowfullscreen="true">
+            src="//player.bilibili.com/player.html?isOutside=true&aid=&bvid=BV1Z4b96sEWy&cid=&p=1&high_quality=1&danmaku=0" 
+            allowfullscreen="allowfullscreen" 
+            width="100%" 
+            height="100%" 
+            scrolling="no" 
+            frameborder="0" 
+            sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts">
         </iframe>
     </div>
 
-    <!-- 底部管理员跳转链接 -->
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="http://nianwan.cn.mt/admin.html" style="color: #00a1d6; font-size: 14px; text-decoration: none;">管理员界面</a>
-    </div>
+    <!-- 管理员入口 -->
+    <a href="admin.html" class="admin-link">管理员界面</a>
 
     <script>
-        // 站长，你的 UID 已经写在这里了
-        const UID = '2001549048';
-        // 保底用的旧 BV号（防止接口抽风时黑屏）
-        const FALLBACK_BV = 'BV1Z4b96sEWy';
+        // 页面加载时，检查本地存储是否有新的 BV 号
+        // 这样你在 admin.html 修改后，这里会自动读取并播放新的
+        window.onload = function() {
+            const savedBV = localStorage.getItem('current_bvid');
+            if (savedBV) {
+                updatePlayer(savedBV);
+            }
+        };
 
-        // 网页加载时自动去 B站 抓取最新视频
-        fetch(`https://api.bilibili.com/x/space/wbi/arc/search?mid=${UID}&ps=1&pn=1`)
-            .then(res => res.json())
-            .then(data => {
-                // 如果成功拿到了最新视频的 BV号
-                if (data.code === 0 && data.data?.list?.vlist?.length > 0) {
-                    const latestBV = data.data.list.vlist[0].bvid;
-                    // 动态替换播放器的 src
-                    document.getElementById('bili-player').src = 
-                        `//player.bilibili.com/player.html?bvid=${latestBV}&high_quality=1`;
-                    console.log('🎉 成功加载站长最新视频:', latestBV);
-                }
-            })
-            .catch(err => {
-                // 如果抓取失败（比如跨域限制），保持原来的保底视频不动
-                console.warn('⚠️ 自动抓取失败，使用保底视频:', err);
-            });
+        // 更新播放器的函数
+        function updatePlayer(bvid) {
+            const player = document.getElementById('bili-player');
+            // 拼接 B站的高清播放器链接
+            // high_quality=1 开启高清
+            // danmaku=0 默认关闭弹幕（可选）
+            const newSrc = `//player.bilibili.com/player.html?isOutside=true&bvid=${bvid}&p=1&high_quality=1&danmaku=0`;
+            player.src = newSrc;
+            console.log(`✅ 已加载视频: ${bvid}`);
+        }
     </script>
 
 </body>
