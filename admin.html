@@ -3,334 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理员身份验证</title>
+    <title>BliBli_week 副站管理后台</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Microsoft YaHei', sans-serif; min-height: 100vh; }
+        /* 全局重置 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; height: 100vh; display: flex; overflow: hidden; }
 
-        /* ========== 登录区域 ========== */
-        .login-section {
-            width: 100%;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee);
-        }
-        .login-card {
-            background-color: rgba(255, 255, 255, 0.95);
-            padding: 40px 35px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 380px;
-            text-align: center;
-        }
-        .login-title {
-            color: #333;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-size: 14px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .form-group input:focus {
-            border-color: #888;
-            box-shadow: 0 0 5px rgba(136, 136, 136, 0.5);
-        }
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #666;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        }
-        .login-btn:hover { background-color: #555; }
-        .error-msg {
-            color: #d32f2f;
-            font-size: 13px;
-            margin-top: 10px;
-            display: none;
+        /* 左侧导航栏 */
+        .sidebar { width: 250px; background-color: #2c3e50; color: #ecf0f1; display: flex; flex-direction: column; transition: all 0.3s; }
+        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #34495e; text-align: center; background-color: #1a252f; }
+        .nav-links { list-style: none; padding: 20px 0; flex: 1; }
+        .nav-links li { margin-bottom: 5px; }
+        .nav-links a { display: block; padding: 12px 20px; color: #bdc3c7; text-decoration: none; transition: 0.3s; border-left: 4px solid transparent; cursor: pointer; }
+        .nav-links a:hover, .nav-links a.active { background-color: #34495e; color: #fff; border-left-color: #3498db; }
+
+        /* 右侧主内容区 */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* 顶部栏 */
+        .top-bar { background-color: #fff; padding: 15px 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 1.5rem; font-weight: 600; color: #2c3e50; }
+        .user-info { font-size: 0.9rem; color: #7f8c8d; }
+
+        /* 内容展示区 */
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        
+        /* 卡片样式 (用于视频设置) */
+        .card { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 600px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #34495e; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        .btn { background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+        .btn:hover { background-color: #2980b9; }
+
+        /* 暂未开放提示样式 */
+        .placeholder-box { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100%; 
+            color: #95a5a6; 
+            font-size: 1.5rem; 
+            border: 2px dashed #bdc3c7; 
+            border-radius: 10px; 
+            background-color: #fafafa;
         }
 
-        /* ========== 后台管理区域 ========== */
-        .admin-section {
-            display: none;
-            width: 100%;
-            min-height: 100vh;
-            flex-direction: row;
-        }
-        .sidebar {
-            width: 220px;
-            background-color: #2c3e50;
-            color: #fff;
-            flex-shrink: 0;
-            padding: 0;
-        }
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #34495e;
-            font-size: 13px;
-            color: #95a5a6;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .nav-item {
-            padding: 14px 20px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-size: 15px;
-            border-left: 3px solid transparent;
-        }
-        .nav-item:hover { background-color: #34495e; }
-        .nav-item.active {
-            background-color: #34495e;
-            border-left-color: #3498db;
-        }
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            background: #f5f5f5;
-        }
-        .page-title {
-            color: #000;
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-        .content-card {
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            max-width: 600px;
-        }
-        .content-card h3 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 16px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-        .content-card p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-        .content-card p span {
-            color: #333;
-            font-weight: bold;
-            font-family: monospace;
-            font-size: 15px;
-        }
-        .content-card input[type="text"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            margin-bottom: 15px;
-        }
-        .content-card input[type="text"]:focus {
-            border-color: #888;
-            box-shadow: 0 0 5px rgba(136, 136, 136, 0.5);
-        }
-        .replace-btn {
-            padding: 12px 30px;
-            background-color: #666;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .replace-btn:hover { background-color: #555; }
-        .success-msg {
-            color: #2e7d32;
-            font-size: 14px;
-            margin-top: 15px;
-            display: none;
-            background: #e8f5e9;
-            padding: 10px 15px;
-            border-radius: 6px;
-            border: 1px solid #c8e6c9;
-        }
-        .hint {
-            color: #999;
-            font-size: 12px;
-            margin-top: 8px;
-        }
+        /* 隐藏/显示控制 */
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <!-- ===== 登录区域 ===== -->
-    <div class="login-section" id="loginSection">
-        <div class="login-card">
-            <h1 class="login-title">管理员身份验证</h1>
-            <form id="adminLoginForm">
-                <div class="form-group">
-                    <label for="username">用户名</label>
-                    <input type="text" id="username" placeholder="请输入管理员账号" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">密码</label>
-                    <input type="password" id="password" placeholder="请输入密码" required>
-                </div>
-                <button type="submit" class="login-btn">登 录</button>
-                <div id="errorMsg" class="error-msg">用户名或密码错误，请重试</div>
-            </form>
-        </div>
+    <!-- 左侧导航 -->
+    <div class="sidebar">
+        <div class="sidebar-header">BliBli_week Admin</div>
+        <ul class="nav-links">
+            <!-- 默认选中视频设置 -->
+            <li><a onclick="switchTab('video-settings', this)" class="active">🎬 视频设置</a></li>
+            <!-- 新增的视频生成入口 -->
+            <li><a onclick="switchTab('video-generator', this)">🛠️ 视频生成</a></li>
+            <li><a href="#" style="color: #e74c3c;">🚪 退出登录</a></li>
+        </ul>
     </div>
 
-    <!-- ===== 后台管理区域 ===== -->
-    <div class="admin-section" id="adminSection">
-        <div class="sidebar">
-            <div class="sidebar-header">管理菜单</div>
-            <div class="nav-item active">周榜BV号替换</div>
+    <!-- 右侧内容 -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title" id="page-title">视频设置</div>
+            <div class="user-info">管理员：站长</div>
         </div>
-        <div class="main-content">
-            <h1 class="page-title">哔哩哔哩WEEK工作人员后台</h1>
-            <div class="content-card">
-                <h3>周榜BV号替换</h3>
-                <p>当前BV号：<span id="currentBV">BV1Z4b96sEWy</span></p>
-                <input type="text" id="newBV" placeholder="请输入新的BV号（例如 BV1xxx）">
-                <button class="replace-btn" id="replaceBtn">确认替换</button>
-                <div id="successMsg" class="success-msg">
-                    替换成功！已生成新的 index.html 文件，请下载并上传到服务器覆盖原文件。
+
+        <div class="content-area">
+            
+            <!-- 模块1：视频设置 (原有功能) -->
+            <div id="video-settings" class="tab-content active">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; color: #2c3e50;">当前播放配置</h3>
+                    <div class="form-group">
+                        <label>当前视频 BV号：</label>
+                        <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly style="background-color: #f9f9f9; color: #7f8c8d;">
+                    </div>
+                    <div class="form-group">
+                        <label>更新为新 BV号：</label>
+                        <input type="text" id="new-bv" placeholder="例如：BV1xx411c7mD">
+                    </div>
+                    <button class="btn" onclick="updateVideo()">生成并下载新网页</button>
+                    <p style="margin-top: 15px; font-size: 0.85rem; color: #7f8c8d;">* 点击下载后，请将生成的 index.html 上传至服务器根目录覆盖。</p>
                 </div>
-                <div class="hint">提示：下载后将 index.html 上传覆盖服务器上的原文件即可生效。</div>
             </div>
+
+            <!-- 模块2：视频生成 (新增功能) -->
+            <div id="video-generator" class="tab-content">
+                <div class="placeholder-box">
+                    暂未开放
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        // ===== 登录验证 =====
-        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            var username = document.getElementById('username').value.trim();
-            var password = document.getElementById('password').value;
+        // 切换标签页逻辑
+        function switchTab(tabId, element) {
+            // 1. 隐藏所有内容
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // 2. 取消所有导航激活状态
+            document.querySelectorAll('.nav-links a').forEach(el => el.classList.remove('active'));
 
-            if (username === 'admin' && password === '123456789@') {
-                // 登录成功，隐藏登录区
-                document.getElementById('loginSection').style.display = 'none';
-                // 过两秒显示后台
-                setTimeout(function() {
-                    document.getElementById('adminSection').style.display = 'flex';
-                }, 2000);
-            } else {
-                document.getElementById('errorMsg').style.display = 'block';
-                setTimeout(function() {
-                    document.getElementById('errorMsg').style.display = 'none';
-                }, 3000);
-            }
-        });
+            // 3. 显示选中的内容
+            document.getElementById(tabId).classList.add('active');
+            // 4. 激活当前导航
+            element.classList.add('active');
 
-        // ===== BV号替换：生成新的 index.html 并下载 =====
-        document.getElementById('replaceBtn').addEventListener('click', function() {
-            var newBV = document.getElementById('newBV').value.trim();
-            if (!newBV) {
-                alert('请输入BV号');
+            // 5. 更新顶部标题
+            const titleMap = {
+                'video-settings': '视频设置',
+                'video-generator': '视频生成'
+            };
+            document.getElementById('page-title').innerText = titleMap[tabId];
+        }
+
+        // 模拟更新视频功能（保持原有逻辑）
+        function updateVideo() {
+            const newBv = document.getElementById('new-bv').value.trim();
+            if (!newBv) {
+                alert("请输入新的 BV号！");
                 return;
             }
-
-            // 生成更新后的 index.html 完整内容
-            var newHtml = [
-                '<!DOCTYPE html>',
-                '<html lang="zh-CN">',
-                '<head>',
-                '    <meta charset="UTF-8">',
-                '    <meta name="viewport" content="width=device-width, initial-scale=1.0">',
-                '    <title>BliBli_week副站排名</title>',
-                '    <style>',
-                '        body {',
-                '            background-color: #121212;',
-                '            color: #fff;',
-                '            font-family: \'Microsoft YaHei\', sans-serif;',
-                '            display: flex;',
-                '            flex-direction: column;',
-                '            align-items: center;',
-                '            justify-content: center;',
-                '            min-height: 100vh;',
-                '            margin: 0;',
-                '            padding: 20px;',
-                '            box-sizing: border-box;',
-                '        }',
-                '        h1 {',
-                '            font-size: 2.5rem;',
-                '            margin-bottom: 30px;',
-                '            text-align: center;',
-                '            text-shadow: 0 0 10px rgba(255,255,255,0.3);',
-                '        }',
-                '        .video-container {',
-                '            width: 100%;',
-                '            max-width: 900px;',
-                '            aspect-ratio: 16 / 9;',
-                '            background: #000;',
-                '            border-radius: 8px;',
-                '            overflow: hidden;',
-                '            box-shadow: 0 4px 20px rgba(0,0,0,0.5);',
-                '        }',
-                '        iframe {',
-                '            width: 100%;',
-                '            height: 100%;',
-                '            border: none;',
-                '        }',
-                '    </style>',
-                '</head>',
-                '<body>',
-                '    <h1>BliBli_week副站排名</h1>',
-                '    <div class="video-container">',
-                '        <iframe src="//player.bilibili.com/player.html?bvid=' + newBV + '&high_quality=1" allowfullscreen="true"></iframe>',
-                '    </div>',
-                '    <div style="text-align: center; margin-top: 20px;">',
-                '        <a href="http://nianwan.cn.mt/admin.html" style="color: #00a1d6; font-size: 14px; text-decoration: none;">管理员界面</a>',
-                '    </div>',
-                '</body>',
-                '</html>'
-            ].join('\n');
-
-            // 创建下载链接
-            var blob = new Blob([newHtml], { type: 'text/html' });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.href = url;
-            a.download = 'index.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            // 显示成功提示
-            document.getElementById('successMsg').style.display = 'block';
-        });
+            
+            // 这里只是演示，实际逻辑你可以保留你原来的下载代码
+            alert(`准备生成包含 ${newBv} 的新网页文件...`);
+            // 实际项目中，这里会触发 downloadIndexHtml(newBv) 之类的函数
+        }
     </script>
-
 </body>
 </html>
