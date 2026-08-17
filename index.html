@@ -21,66 +21,79 @@
         h1 {
             font-size: 2.5rem;
             margin-bottom: 30px;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
         }
+        
+        /* --- 播放器容器 --- */
         .video-container {
-            position: relative;
-            width: 80%;
-            max-width: 1000px;
+            position: relative; /* 关键：作为遮罩的定位基准 */
+            width: 100%;
+            max-width: 900px;
             aspect-ratio: 16 / 9;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            background: #000;
             border-radius: 8px;
             overflow: hidden;
-            background: #000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
-        
-        /* --- 新增的底部致谢样式 --- */
+
+        /* --- 极简遮罩层 --- */
+        .custom-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10; /* 悬浮在 iframe 上方 */
+            pointer-events: auto; /* 默认拦截所有鼠标点击 */
+        }
+
+        /* 右下角全屏按钮的“透明窗口” */
+        .fullscreen-hole {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            width: 45px;  /* 刚好盖住 B站 的全屏按钮区域 */
+            height: 45px;
+            pointer-events: none; /* 关键：让鼠标点击穿透这里，直接点到底下的 B站 全屏按钮！ */
+        }
+
+        /* --- 底部致谢 --- */
         .footer-credits {
             margin-top: 40px;
             text-align: center;
             font-size: 0.9rem;
-            color: #888; /* 灰色字体，不抢眼 */
+            color: #888;
             line-height: 1.6;
         }
-        .footer-credits a {
-            color: #00aeec; /* B站蓝链接色 */
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        .footer-credits a:hover {
-            color: #fff;
-            text-decoration: underline;
-        }
-        /* ------------------------- */
-
-        /* 移动端适配 */
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8rem; }
-            .video-container { width: 100%; }
-        }
+        .footer-credits a { color: #00aeec; text-decoration: none; }
+        .footer-credits a:hover { color: #fff; text-decoration: underline; }
     </style>
 </head>
 <body>
 
     <h1>BliBli_week副站排名</h1>
 
-    <!-- 视频播放区域 -->
     <div class="video-container">
-        <!-- 这里默认放了你之前的保底视频，如果需要改，去后台操作即可 -->
+        <!-- 默认播放视频（记得替换成你的最新BV号） -->
         <iframe 
             src="//player.bilibili.com/player.html?bvid=BV1Z4b96sEWy&page=1&high_quality=1&danmaku=0" 
-            allowfullscreen="allowfullscreen" 
-            width="100%" 
-            height="100%">
+            allowfullscreen="allowfullscreen">
         </iframe>
+
+        <!-- 遮罩层：挡住 B站 原生 UI -->
+        <div class="custom-overlay">
+            <!-- 右下角留个洞，透出全屏按钮 -->
+            <div class="fullscreen-hole"></div>
+        </div>
     </div>
 
-    <!-- 底部致谢区域 -->
+    <a href="admin.html" style="margin-top: 20px; color: #666; text-decoration: none; font-size: 0.9rem;">管理员界面</a>
+
     <div class="footer-credits">
         <p>视频数据来源：<a href="https://vocabili.top/" target="_blank">https://vocabili.top/</a></p>
         <p>感谢 biliboard 工作室所有人员对此网站的支持</p>
