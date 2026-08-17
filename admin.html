@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员身份验证</title>
+    <style>
+        /* 全局样式重置与暖色调背景 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #ffe0b2, #ffcc80, #ffb74d); /* 暖橙色渐变 */
+        }
+
+        /* 登录卡片容器 */
+        .login-card {
+            background-color: rgba(255, 255, 255, 0.9); /* 半透明白底，增加质感 */
+            padding: 40px 35px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        /* 红色标题 */
+        .login-title {
+            color: #d32f2f; /* 醒目的红色 */
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        /* 表单输入框样式 */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #ffb74d;
+            box-shadow: 0 0 5px rgba(255, 183, 77, 0.5);
+        }
+
+        /* 登录按钮 */
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #ff9800;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            background-color: #f57c00;
+        }
+
+        /* 底部注册链接 */
+        .register-link {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .register-link a {
+            color: #1976d2; /* 蓝色注册字 */
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .register-link a:hover {
+            color: #0d47a1;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h1 class="login-title">管理员身份验证</h1>
+        
+        <form id="adminLoginForm" onsubmit="return false;">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" name="username" placeholder="请输入管理员账号" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" placeholder="请输入密码" required>
+            </div>
+            
+            <button type="submit" class="login-btn">登 录</button>
+        </form>
+
+        <div class="register-link">
+            还没有账号？ <a href="javascript:void(0);" id="registerBtn">注册</a>
+        </div>
+    </div>
+
+    <script>
+        // 处理点击“注册”弹出提示
+        document.getElementById('registerBtn').addEventListener('click', function() {
+            alert('暂未开放');
+        });
+    </script>
+
+</body>
+</html>
