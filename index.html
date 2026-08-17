@@ -45,16 +45,43 @@
     <h1>BliBli_week副站排名</h1>
 
     <div class="video-container">
+        <!-- 默认先加载你之前的BV号保底 -->
         <iframe 
+            id="bili-player"
             src="//player.bilibili.com/player.html?bvid=BV1Z4b96sEWy&high_quality=1" 
             allowfullscreen="true">
         </iframe>
     </div>
 
-    <!-- 就加了下面这一行，别的啥也没动 -->
+    <!-- 底部管理员跳转链接 -->
     <div style="text-align: center; margin-top: 20px;">
         <a href="http://nianwan.cn.mt/admin.html" style="color: #00a1d6; font-size: 14px; text-decoration: none;">管理员界面</a>
     </div>
+
+    <script>
+        // 站长，你的 UID 已经写在这里了
+        const UID = '2001549048';
+        // 保底用的旧 BV号（防止接口抽风时黑屏）
+        const FALLBACK_BV = 'BV1Z4b96sEWy';
+
+        // 网页加载时自动去 B站 抓取最新视频
+        fetch(`https://api.bilibili.com/x/space/wbi/arc/search?mid=${UID}&ps=1&pn=1`)
+            .then(res => res.json())
+            .then(data => {
+                // 如果成功拿到了最新视频的 BV号
+                if (data.code === 0 && data.data?.list?.vlist?.length > 0) {
+                    const latestBV = data.data.list.vlist[0].bvid;
+                    // 动态替换播放器的 src
+                    document.getElementById('bili-player').src = 
+                        `//player.bilibili.com/player.html?bvid=${latestBV}&high_quality=1`;
+                    console.log('🎉 成功加载站长最新视频:', latestBV);
+                }
+            })
+            .catch(err => {
+                // 如果抓取失败（比如跨域限制），保持原来的保底视频不动
+                console.warn('⚠️ 自动抓取失败，使用保底视频:', err);
+            });
+    </script>
 
 </body>
 </html>
