@@ -25,29 +25,43 @@
         }
         .video-container {
             position: relative;
-            width: 100%;
-            max-width: 960px; /* 限制最大宽度，保持美观 */
-            aspect-ratio: 16 / 9; /* 保持16:9比例 */
-            background-color: #000;
-            border-radius: 12px;
+            width: 80%;
+            max-width: 1000px;
+            aspect-ratio: 16 / 9;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 2px solid #333;
+            background: #000;
         }
         iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
-        .admin-link {
-            margin-top: 20px;
-            color: #666;
-            text-decoration: none;
+        
+        /* --- 新增的底部致谢样式 --- */
+        .footer-credits {
+            margin-top: 40px;
+            text-align: center;
             font-size: 0.9rem;
+            color: #888; /* 灰色字体，不抢眼 */
+            line-height: 1.6;
+        }
+        .footer-credits a {
+            color: #00aeec; /* B站蓝链接色 */
+            text-decoration: none;
             transition: color 0.3s;
         }
-        .admin-link:hover {
+        .footer-credits a:hover {
             color: #fff;
+            text-decoration: underline;
+        }
+        /* ------------------------- */
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .video-container { width: 100%; }
         }
     </style>
 </head>
@@ -57,44 +71,20 @@
 
     <!-- 视频播放区域 -->
     <div class="video-container">
-        <!-- 默认播放视频：BV1Z4b96sEWy -->
-        <!-- 以后更新时，只需修改 src 中的 BV号 即可 -->
+        <!-- 这里默认放了你之前的保底视频，如果需要改，去后台操作即可 -->
         <iframe 
-            id="bili-player"
-            src="//player.bilibili.com/player.html?isOutside=true&aid=&bvid=BV1Z4b96sEWy&cid=&p=1&high_quality=1&danmaku=0" 
+            src="//player.bilibili.com/player.html?bvid=BV1Z4b96sEWy&page=1&high_quality=1&danmaku=0" 
             allowfullscreen="allowfullscreen" 
             width="100%" 
-            height="100%" 
-            scrolling="no" 
-            frameborder="0" 
-            sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts">
+            height="100%">
         </iframe>
     </div>
 
-    <!-- 管理员入口 -->
-    <a href="admin.html" class="admin-link">管理员界面</a>
-
-    <script>
-        // 页面加载时，检查本地存储是否有新的 BV 号
-        // 这样你在 admin.html 修改后，这里会自动读取并播放新的
-        window.onload = function() {
-            const savedBV = localStorage.getItem('current_bvid');
-            if (savedBV) {
-                updatePlayer(savedBV);
-            }
-        };
-
-        // 更新播放器的函数
-        function updatePlayer(bvid) {
-            const player = document.getElementById('bili-player');
-            // 拼接 B站的高清播放器链接
-            // high_quality=1 开启高清
-            // danmaku=0 默认关闭弹幕（可选）
-            const newSrc = `//player.bilibili.com/player.html?isOutside=true&bvid=${bvid}&p=1&high_quality=1&danmaku=0`;
-            player.src = newSrc;
-            console.log(`✅ 已加载视频: ${bvid}`);
-        }
-    </script>
+    <!-- 底部致谢区域 -->
+    <div class="footer-credits">
+        <p>视频数据来源：<a href="https://vocabili.top/" target="_blank">https://vocabili.top/</a></p>
+        <p>感谢 biliboard 工作室所有人员对此网站的支持</p>
+    </div>
 
 </body>
 </html>
