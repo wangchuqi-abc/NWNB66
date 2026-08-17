@@ -3,140 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理员身份验证</title>
+    <title>BliBli_week副站排名</title>
     <style>
-        /* 全局样式重置与暖色调背景 */
-        * {
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: 'Microsoft YaHei', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             box-sizing: border-box;
         }
-
-        body {
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #ffe0b2, #ffcc80, #ffb74d); /* 暖橙色渐变 */
-        }
-
-        /* 登录卡片容器 */
-        .login-card {
-            background-color: rgba(255, 255, 255, 0.9); /* 半透明白底，增加质感 */
-            padding: 40px 35px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 380px;
-            text-align: center;
-        }
-
-        /* 红色标题 */
-        .login-title {
-            color: #d32f2f; /* 醒目的红色 */
-            font-size: 24px;
-            font-weight: bold;
+        h1 {
+            font-size: 2.5rem;
             margin-bottom: 30px;
-            letter-spacing: 2px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
         }
-
-        /* 表单输入框样式 */
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-size: 14px;
-        }
-
-        .form-group input {
+        .video-container {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            max-width: 900px;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
-
-        .form-group input:focus {
-            border-color: #ffb74d;
-            box-shadow: 0 0 5px rgba(255, 183, 77, 0.5);
-        }
-
-        /* 登录按钮 */
-        .login-btn {
+        iframe {
             width: 100%;
-            padding: 12px;
-            background-color: #ff9800;
-            color: #fff;
+            height: 100%;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        }
-
-        .login-btn:hover {
-            background-color: #f57c00;
-        }
-
-        /* 底部注册链接 */
-        .register-link {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .register-link a {
-            color: #1976d2; /* 蓝色注册字 */
-            text-decoration: none;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-
-        .register-link a:hover {
-            color: #0d47a1;
-            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <h1 class="login-title">管理员身份验证</h1>
-        
-        <form id="adminLoginForm" onsubmit="return false;">
-            <div class="form-group">
-                <label for="username">用户名</label>
-                <input type="text" id="username" name="username" placeholder="请输入管理员账号" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">密码</label>
-                <input type="password" id="password" name="password" placeholder="请输入密码" required>
-            </div>
-            
-            <button type="submit" class="login-btn">登 录</button>
-        </form>
+    <h1>BliBli_week副站排名</h1>
 
-        <div class="register-link">
-            还没有账号？ <a href="javascript:void(0);" id="registerBtn">注册</a>
-        </div>
+    <div class="video-container">
+        <!-- 默认先加载你之前的BV号保底 -->
+        <iframe 
+            id="bili-player"
+            src="//player.bilibili.com/player.html?bvid=BV1Z4b96sEWy&high_quality=1" 
+            allowfullscreen="true">
+        </iframe>
+    </div>
+
+    <!-- 底部管理员跳转链接 -->
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="http://nianwan.cn.mt/admin.html" style="color: #00a1d6; font-size: 14px; text-decoration: none;">管理员界面</a>
     </div>
 
     <script>
-        // 处理点击“注册”弹出提示
-        document.getElementById('registerBtn').addEventListener('click', function() {
-            alert('暂未开放');
-        });
+        // 站长，你的 UID 已经写在这里了
+        const UID = '2001549048';
+        // 保底用的旧 BV号（防止接口抽风时黑屏）
+        const FALLBACK_BV = 'BV1Z4b96sEWy';
+
+        // 网页加载时自动去 B站 抓取最新视频
+        fetch(`https://api.bilibili.com/x/space/wbi/arc/search?mid=${UID}&ps=1&pn=1`)
+            .then(res => res.json())
+            .then(data => {
+                // 如果成功拿到了最新视频的 BV号
+                if (data.code === 0 && data.data?.list?.vlist?.length > 0) {
+                    const latestBV = data.data.list.vlist[0].bvid;
+                    // 动态替换播放器的 src
+                    document.getElementById('bili-player').src = 
+                        `//player.bilibili.com/player.html?bvid=${latestBV}&high_quality=1`;
+                    console.log('🎉 成功加载站长最新视频:', latestBV);
+                }
+            })
+            .catch(err => {
+                // 如果抓取失败（比如跨域限制），保持原来的保底视频不动
+                console.warn('⚠️ 自动抓取失败，使用保底视频:', err);
+            });
     </script>
 
 </body>
