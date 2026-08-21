@@ -644,23 +644,6 @@
                             <button class="btn-generate" id="btn-generate" onclick="startVideoGeneration()">🎬 开始生成视频</button>
                         </div>
             
-                        <div class="asset-hint">
-                            <strong> 第一步：选择素材文件</strong><br>
-                            浏览器无法直接读取本地路径，请一次性选中以下 8 个 PNG 素材文件：<br>
-                            NEW.png、上升.png、下降.png、持平.png、RE.png、排名底图.png、历史顶图.png、历史底图.png
-                        </div>
-
-                        <div class="card" style="max-width: 500px; margin-bottom: 20px;">
-                            <h2> 加载 UI 素材</h2>
-                            <div class="form-group">
-                                <label>选择 8 个素材文件（可多选）：</label>
-                                <div class="file-input-wrap">
-                                    <input type="file" accept="image/png" multiple onchange="handleAssetSelect(this)">
-                                </div>
-                            </div>
-                            <div id="asset-status" style="font-size: 0.85rem; color: var(--text-sub); margin-top: 8px;">尚未加载素材</div>
-                        </div>
-            
                         <div id="rank-entries"></div>
                     </div>
             
@@ -698,23 +681,6 @@
                             <button class="btn-generate" id="btn-single-generate" onclick="startSingleVideoGeneration()">🎯 生成选定排名</button>
                         </div>
             
-                        <div class="asset-hint">
-                            <strong> 第一步：选择素材文件</strong><br>
-                            浏览器无法直接读取本地路径，请一次性选中以下 8 个 PNG 素材文件：<br>
-                            NEW.png、上升.png、下降.png、持平.png、RE.png、排名底图.png、历史顶图.png、历史底图.png
-                        </div>
-
-                        <div class="card" style="max-width: 500px; margin-bottom: 20px;">
-                            <h2> 加载 UI 素材</h2>
-                            <div class="form-group">
-                                <label>选择 8 个素材文件（可多选）：</label>
-                                <div class="file-input-wrap">
-                                    <input type="file" accept="image/png" multiple onchange="handleAssetSelect(this)">
-                                </div>
-                            </div>
-                            <div id="single-asset-status" style="font-size: 0.85rem; color: var(--text-sub); margin-top: 8px;">尚未加载素材</div>
-                        </div>
-
                         <div class="card" style="max-width: 500px; margin-bottom: 20px;">
                             <h2>选择排名范围</h2>
                             <div class="form-group">
@@ -943,60 +909,44 @@
 
         // 素材图片缓存
         const assets = {};
-        // 素材文件名 -> 内部键名 映射
-        const ASSET_FILE_MAP = {
-            'NEW.png': 'newText',
-            '上升.png': 'upArrow',
-            '下降.png': 'downArrow',
-            '持平.png': 'flatBar',
-            'RE.png': 'reText',
-            '排名底图.png': 'rankCircle',
-            '历史顶图.png': 'historyTop',
-            '历史底图.png': 'historyBottom'
+        // 素材路径映射（网站根目录）
+        const ASSET_PATHS = {
+            newText: './NEW.png',
+            upArrow: './上升.png',
+            downArrow: './下降.png',
+            flatBar: './持平.png',
+            reText: './RE.png',
+            rankCircle: './排名底图.png',
+            historyTop: './历史顶图.png',
+            historyBottom: './历史底图.png'
         };
-        const REQUIRED_ASSETS = Object.keys(ASSET_FILE_MAP).length;
+        const REQUIRED_ASSETS = Object.keys(ASSET_PATHS).length;
 
-        // 处理素材文件选择
-        function handleAssetSelect(input) {
-            const files = input.files;
-            if (!files || files.length === 0) return;
-            
+        // 自动加载素材
+        function loadAssets() {
             let loaded = 0;
-            const statusEls = [
-                document.getElementById('asset-status'),
-                document.getElementById('single-asset-status')
-            ];
-            
-            for (const file of files) {
-                const key = ASSET_FILE_MAP[file.name];
-                if (!key) continue;
-                
-                const url = URL.createObjectURL(file);
+            for (const [key, path] of Object.entries(ASSET_PATHS)) {
                 const img = new Image();
                 img.onload = () => {
                     assets[key] = img;
                     loaded++;
-                    const msg = `已加载 ${loaded}/${REQUIRED_ASSETS} 个素材`;
-                    statusEls.forEach(el => { if (el) el.textContent = msg; });
-                    
                     if (loaded === REQUIRED_ASSETS) {
-                        const successMsg = `✅ 全部 ${REQUIRED_ASSETS} 个素材已加载！`;
-                        statusEls.forEach(el => { if (el) { el.textContent = successMsg; el.style.color = '#27ae60'; } });
-                        showToast(successMsg, 'success');
+                        console.log(`✅ 全部 ${REQUIRED_ASSETS} 个素材已加载`);
                         // 刷新预览
                         drawPreview(currentPreviewRank);
                         drawSinglePreview(currentPreviewRank);
                     }
                 };
                 img.onerror = () => {
-                    console.warn(`素材加载失败: ${file.name}`);
+                    console.warn(`素材加载失败: ${path}`);
                 };
-                img.src = url;
+                img.src = path;
             }
         }
 
         // 初始化：生成表单
         function initVideoGenerator() {
+            loadAssets(); // 自动加载素材
             renderRankEntries();
             // 延迟绘制预览
             setTimeout(() => drawPreview(0), 300);
@@ -1104,11 +1054,6 @@
             showToast(`第${index + 1}名视频已选择`, 'success');
             // 更新预览
             if (index === currentPreviewRank) drawPreview(index);
-        }
-
-        // 加载素材图片（已改为用户手动选择，此函数保留但不再自动加载）
-        function loadAssets() {
-            // 素材现在通过 handleAssetSelect 由用户选择加载
         }
 
         // Canvas 预览绘制
