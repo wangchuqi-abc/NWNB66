@@ -7,66 +7,133 @@
     <title>BliBli_week 副站管理后台</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Microsoft YaHei', sans-serif; 
-            background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee); 
-            color: #333; height: 100vh; display: flex; overflow: hidden; 
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee);
+            color: #333;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
         }
 
-        /* --- 登录界面（手机端自适应宽度） --- */
-        #login-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee); 
-            z-index: 999; display: flex; align-items: center; justify-content: center; 
+        /* ==================== 登录界面 ==================== */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .login-box { 
-            background: white; 
-            padding: 40px 30px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            width: 90%; /* 手机端自适应宽度 */
-            max-width: 450px; /* 电脑端最大宽度 */
-            text-align: center; 
+        .login-box {
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 90%;          /* 手机端自适应宽度 */
+            max-width: 450px;    /* 电脑端最大宽度 */
+            text-align: center;
         }
         .login-box h2 { margin-bottom: 30px; color: #2c3e50; font-size: 1.5rem; font-weight: bold; }
-        .login-box input { 
-            width: 100%; padding: 14px 16px; margin-bottom: 20px; 
-            border: 2px solid #eee; border-radius: 8px; font-size: 1rem; outline: none; transition: border 0.3s;
+        .login-box input {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
         }
         .login-box input:focus { border-color: #3498db; }
-        .login-btn { 
-            width: 100%; padding: 14px; background-color: #2c3e50; color: white; 
-            border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: 0.3s;
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #2c3e50;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: 0.3s;
         }
         .login-btn:hover { background-color: #3498db; }
         .error-msg { color: #e74c3c; font-size: 14px; margin-top: 10px; display: none; }
 
-        /* --- 侧边栏（手机端默认隐藏） --- */
-        .sidebar { 
-            width: 250px; background-color: #2c3e50; color: #ecf0f1; 
-            display: flex; flex-direction: column; 
-            transition: transform 0.3s ease; /* 增加滑动动画 */
+        /* ==================== 左侧导航栏 ==================== */
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease; /* 手机端滑动动画 */
             z-index: 100;
         }
-        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #34495e; text-align: center; background-color: #1a252f; color: #fff; }
+        .sidebar-header {
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid #34495e;
+            background-color: #1a252f;
+            color: #fff;
+        }
         .nav-links { list-style: none; padding: 20px 0; flex: 1; }
-        .nav-links li { padding: 15px 25px; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; color: #bdc3c7; }
-        .nav-links li:hover, .nav-links li.active { background-color: #34495e; border-left: 4px solid #fff; color: #fff; }
-        .logout-btn { padding: 15px 25px; cursor: pointer; background-color: #c0392b; color: white; text-align: center; font-weight: bold; transition: background 0.3s; }
+        .nav-links li {
+            padding: 15px 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: #bdc3c7;
+            transition: background 0.3s;
+        }
+        .nav-links li:hover,
+        .nav-links li.active { background-color: #34495e; border-left: 4px solid #fff; color: #fff; }
+        .logout-btn {
+            padding: 15px 25px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            background-color: #c0392b;
+            color: #fff;
+            transition: background 0.3s;
+        }
         .logout-btn:hover { background-color: #e74c3c; }
 
-        /* --- 右侧主内容区 --- */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* 顶部栏（手机端增加汉堡菜单按钮） */
-        .top-bar { 
-            background-color: #fff; padding: 15px 20px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-            display: flex; justify-content: space-between; align-items: center; 
+        /* 手机端：点击菜单后收起侧边栏的遮罩 */
+        #sidebar-mask {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 99;
         }
-        .menu-toggle { 
+
+        /* ==================== 右侧主内容区 ==================== */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* 顶部栏 */
+        .top-bar {
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .menu-toggle {
             display: none; /* 默认隐藏，手机端显示 */
-            background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #2c3e50; 
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #2c3e50;
         }
         .page-title { font-size: 1.2rem; font-weight: 600; color: #2c3e50; }
         .user-info { font-size: 0.9rem; color: #7f8c8d; }
@@ -74,27 +141,69 @@
         .content-area { flex: 1; padding: 20px; overflow-y: auto; }
         .panel { display: none; animation: fadeIn 0.3s; }
         .panel.active { display: block; }
-        .placeholder-box { display: flex; justify-content: center; align-items: center; height: 200px; color: #95a5a6; font-size: 1.2rem; border: 2px dashed #bdc3c7; border-radius: 10px; background-color: #fafafa; }
+        .placeholder-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #95a5a6;
+            font-size: 1.2rem;
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            background-color: #fafafa;
+        }
 
-        /* 表单卡片（手机端自适应） */
-        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; max-width: 600px; }
+        /* 表单卡片 */
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 600px;
+        }
+        .card h2 { margin-bottom: 15px; color: #2c3e50; font-size: 1.2rem; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #34495e; font-size: 0.9rem; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; outline: none; }
-        .btn { background-color: #3498db; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 1rem; transition: 0.3s; width: 100%; }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            outline: none;
+        }
+        .form-group input[readonly] { background-color: #f9f9f9; color: #7f8c8d; }
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
         .btn:hover { background-color: #2980b9; }
         .hint { margin-top: 10px; font-size: 0.8rem; color: #7f8c8d; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
-        /* --- 手机端响应式断点 --- */
+        /* ==================== 手机端响应式断点 ==================== */
         @media (max-width: 768px) {
-            .sidebar { 
-                position: fixed; top: 0; left: 0; height: 100%; 
+            .sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                height: 100%;
                 transform: translateX(-100%); /* 默认隐藏在屏幕外 */
             }
             .sidebar.open { transform: translateX(0); } /* 点击菜单后滑出 */
-            .menu-toggle { display: block; } /* 显示汉堡菜单按钮 */
+            .sidebar.open + #sidebar-mask { display: block; }
+            .menu-toggle { display: block; }
             .page-title { font-size: 1rem; }
         }
     </style>
@@ -122,6 +231,9 @@
         <div class="logout-btn" onclick="logout()">🚪 退出登录</div>
     </div>
 
+    <!-- 手机端侧边栏遮罩 -->
+    <div id="sidebar-mask" onclick="toggleMenu()"></div>
+
     <!-- 右侧内容 -->
     <div class="main-content">
         <div class="top-bar">
@@ -135,10 +247,10 @@
             <!-- 面板1：周榜BV号替换 -->
             <div id="bv-replace" class="panel active">
                 <div class="card">
-                    <h2 style="margin-bottom: 15px; color: #2c3e50; font-size: 1.2rem;">当前播放配置</h2>
+                    <h2>当前播放配置</h2>
                     <div class="form-group">
                         <label>当前视频 BV号：</label>
-                        <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly style="background-color: #f9f9f9; color: #7f8c8d;">
+                        <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly>
                     </div>
                     <div class="form-group">
                         <label>更新为新 BV号：</label>
@@ -157,10 +269,12 @@
     </div>
 
     <script>
+        /* ---------- 账号配置 ---------- */
         const VALID_USER = 'admin';
         const VALID_PASS = '123456789@';
 
-        window.onload = function() {
+        /* ---------- 登录状态 ---------- */
+        window.onload = function () {
             if (localStorage.getItem('isLoggedIn') === 'true') {
                 document.getElementById('login-overlay').style.display = 'none';
             }
@@ -170,7 +284,7 @@
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
             const errorMsg = document.getElementById('error-msg');
-            
+
             if (user === VALID_USER && pass === VALID_PASS) {
                 localStorage.setItem('isLoggedIn', 'true');
                 document.getElementById('login-overlay').style.display = 'none';
@@ -179,27 +293,34 @@
             }
         }
 
+        // 输入框内按回车也可登录
+        ['login-user', 'login-pass'].forEach(id => {
+            document.getElementById(id).addEventListener('keydown', e => {
+                if (e.key === 'Enter') checkLogin();
+            });
+        });
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('isLoggedIn');
+                location.reload();
+            }
+        }
+
+        /* ---------- 界面交互 ---------- */
         // 切换标签页
         function switchTab(tabId, element) {
             document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
+
             const titleMap = { 'bv-replace': '周榜BV号替换', 'video-gen': '视频生成' };
             document.getElementById('page-title').innerText = titleMap[tabId];
-            
-            // 手机端：点击菜单后自动收起侧边栏
-            if (window.innerWidth <= 768) {
-                document.getElementById('sidebar').classList.remove('open');
-            }
-        }
 
-        // 退出登录
-        function logout() {
-            if(confirm('确定要退出登录吗？')) {
-                localStorage.removeItem('isLoggedIn');
-                location.reload();
-            }
+            // 手机端：点击菜单后自动收起侧边栏
+            closeSidebarOnMobile();
         }
 
         // 手机端菜单开关
@@ -207,10 +328,16 @@
             document.getElementById('sidebar').classList.toggle('open');
         }
 
-        // 核心功能：替换BV号并下载
+        function closeSidebarOnMobile() {
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        /* ---------- 核心功能：替换BV号并下载排名页 ---------- */
         function updateVideo() {
             const newBv = document.getElementById('new-bv').value.trim();
-            if (!newBv) { alert("请输入新的 BV号！"); return; }
+            if (!newBv) { alert('请输入新的 BV号！'); return; }
 
             const indexHtmlTemplate = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -219,15 +346,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BliBli_week副站排名</title>
     <style>
-        body { background-color: #121212; color: #fff; font-family: 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        h1 { font-size: 2.5rem; margin-bottom: 30px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-        .video-container { width: 100%; max-width: 900px; aspect-ratio: 16 / 9; background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        iframe { width: 100%; height: 100%; border: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #121212; color: #fff; font-family: 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        h1 { font-size: 2.5rem; margin-bottom: 30px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+        .video-container { width: 100%; max-width: 900px; aspect-ratio: 16 / 9; background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); }
+        .video-container iframe { width: 100%; height: 100%; border: none; }
+        .admin-link { margin-top: 20px; color: #666; text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+        .admin-link:hover { color: #fff; }
         .footer-credits { margin-top: 40px; text-align: center; font-size: 0.9rem; color: #888; line-height: 1.6; }
         .footer-credits a { color: #00aeec; text-decoration: none; }
         .footer-credits a:hover { color: #fff; text-decoration: underline; }
-        .admin-link { margin-top: 20px; color: #666; text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
-        .admin-link:hover { color: #fff; }
         @media (max-width: 768px) { h1 { font-size: 1.8rem; } }
     </style>
 </head>
@@ -244,6 +372,7 @@
 </body>
 </html>`;
 
+            // 生成 index.html 并触发下载
             const blob = new Blob([indexHtmlTemplate], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
