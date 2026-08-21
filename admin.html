@@ -1135,7 +1135,7 @@
             // 绘制 UI 叠加层（预览时完全显示）
             ctx.globalAlpha = 1;
 
-            // 左下角：排名圆框 + 变化标记
+            // 左下角：排名圆框
             if (assets.rankCircle) {
                 ctx.drawImage(assets.rankCircle, 60, H - 280, 200, 200);
             }
@@ -1145,10 +1145,12 @@
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
 
-            // 变化标记
+            // 变化标记（放在圆形右下角，原始大小）
             const changeImg = getChangeImage(d.changeType);
             if (changeImg) {
-                ctx.drawImage(changeImg, 80, H - 70, 160, 50);
+                // 圆形右下角：(60+200, H-280+200) = (260, H-80)
+                // 标记中心对齐右下角
+                ctx.drawImage(changeImg, 260 - changeImg.naturalWidth / 2, H - 80 - changeImg.naturalHeight / 2);
             }
 
             // 标题：歌名（中文名）
@@ -1254,13 +1256,16 @@
             for (let i = 0; i < TOTAL_RANKS; i++) {
                 const d = rankData[i];
 
-                // 创建临时 video 元素
+                // 创建临时 video 元素（不静音，否则录不到声音）
                 const videoUrl = URL.createObjectURL(d.videoFile);
                 const video = document.createElement('video');
                 video.src = videoUrl;
-                video.muted = true;
                 video.playsInline = true;
                 await new Promise(r => { video.onloadedmetadata = r; });
+
+                // 将当前视频的音频轨道加入录制流（先移除上一条，避免混音）
+                stream.getAudioTracks().forEach(t => stream.removeTrack(t));
+                video.captureStream().getAudioTracks().forEach(t => stream.addTrack(t));
 
                 const duration = video.duration;
                 const totalSegmentTime = duration * 1000;
@@ -1327,9 +1332,9 @@
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
 
-            // 变化标记
+            // 变化标记（圆形右下角，原始大小）
             const changeImg = getChangeImage(d.changeType);
-            if (changeImg) ctx.drawImage(changeImg, 80, H - 70, 160, 50);
+            if (changeImg) ctx.drawImage(changeImg, 260 - changeImg.naturalWidth / 2, H - 80 - changeImg.naturalHeight / 2);
 
             // 标题：歌名（中文名）
             ctx.fillStyle = '#fff';
@@ -1572,9 +1577,9 @@
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
             
-            // 变化标记
+            // 变化标记（圆形右下角，原始大小）
             const changeImg = getChangeImage(d.changeType);
-            if (changeImg) ctx.drawImage(changeImg, 80, H - 70, 160, 50);
+            if (changeImg) ctx.drawImage(changeImg, 260 - changeImg.naturalWidth / 2, H - 80 - changeImg.naturalHeight / 2);
             
             // 标题：歌名（中文名）
             ctx.fillStyle = '#fff';
@@ -1680,9 +1685,12 @@
                 const videoUrl = URL.createObjectURL(d.videoFile);
                 const video = document.createElement('video');
                 video.src = videoUrl;
-                video.muted = true;
                 video.playsInline = true;
                 await new Promise(r => { video.onloadedmetadata = r; });
+                
+                // 将当前视频的音频轨道加入录制流（先移除上一条，避免混音）
+                stream.getAudioTracks().forEach(t => stream.removeTrack(t));
+                video.captureStream().getAudioTracks().forEach(t => stream.addTrack(t));
                 
                 const duration = video.duration;
                 const totalSegmentTime = duration * 1000; // 整个片段总时长（毫秒）
