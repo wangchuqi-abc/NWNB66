@@ -5,24 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BliBli_week副站排名</title>
     <style>
-        body { background-color: #121212; color: #fff; font-family: 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        h1 { font-size: 2.5rem; margin-bottom: 30px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-        .video-container { width: 100%; max-width: 900px; aspect-ratio: 16 / 9; background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        iframe { width: 100%; height: 100%; border: none; }
-        .footer-credits { margin-top: 40px; text-align: center; font-size: 0.9rem; color: #888; line-height: 1.6; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: 'Microsoft YaHei', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        /* 视频播放器容器：16:9 自适应 */
+        .video-container {
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        .video-container iframe { width: 100%; height: 100%; border: none; }
+
+        /* 管理员入口链接 */
+        .admin-link {
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        .admin-link:hover { color: #fff; }
+
+        /* 页脚版权信息 */
+        .footer-credits {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+            line-height: 1.6;
+        }
         .footer-credits a { color: #00aeec; text-decoration: none; }
         .footer-credits a:hover { color: #fff; text-decoration: underline; }
-        .admin-link { margin-top: 20px; color: #666; text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
-        .admin-link:hover { color: #fff; }
-        @media (max-width: 768px) { h1 { font-size: 1.8rem; } }
+
+        /* 手机端适配 */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+        }
     </style>
 </head>
 <body>
     <h1>BliBli_week副站排名</h1>
+
+    <!-- 当前周榜视频（BV号由管理后台替换生成） -->
     <div class="video-container">
-        <iframe src="//player.bilibili.com/player.html?bvid=BV1Arbe6LEzS&page=1&high_quality=1&danmaku=0" allowfullscreen="allowfullscreen"></iframe>
+        <iframe src="//player.bilibili.com/player.html?bvid=BV1Z4b96sEWy&page=1&high_quality=1&danmaku=0" allowfullscreen="allowfullscreen"></iframe>
     </div>
+
     <a href="admin.html" class="admin-link">管理员界面</a>
+
     <div class="footer-credits">
         <p>视频数据来源：<a href="https://vocabili.top/" target="_blank">https://vocabili.top/</a></p>
         <p>感谢 biliboard 工作室所有人员对此网站的支持</p>
