@@ -597,8 +597,9 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">哔哩哔哩WEEK<br>工作人员后台</div>
         <ul class="nav-links">
-            <li class="active" onclick="switchTab('bv-replace', this)">🔄 周榜BV号替换</li>
-            <li onclick="switchTab('video-gen', this)">🎬 视频生成</li>
+            <li class="active" onclick="switchTab('bv-replace', this)">🔄 周榜 BV 号替换</li>
+            <li onclick="switchTab('video-gen', this)">🎬 批量视频生成</li>
+            <li onclick="switchTab('single-video-gen', this)">🎯 单个视频生成</li>
         </ul>
         <div class="logout-btn" onclick="logout()">🚪 退出登录</div>
     </div>
@@ -633,7 +634,7 @@
                 </div>
             </div>
 
-            <!-- 面板2：视频生成 -->
+            <!-- 面板 2：批量视频生成 -->
             <div id="video-gen" class="panel">
                 <div class="vg-layout">
                     <!-- 左侧：数据录入表单 -->
@@ -658,7 +659,7 @@
                             <div class="canvas-wrap">
                                 <canvas id="preview-canvas" width="1920" height="1080"></canvas>
                                 <div class="canvas-placeholder" id="canvas-placeholder">
-                                    <span>🎥</span>
+                                    <span></span>
                                     <div>填写数据后自动预览</div>
                                 </div>
                             </div>
@@ -669,6 +670,66 @@
                                 </div>
                                 <div class="progress-track">
                                     <div class="progress-fill" id="progress-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 面板 3：单个视频生成 -->
+            <div id="single-video-gen" class="panel">
+                <div class="vg-layout">
+                    <div class="vg-form-section">
+                        <div class="vg-header">
+                            <h2>单个排名视频生成</h2>
+                            <button class="btn-generate" id="btn-single-generate" onclick="startSingleVideoGeneration()">🎯 生成选定排名</button>
+                        </div>
+            
+                        <div class="asset-hint">
+                            <strong> 功能说明：</strong>选择要生成的排名范围，单独生成这些排名的视频片段。<br>
+                            适合分批生成或只生成部分排名的场景。
+                        </div>
+            
+                        <div class="card" style="max-width: 500px; margin-bottom: 20px;">
+                            <h2>选择排名范围</h2>
+                            <div class="form-group">
+                                <label>起始排名：</label>
+                                <input type="number" id="single-start-rank" min="1" max="20" value="1" onchange="updateSingleRankPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>结束排名：</label>
+                                <input type="number" id="single-end-rank" min="1" max="20" value="5" onchange="updateSingleRankPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>生成数量：</label>
+                                <input type="text" id="single-rank-count" value="5 个排名" readonly style="background-color: #f9f9f9; color: #7f8c8d;">
+                            </div>
+                        </div>
+            
+                        <div class="card">
+                            <h2>待生成排名预览</h2>
+                            <div id="single-rank-preview" style="max-height: 300px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+            
+                    <div class="vg-preview-section">
+                        <div class="preview-card">
+                            <h3>🖼️ 实时预览</h3>
+                            <div class="canvas-wrap">
+                                <canvas id="single-preview-canvas" width="1920" height="1080"></canvas>
+                                <div class="canvas-placeholder" id="single-canvas-placeholder">
+                                    <span></span>
+                                    <div>选择排名后自动预览</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar-wrap" id="single-progress-wrap">
+                                <div class="progress-label">
+                                    <span id="single-progress-text">准备中...</span>
+                                    <span id="single-progress-percent">0%</span>
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-fill" id="single-progress-fill"></div>
                                 </div>
                             </div>
                         </div>
@@ -753,7 +814,7 @@
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
 
-            const titleMap = { 'bv-replace': '周榜BV号替换', 'video-gen': '视频生成' };
+            const titleMap = { 'bv-replace': '周榜 BV 号替换', 'video-gen': '批量视频生成', 'single-video-gen': '单个视频生成' };
             document.getElementById('page-title').innerText = titleMap[tabId];
 
             // 手机端：点击菜单后自动收起侧边栏
@@ -1255,7 +1316,248 @@
                 initVideoGenerator();
                 window._vgInitialized = true;
             }
+            if (tabId === 'single-video-gen') {
+                updateSingleRankPreview();
+            }
         };
+
+        /* ==================== 单个视频生成功能 ==================== */
+        // 更新单个生成的排名预览
+        function updateSingleRankPreview() {
+            const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
+            const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
+            
+            // 验证范围
+            const validStart = Math.max(1, Math.min(20, startRank));
+            const validEnd = Math.max(1, Math.min(20, endRank));
+            
+            if (validStart > validEnd) {
+                document.getElementById('single-rank-count').value = '范围无效';
+                return;
+            }
+            
+            const count = validEnd - validStart + 1;
+            document.getElementById('single-rank-count').value = `${count} 个排名`;
+            
+            // 更新预览列表
+            const previewContainer = document.getElementById('single-rank-preview');
+            const ranks = rankData.slice(validStart - 1, validEnd);
+            
+            previewContainer.innerHTML = ranks.map((d, i) => {
+                const actualRank = validStart + i;
+                const hasVideo = d.videoFile ? '✅' : '⏳';
+                const name = d.chineseName || d.songName || '未填写';
+                return `
+                    <div style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;" onclick="drawSinglePreview(${actualRank - 1})">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #a8e063, #56ab2f); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px;">
+                            ${actualRank}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.9rem; color: var(--dark);">${name}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-sub);">${d.producer || ''} ${d.vocalist ? '- ' + d.vocalist : ''}</div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: ${d.videoFile ? '#27ae60' : '#e67e22'};">
+                            ${hasVideo} ${d.videoFile ? '已选视频' : '待选视频'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // 默认预览第一个
+            if (ranks.length > 0) {
+                drawSinglePreview(validStart - 1);
+            }
+        }
+        
+        // 绘制单个排名的预览
+        function drawSinglePreview(rankIndex) {
+            const canvas = document.getElementById('single-preview-canvas');
+            const ctx = canvas.getContext('2d');
+            const d = rankData[rankIndex];
+            const W = 1920, H = 1080;
+            
+            // 深色占位背景
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, W, H);
+            
+            // 中心提示
+            ctx.fillStyle = '#0f3460';
+            ctx.font = 'bold 100px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText(`#${d.rank}`, W / 2, H / 2 - 30);
+            ctx.font = '36px Microsoft YaHei';
+            ctx.fillStyle = '#888';
+            const previewName = d.chineseName || d.songName || '等待填写...';
+            ctx.fillText(previewName, W / 2, H / 2 + 30);
+            
+            // 绘制 UI 叠加层
+            ctx.globalAlpha = 1;
+            
+            // 左下角：排名圆框
+            if (assets.rankCircle) ctx.drawImage(assets.rankCircle, 60, H - 280, 200, 200);
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 90px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText(String(d.rank), 160, H - 155);
+            
+            // 变化标记
+            const changeImg = getChangeImage(d.changeType);
+            if (changeImg) ctx.drawImage(changeImg, 80, H - 70, 160, 50);
+            
+            // 标题：歌名（中文名）
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 52px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            const displayName = d.chineseName || d.songName || '';
+            ctx.fillText(displayName, 300, H - 200);
+            // 副标题：P 主 - 演唱歌姬
+            ctx.font = '32px Microsoft YaHei';
+            ctx.fillStyle = '#ccc';
+            const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
+            ctx.fillText(artistLine || '', 300, H - 150);
+            
+            // 数据框（历史底图）
+            if (assets.historyBottom) ctx.drawImage(assets.historyBottom, W - 520, H - 170, 460, 120);
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 56px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
+                ctx.fillText(v, W - 430 + i * 140, H - 90);
+            });
+            
+            // 底部标签（历史顶图）
+            if (assets.historyTop) ctx.drawImage(assets.historyTop, W - 520, H - 55, 460, 35);
+            
+            ctx.globalAlpha = 1;
+            document.getElementById('single-canvas-placeholder').style.display = 'none';
+        }
+        
+        // 开始单个视频生成
+        async function startSingleVideoGeneration() {
+            const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
+            const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
+            
+            const validStart = Math.max(1, Math.min(20, startRank));
+            const validEnd = Math.max(1, Math.min(20, endRank));
+            
+            if (validStart > validEnd) {
+                showToast('排名范围无效！', 'error');
+                return;
+            }
+            
+            // 检查选定范围内是否有未选视频的排名
+            const selectedRanks = rankData.slice(validStart - 1, validEnd);
+            const missing = selectedRanks.filter(d => !d.videoFile);
+            if (missing.length > 0) {
+                showToast(`还有 ${missing.length} 个排名未选择视频！`, 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('btn-single-generate');
+            btn.disabled = true;
+            btn.textContent = '⏳ 生成中...';
+            
+            const progressWrap = document.getElementById('single-progress-wrap');
+            progressWrap.classList.add('visible');
+            
+            try {
+                await generateSingleVideo(validStart, validEnd, progressWrap);
+                showToast(`✅ 第${validStart}-${validEnd}名视频生成完成！`, 'success');
+            } catch (err) {
+                console.error(err);
+                showToast(' 生成失败：' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🎯 生成选定排名';
+            }
+        }
+        
+        // 核心：生成单个范围的视频
+        async function generateSingleVideo(startRank, endRank, progressWrap) {
+            const canvas = document.getElementById('single-preview-canvas');
+            const ctx = canvas.getContext('2d');
+            const W = 1920, H = 1080;
+            const FADE_DURATION = 0.5;
+            
+            const stream = canvas.captureStream(30);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9', videoBitsPerSecond: 8000000 });
+            const chunks = [];
+            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            
+            const downloadPromise = new Promise(resolve => {
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `bliBli_week_rank_${startRank}-${endRank}_${new Date().toISOString().slice(0, 10)}.webm`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    resolve();
+                };
+            });
+            
+            recorder.start();
+            
+            const totalRanks = endRank - startRank + 1;
+            
+            for (let i = 0; i < totalRanks; i++) {
+                const rankIndex = startRank - 1 + i;
+                const d = rankData[rankIndex];
+                const progress = ((i) / totalRanks * 100).toFixed(0);
+                updateSingleProgress(progressWrap, `正在处理第 ${d.rank} 名...`, progress);
+                
+                const videoUrl = URL.createObjectURL(d.videoFile);
+                const video = document.createElement('video');
+                video.src = videoUrl;
+                video.muted = false;
+                video.playsInline = true;
+                await new Promise(r => { video.onloadedmetadata = r; });
+                
+                const duration = video.duration;
+                
+                // 淡入阶段
+                const fadeInStart = performance.now();
+                while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
+                    const elapsed = (performance.now() - fadeInStart) / 1000;
+                    const alpha = Math.min(elapsed / FADE_DURATION, 1);
+                    drawFrame(ctx, video, d, alpha, W, H);
+                    await sleepFrame();
+                }
+                
+                // 播放阶段
+                video.play();
+                const playStart = performance.now();
+                const playDuration = (duration - FADE_DURATION * 2) * 1000;
+                while (performance.now() - playStart < playDuration) {
+                    drawFrame(ctx, video, d, 1, W, H);
+                    await sleepFrame();
+                }
+                video.pause();
+                
+                // 淡出阶段
+                const fadeOutStart = performance.now();
+                while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
+                    const elapsed = (performance.now() - fadeOutStart) / 1000;
+                    const alpha = 1 - Math.min(elapsed / FADE_DURATION, 1);
+                    drawFrame(ctx, video, d, alpha, W, H);
+                    await sleepFrame();
+                }
+                
+                URL.revokeObjectURL(videoUrl);
+                video.remove();
+            }
+            
+            updateSingleProgress(progressWrap, '正在导出...', '100');
+            recorder.stop();
+            await downloadPromise;
+        }
+        
+        function updateSingleProgress(wrap, text, percent) {
+            document.getElementById('single-progress-text').textContent = text;
+            document.getElementById('single-progress-percent').textContent = percent + '%';
+            document.getElementById('single-progress-fill').style.width = percent + '%';
+        }
     </script>
 </body>
 </html>
