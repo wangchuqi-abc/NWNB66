@@ -711,6 +711,9 @@
                             <h2>待生成排名预览</h2>
                             <div id="single-rank-preview" style="max-height: 300px; overflow-y: auto;"></div>
                         </div>
+
+                        <!-- 填写表单区域 -->
+                        <div id="single-rank-forms"></div>
                     </div>
             
                     <div class="vg-preview-section">
@@ -1367,6 +1370,109 @@
             if (ranks.length > 0) {
                 drawSinglePreview(validStart - 1);
             }
+            
+            // 生成填写表单
+            renderSingleRankForms(validStart, validEnd);
+        }
+        
+        // 渲染单个排名的填写表单
+        function renderSingleRankForms(startRank, endRank) {
+            const container = document.getElementById('single-rank-forms');
+            const ranks = rankData.slice(startRank - 1, endRank);
+            
+            container.innerHTML = ranks.map((d, i) => {
+                const actualRank = startRank + i;
+                return `
+                    <div class="rank-entry expanded" id="single-entry-${actualRank - 1}" style="margin-top: 20px;">
+                        <div class="rank-entry-header" onclick="toggleSingleEntry(${actualRank - 1})">
+                            <span class="arrow">▶</span>
+                            <div class="rank-num">${actualRank}</div>
+                            <div class="rank-title-preview">${d.chineseName || d.songName || '未填写标题...'}</div>
+                            <span class="rank-status ${d.videoFile ? '' : 'pending'}">${d.videoFile ? '✅ 已选视频' : '⏳ 待选视频'}</span>
+                        </div>
+                        <div class="rank-entry-body">
+                            <div class="form-grid">
+                                <div class="form-group-sm full-width">
+                                    <label>🎬 选择高潮视频片段：</label>
+                                    <div class="file-input-wrap">
+                                        <input type="file" accept="video/mp4,video/webm" onchange="handleSingleVideoSelect(${actualRank - 1}, this)">
+                                        <span class="file-name" id="single-fname-${actualRank - 1}">${d.videoFile ? d.videoFile.name : '未选择'}</span>
+                                    </div>
+                                </div>
+                                <div class="form-group-sm">
+                                    <label>排名变化类型：</label>
+                                    <select onchange="updateSingleField(${actualRank - 1}, 'changeType', this.value)">
+                                        ${CHANGE_TYPES.map(t => `<option value="${t.value}"${d.changeType === t.value ? ' selected' : ''}>${t.label}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="form-group-sm">
+                                    <label>歌名（日文/原名）：</label>
+                                    <input type="text" placeholder="如：急性恋愛中毒" value="${d.songName}" oninput="updateSingleField(${actualRank - 1}, 'songName', this.value)">
+                                </div>
+                                <div class="form-group-sm">
+                                    <label>中文名：</label>
+                                    <input type="text" placeholder="如：急性恋爱中毒" value="${d.chineseName}" oninput="updateSingleField(${actualRank - 1}, 'chineseName', this.value)">
+                                </div>
+                                <div class="form-group-sm">
+                                    <label>P 主：</label>
+                                    <input type="text" placeholder="如：ぴーなた" value="${d.producer}" oninput="updateSingleField(${actualRank - 1}, 'producer', this.value)">
+                                </div>
+                                <div class="form-group-sm">
+                                    <label>演唱歌姬：</label>
+                                    <input type="text" placeholder="如：重音テト" value="${d.vocalist}" oninput="updateSingleField(${actualRank - 1}, 'vocalist', this.value)">
+                                </div>
+                                <div class="form-group-sm">
+                                    <label>上周排名：</label>
+                                    <input type="number" placeholder="如：20" value="${d.lastWeekRank}" oninput="updateSingleField(${actualRank - 1}, 'lastWeekRank', this.value)">
+                                </div>
+                                <div class="form-group-sm">
+                                    <label>在榜周数：</label>
+                                    <input type="number" placeholder="如：1" value="${d.weeksOnChart}" oninput="updateSingleField(${actualRank - 1}, 'weeksOnChart', this.value)">
+                                </div>
+                                <div class="form-group-sm">
+                                    <label>最高排名：</label>
+                                    <input type="number" placeholder="如：20" value="${d.highestRank}" oninput="updateSingleField(${actualRank - 1}, 'highestRank', this.value)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 切换单个条目展开/收起
+        function toggleSingleEntry(index) {
+            const entry = document.getElementById(`single-entry-${index}`);
+            entry.classList.toggle('expanded');
+        }
+        
+        // 更新单个排名字段
+        function updateSingleField(index, field, value) {
+            rankData[index][field] = value;
+            // 更新标题预览
+            const preview = document.querySelector(`#single-entry-${index} .rank-title-preview`);
+            if (field === 'songName' || field === 'chineseName') {
+                const d = rankData[index];
+                const name = d.chineseName || d.songName || '未填写...';
+                preview.textContent = name;
+            }
+            // 刷新预览
+            drawSinglePreview(index);
+        }
+        
+        // 处理单个视频选择
+        function handleSingleVideoSelect(index, input) {
+            const file = input.files[0];
+            if (!file) return;
+            rankData[index].videoFile = file;
+            document.getElementById(`single-fname-${index}`).textContent = file.name;
+            // 更新状态标签
+            const status = document.querySelector(`#single-entry-${index} .rank-status`);
+            status.textContent = '✅ 已选视频';
+            status.classList.remove('pending');
+            showToast(`第${index + 1}名视频已选择`, 'success');
+            // 更新预览
+            drawSinglePreview(index);
         }
         
         // 绘制单个排名的预览
