@@ -39,7 +39,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: opacity 0.45s ease; /* 进入后台时淡出 */
         }
+        #login-overlay.hiding { opacity: 0; pointer-events: none; }
         .login-box {
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
@@ -300,6 +302,27 @@
             75% { transform: translateX(6px); }
         }
 
+        /* ==================== 进入后台过渡动画 ==================== */
+        /* 未进入前：侧边栏与主内容区隐藏 */
+        .sidebar, .main-content { opacity: 0; }
+        /* 进入后：侧边栏先淡入，主内容区稍后上浮淡入 */
+        body.entered .sidebar {
+            opacity: 1;
+            transition: opacity 0.5s ease, transform 0.3s ease;
+        }
+        body.entered .main-content {
+            animation: riseIn 0.55s ease 0.2s both;
+        }
+        /* 面板卡片依次上浮（配合标签切换动画） */
+        body.entered .panel.active .card,
+        body.entered .panel.active .placeholder-box {
+            animation: fadeIn 0.5s ease both;
+        }
+        @keyframes riseIn {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
         /* ==================== 手机端响应式断点 ==================== */
         @media (max-width: 768px) {
             .sidebar {
@@ -402,9 +425,19 @@
         /* ---------- 登录状态 ---------- */
         window.onload = function () {
             if (localStorage.getItem('isLoggedIn') === 'true') {
-                document.getElementById('login-overlay').style.display = 'none';
+                enterDashboard(false);
             }
         };
+
+        // 进入后台：登录层淡出，主界面渐入
+        function enterDashboard(showWelcome) {
+            const overlay = document.getElementById('login-overlay');
+            overlay.classList.add('hiding');
+            setTimeout(() => { overlay.style.display = 'none'; }, 450);
+
+            document.body.classList.add('entered');
+            if (showWelcome) showToast('欢迎回来，站长！', 'success');
+        }
 
         function checkLogin() {
             const user = document.getElementById('login-user').value;
@@ -413,7 +446,7 @@
 
             if (user === VALID_USER && pass === VALID_PASS) {
                 localStorage.setItem('isLoggedIn', 'true');
-                document.getElementById('login-overlay').style.display = 'none';
+                enterDashboard(true);
             } else {
                 errorMsg.style.display = 'block';
                 // 重新触发动画
