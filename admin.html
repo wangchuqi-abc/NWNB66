@@ -645,8 +645,20 @@
                         </div>
             
                         <div class="asset-hint">
-                            <strong> 素材路径已写死：</strong>所有 UI 素材从 <code>F:\新建文件夹 (2)\新建文件夹\</code> 自动加载，无需手动放置。<br>
-                            素材清单：NEW.png、上升.png、下降.png、持平.png、RE.png、排名底图.png、历史顶图.png、历史底图.png
+                            <strong> 第一步：选择素材文件</strong><br>
+                            浏览器无法直接读取本地路径，请一次性选中以下 8 个 PNG 素材文件：<br>
+                            NEW.png、上升.png、下降.png、持平.png、RE.png、排名底图.png、历史顶图.png、历史底图.png
+                        </div>
+
+                        <div class="card" style="max-width: 500px; margin-bottom: 20px;">
+                            <h2> 加载 UI 素材</h2>
+                            <div class="form-group">
+                                <label>选择 8 个素材文件（可多选）：</label>
+                                <div class="file-input-wrap">
+                                    <input type="file" accept="image/png" multiple onchange="handleAssetSelect(this)">
+                                </div>
+                            </div>
+                            <div id="asset-status" style="font-size: 0.85rem; color: var(--text-sub); margin-top: 8px;">尚未加载素材</div>
                         </div>
             
                         <div id="rank-entries"></div>
@@ -687,10 +699,22 @@
                         </div>
             
                         <div class="asset-hint">
-                            <strong> 功能说明：</strong>选择要生成的排名范围，单独生成这些排名的视频片段。<br>
-                            适合分批生成或只生成部分排名的场景。
+                            <strong> 第一步：选择素材文件</strong><br>
+                            浏览器无法直接读取本地路径，请一次性选中以下 8 个 PNG 素材文件：<br>
+                            NEW.png、上升.png、下降.png、持平.png、RE.png、排名底图.png、历史顶图.png、历史底图.png
                         </div>
-            
+
+                        <div class="card" style="max-width: 500px; margin-bottom: 20px;">
+                            <h2> 加载 UI 素材</h2>
+                            <div class="form-group">
+                                <label>选择 8 个素材文件（可多选）：</label>
+                                <div class="file-input-wrap">
+                                    <input type="file" accept="image/png" multiple onchange="handleAssetSelect(this)">
+                                </div>
+                            </div>
+                            <div id="single-asset-status" style="font-size: 0.85rem; color: var(--text-sub); margin-top: 8px;">尚未加载素材</div>
+                        </div>
+
                         <div class="card" style="max-width: 500px; margin-bottom: 20px;">
                             <h2>选择排名范围</h2>
                             <div class="form-group">
@@ -919,22 +943,62 @@
 
         // 素材图片缓存
         const assets = {};
-        const ASSET_PATHS = {
-            newText: 'F:\\新建文件夹 (2)\\新建文件夹\\NEW.png',
-            upArrow: 'F:\\新建文件夹 (2)\\新建文件夹\\上升.png',
-            downArrow: 'F:\\新建文件夹 (2)\\新建文件夹\\下降.png',
-            flatBar: 'F:\\新建文件夹 (2)\\新建文件夹\\持平.png',
-            reText: 'F:\\新建文件夹 (2)\\新建文件夹\\RE.png',
-            rankCircle: 'F:\\新建文件夹 (2)\\新建文件夹\\排名底图.png',
-            historyTop: 'F:\\新建文件夹 (2)\\新建文件夹\\历史顶图.png',
-            historyBottom: 'F:\\新建文件夹 (2)\\新建文件夹\\历史底图.png'
+        // 素材文件名 -> 内部键名 映射
+        const ASSET_FILE_MAP = {
+            'NEW.png': 'newText',
+            '上升.png': 'upArrow',
+            '下降.png': 'downArrow',
+            '持平.png': 'flatBar',
+            'RE.png': 'reText',
+            '排名底图.png': 'rankCircle',
+            '历史顶图.png': 'historyTop',
+            '历史底图.png': 'historyBottom'
         };
+        const REQUIRED_ASSETS = Object.keys(ASSET_FILE_MAP).length;
 
-        // 初始化：生成表单 + 加载素材
+        // 处理素材文件选择
+        function handleAssetSelect(input) {
+            const files = input.files;
+            if (!files || files.length === 0) return;
+            
+            let loaded = 0;
+            const statusEls = [
+                document.getElementById('asset-status'),
+                document.getElementById('single-asset-status')
+            ];
+            
+            for (const file of files) {
+                const key = ASSET_FILE_MAP[file.name];
+                if (!key) continue;
+                
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    assets[key] = img;
+                    loaded++;
+                    const msg = `已加载 ${loaded}/${REQUIRED_ASSETS} 个素材`;
+                    statusEls.forEach(el => { if (el) el.textContent = msg; });
+                    
+                    if (loaded === REQUIRED_ASSETS) {
+                        const successMsg = `✅ 全部 ${REQUIRED_ASSETS} 个素材已加载！`;
+                        statusEls.forEach(el => { if (el) { el.textContent = successMsg; el.style.color = '#27ae60'; } });
+                        showToast(successMsg, 'success');
+                        // 刷新预览
+                        drawPreview(currentPreviewRank);
+                        drawSinglePreview(currentPreviewRank);
+                    }
+                };
+                img.onerror = () => {
+                    console.warn(`素材加载失败: ${file.name}`);
+                };
+                img.src = url;
+            }
+        }
+
+        // 初始化：生成表单
         function initVideoGenerator() {
             renderRankEntries();
-            loadAssets();
-            // 延迟绘制预览，等待 DOM 和素材加载
+            // 延迟绘制预览
             setTimeout(() => drawPreview(0), 300);
         }
 
@@ -1042,15 +1106,9 @@
             if (index === currentPreviewRank) drawPreview(index);
         }
 
-        // 加载素材图片
+        // 加载素材图片（已改为用户手动选择，此函数保留但不再自动加载）
         function loadAssets() {
-            Object.entries(ASSET_PATHS).forEach(([key, path]) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => { assets[key] = img; };
-                img.onerror = () => { console.warn(`素材加载失败: ${path}`); };
-                img.src = path;
-            });
+            // 素材现在通过 handleAssetSelect 由用户选择加载
         }
 
         // Canvas 预览绘制
@@ -1195,18 +1253,17 @@
             // 逐个处理每个排名
             for (let i = 0; i < TOTAL_RANKS; i++) {
                 const d = rankData[i];
-                const progress = ((i) / TOTAL_RANKS * 100).toFixed(0);
-                updateProgress(progressWrap, `正在处理第 ${i + 1}/20 名...`, progress);
 
                 // 创建临时 video 元素
                 const videoUrl = URL.createObjectURL(d.videoFile);
                 const video = document.createElement('video');
                 video.src = videoUrl;
-                video.muted = false;
+                video.muted = true;
                 video.playsInline = true;
                 await new Promise(r => { video.onloadedmetadata = r; });
 
                 const duration = video.duration;
+                const totalSegmentTime = duration * 1000;
 
                 // 淡入阶段（0 ~ FADE_DURATION）
                 const fadeInStart = performance.now();
@@ -1217,12 +1274,19 @@
                     await sleepFrame();
                 }
 
-                // 播放阶段（FADE_DURATION ~ duration - FADE_DURATION）
-                video.play();
+                // 播放阶段：等待视频真正开始播放
+                await video.play();
                 const playStart = performance.now();
-                const playDuration = (duration - FADE_DURATION * 2) * 1000;
+                const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 0);
                 while (performance.now() - playStart < playDuration) {
-                    drawFrame(ctx, video, d, 1, W, H);
+                    if (!video.paused && !video.ended) {
+                        drawFrame(ctx, video, d, 1, W, H);
+                    }
+                    // 实时更新进度
+                    const elapsed = performance.now() - fadeInStart;
+                    const rankProgress = Math.min(elapsed / totalSegmentTime, 1);
+                    const overallProgress = ((i + rankProgress) / TOTAL_RANKS * 100).toFixed(0);
+                    updateProgress(progressWrap, `正在处理第 ${i + 1}/20 名...`, overallProgress);
                     await sleepFrame();
                 }
                 video.pause();
@@ -1232,7 +1296,9 @@
                 while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
                     const elapsed = (performance.now() - fadeOutStart) / 1000;
                     const alpha = 1 - Math.min(elapsed / FADE_DURATION, 1);
-                    drawFrame(ctx, video, d, alpha, W, H);
+                    if (!video.paused && !video.ended) {
+                        drawFrame(ctx, video, d, alpha, W, H);
+                    }
                     await sleepFrame();
                 }
 
@@ -1610,19 +1676,18 @@
             for (let i = 0; i < totalRanks; i++) {
                 const rankIndex = startRank - 1 + i;
                 const d = rankData[rankIndex];
-                const progress = ((i) / totalRanks * 100).toFixed(0);
-                updateSingleProgress(progressWrap, `正在处理第 ${d.rank} 名...`, progress);
                 
                 const videoUrl = URL.createObjectURL(d.videoFile);
                 const video = document.createElement('video');
                 video.src = videoUrl;
-                video.muted = false;
+                video.muted = true;
                 video.playsInline = true;
                 await new Promise(r => { video.onloadedmetadata = r; });
                 
                 const duration = video.duration;
+                const totalSegmentTime = duration * 1000; // 整个片段总时长（毫秒）
                 
-                // 淡入阶段
+                // 淡入阶段（0 ~ FADE_DURATION 秒）
                 const fadeInStart = performance.now();
                 while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
                     const elapsed = (performance.now() - fadeInStart) / 1000;
@@ -1631,12 +1696,20 @@
                     await sleepFrame();
                 }
                 
-                // 播放阶段
-                video.play();
+                // 播放阶段：等待视频真正开始播放
+                await video.play();
                 const playStart = performance.now();
-                const playDuration = (duration - FADE_DURATION * 2) * 1000;
+                const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 0);
                 while (performance.now() - playStart < playDuration) {
-                    drawFrame(ctx, video, d, 1, W, H);
+                    // 同步视频当前帧到 canvas
+                    if (!video.paused && !video.ended) {
+                        drawFrame(ctx, video, d, 1, W, H);
+                    }
+                    // 实时更新进度（基于已用时间）
+                    const elapsed = performance.now() - fadeInStart;
+                    const rankProgress = Math.min(elapsed / totalSegmentTime, 1);
+                    const overallProgress = ((i + rankProgress) / totalRanks * 100).toFixed(0);
+                    updateSingleProgress(progressWrap, `正在处理第 ${d.rank} 名...`, overallProgress);
                     await sleepFrame();
                 }
                 video.pause();
@@ -1646,7 +1719,9 @@
                 while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
                     const elapsed = (performance.now() - fadeOutStart) / 1000;
                     const alpha = 1 - Math.min(elapsed / FADE_DURATION, 1);
-                    drawFrame(ctx, video, d, alpha, W, H);
+                    if (!video.paused && !video.ended) {
+                        drawFrame(ctx, video, d, alpha, W, H);
+                    }
                     await sleepFrame();
                 }
                 
