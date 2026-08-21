@@ -8,10 +8,19 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --dark: #2c3e50;
+            --dark-deep: #1a252f;
+            --text-main: #333;
+            --text-sub: #7f8c8d;
+        }
+
         body {
             font-family: 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee);
-            color: #333;
+            color: var(--text-main);
             height: 100vh;
             display: flex;
             overflow: hidden;
@@ -22,52 +31,77 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee);
+            background:
+                radial-gradient(ellipse 55% 45% at 15% 10%, rgba(52, 152, 219, 0.12), transparent 60%),
+                radial-gradient(ellipse 50% 45% at 90% 95%, rgba(44, 62, 80, 0.10), transparent 60%),
+                linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee);
             z-index: 999;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .login-box {
-            background: #fff;
-            padding: 40px 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            padding: 44px 32px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
             width: 90%;          /* 手机端自适应宽度 */
-            max-width: 450px;    /* 电脑端最大宽度 */
+            max-width: 420px;    /* 电脑端最大宽度 */
             text-align: center;
+            animation: fadeIn 0.5s ease;
         }
-        .login-box h2 { margin-bottom: 30px; color: #2c3e50; font-size: 1.5rem; font-weight: bold; }
+        .login-logo {
+            width: 56px; height: 56px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, var(--dark), var(--primary));
+            border-radius: 14px;
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.35);
+        }
+        .login-box h2 { margin-bottom: 28px; color: var(--dark); font-size: 1.4rem; line-height: 1.5; }
         .login-box input {
             width: 100%;
             padding: 14px 16px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             border: 2px solid #eee;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1rem;
             outline: none;
-            transition: border 0.3s;
+            transition: border 0.3s, box-shadow 0.3s;
         }
-        .login-box input:focus { border-color: #3498db; }
+        .login-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
         .login-btn {
             width: 100%;
             padding: 14px;
-            background-color: #2c3e50;
+            background: linear-gradient(135deg, var(--dark), var(--primary));
             color: #fff;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 1rem;
             font-weight: bold;
-            transition: 0.3s;
+            letter-spacing: 4px;
+            transition: transform 0.2s, box-shadow 0.3s;
         }
-        .login-btn:hover { background-color: #3498db; }
-        .error-msg { color: #e74c3c; font-size: 14px; margin-top: 10px; display: none; }
+        .login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(52, 152, 219, 0.35); }
+        .error-msg {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 12px;
+            display: none;
+            animation: shake 0.4s ease;
+        }
 
         /* ==================== 左侧导航栏 ==================== */
         .sidebar {
             width: 250px;
-            background-color: #2c3e50;
+            background: linear-gradient(180deg, var(--dark) 0%, var(--dark-deep) 100%);
             color: #ecf0f1;
             display: flex;
             flex-direction: column;
@@ -75,30 +109,40 @@
             z-index: 100;
         }
         .sidebar-header {
-            padding: 20px;
-            font-size: 1.2rem;
+            padding: 22px 20px;
+            font-size: 1.15rem;
             font-weight: bold;
             text-align: center;
+            line-height: 1.5;
             border-bottom: 1px solid #34495e;
-            background-color: #1a252f;
+            background-color: rgba(0, 0, 0, 0.18);
             color: #fff;
         }
-        .nav-links { list-style: none; padding: 20px 0; flex: 1; }
+        .nav-links { list-style: none; padding: 16px 0; flex: 1; }
         .nav-links li {
-            padding: 15px 25px;
+            padding: 15px 22px;
+            margin: 4px 10px;
             cursor: pointer;
             display: flex;
             align-items: center;
+            border-radius: 8px;
             color: #bdc3c7;
-            transition: background 0.3s;
+            border-left: 4px solid transparent;
+            transition: background 0.3s, color 0.3s;
         }
-        .nav-links li:hover,
-        .nav-links li.active { background-color: #34495e; border-left: 4px solid #fff; color: #fff; }
+        .nav-links li:hover { background-color: rgba(52, 73, 94, 0.6); color: #fff; }
+        .nav-links li.active {
+            background-color: #34495e;
+            border-left-color: var(--primary);
+            color: #fff;
+        }
         .logout-btn {
-            padding: 15px 25px;
+            margin: 14px;
+            padding: 13px 20px;
             cursor: pointer;
             text-align: center;
             font-weight: bold;
+            border-radius: 8px;
             background-color: #c0392b;
             color: #fff;
             transition: background 0.3s;
@@ -121,11 +165,12 @@
         /* 顶部栏 */
         .top-bar {
             background-color: #fff;
-            padding: 15px 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            padding: 14px 22px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 10;
         }
         .menu-toggle {
             display: none; /* 默认隐藏，手机端显示 */
@@ -133,64 +178,126 @@
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
-            color: #2c3e50;
+            color: var(--dark);
         }
-        .page-title { font-size: 1.2rem; font-weight: 600; color: #2c3e50; }
-        .user-info { font-size: 0.9rem; color: #7f8c8d; }
+        .page-title { font-size: 1.2rem; font-weight: 600; color: var(--dark); }
+        .user-info {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .user-avatar {
+            width: 30px; height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--dark), var(--primary));
+            color: #fff;
+            font-size: 0.8rem;
+        }
 
-        .content-area { flex: 1; padding: 20px; overflow-y: auto; }
+        .content-area { flex: 1; padding: 24px; overflow-y: auto; }
         .panel { display: none; animation: fadeIn 0.3s; }
         .panel.active { display: block; }
         .placeholder-box {
             display: flex;
+            flex-direction: column;
+            gap: 10px;
             justify-content: center;
             align-items: center;
-            height: 200px;
+            height: 220px;
             color: #95a5a6;
             font-size: 1.2rem;
             border: 2px dashed #bdc3c7;
-            border-radius: 10px;
+            border-radius: 12px;
             background-color: #fafafa;
+            max-width: 600px;
         }
+        .placeholder-box small { font-size: 0.85rem; color: #b0b8bc; }
 
         /* 表单卡片 */
         .card {
             background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 26px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             width: 100%;
             max-width: 600px;
         }
-        .card h2 { margin-bottom: 15px; color: #2c3e50; font-size: 1.2rem; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #34495e; font-size: 0.9rem; }
+        .card h2 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h2::before {
+            content: '';
+            width: 4px; height: 18px;
+            border-radius: 2px;
+            background: var(--primary);
+        }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #34495e; font-size: 0.9rem; }
         .form-group input {
             width: 100%;
-            padding: 12px;
+            padding: 12px 14px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 1rem;
             outline: none;
+            transition: border 0.3s, box-shadow 0.3s;
         }
-        .form-group input[readonly] { background-color: #f9f9f9; color: #7f8c8d; }
+        .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12); }
+        .form-group input[readonly] { background-color: #f9f9f9; color: var(--text-sub); }
         .btn {
             width: 100%;
-            padding: 12px 20px;
-            background-color: #3498db;
+            padding: 13px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
-            transition: 0.3s;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.3s;
         }
-        .btn:hover { background-color: #2980b9; }
-        .hint { margin-top: 10px; font-size: 0.8rem; color: #7f8c8d; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(52, 152, 219, 0.3); }
+        .hint { margin-top: 12px; font-size: 0.8rem; color: var(--text-sub); }
+
+        /* Toast 提示 */
+        #toast {
+            position: fixed;
+            left: 50%;
+            top: 24px;
+            transform: translateX(-50%) translateY(-16px);
+            padding: 12px 24px;
+            border-radius: 10px;
+            background: rgba(44, 62, 80, 0.92);
+            color: #fff;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #toast.success { background: rgba(39, 174, 96, 0.92); }
+        #toast.error { background: rgba(192, 57, 43, 0.92); }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
         }
 
         /* ==================== 手机端响应式断点 ==================== */
@@ -205,6 +312,8 @@
             .sidebar.open + #sidebar-mask { display: block; }
             .menu-toggle { display: block; }
             .page-title { font-size: 1rem; }
+            .content-area { padding: 16px; }
+            .card { padding: 20px; }
         }
     </style>
 </head>
@@ -213,9 +322,10 @@
     <!-- 登录遮罩层 -->
     <div id="login-overlay">
         <div class="login-box">
+            <div class="login-logo">📺</div>
             <h2>哔哩哔哩WEEK<br>工作人员后台</h2>
-            <input type="text" id="login-user" placeholder="请输入用户名">
-            <input type="password" id="login-pass" placeholder="请输入密码">
+            <input type="text" id="login-user" placeholder="请输入用户名" autocomplete="username">
+            <input type="password" id="login-pass" placeholder="请输入密码" autocomplete="current-password">
             <button class="login-btn" onclick="checkLogin()">进入后台</button>
             <div class="error-msg" id="error-msg">用户名或密码错误！</div>
         </div>
@@ -240,7 +350,7 @@
             <!-- 手机端菜单按钮 -->
             <button class="menu-toggle" onclick="toggleMenu()">☰</button>
             <div class="page-title" id="page-title">周榜BV号替换</div>
-            <div class="user-info">站长</div>
+            <div class="user-info"><span class="user-avatar">站</span>站长</div>
         </div>
 
         <div class="content-area">
@@ -263,15 +373,31 @@
 
             <!-- 面板2：视频生成 -->
             <div id="video-gen" class="panel">
-                <div class="placeholder-box">⚠️ 暂未开放 ⚠️</div>
+                <div class="placeholder-box">
+                    <div>⚠️ 暂未开放 ⚠️</div>
+                    <small>该功能正在建设中，敬请期待</small>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Toast 提示容器 -->
+    <div id="toast"></div>
 
     <script>
         /* ---------- 账号配置 ---------- */
         const VALID_USER = 'admin';
         const VALID_PASS = '123456789@';
+
+        /* ---------- Toast 提示（替代 alert） ---------- */
+        let toastTimer = null;
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'show' + (type ? ' ' + type : '');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.className = ''; }, 2600);
+        }
 
         /* ---------- 登录状态 ---------- */
         window.onload = function () {
@@ -290,6 +416,10 @@
                 document.getElementById('login-overlay').style.display = 'none';
             } else {
                 errorMsg.style.display = 'block';
+                // 重新触发动画
+                errorMsg.style.animation = 'none';
+                void errorMsg.offsetWidth;
+                errorMsg.style.animation = '';
             }
         }
 
@@ -337,8 +467,9 @@
         /* ---------- 核心功能：替换BV号并下载排名页 ---------- */
         function updateVideo() {
             const newBv = document.getElementById('new-bv').value.trim();
-            if (!newBv) { alert('请输入新的 BV号！'); return; }
+            if (!newBv) { showToast('请输入新的 BV号！', 'error'); return; }
 
+            // 注意：此模板与「BliBli_week副站排名.html」保持同步
             const indexHtmlTemplate = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -347,19 +478,22 @@
     <title>BliBli_week副站排名</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: #121212; color: #fff; font-family: 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-        h1 { font-size: 2.5rem; margin-bottom: 30px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
-        .video-container { width: 100%; max-width: 900px; aspect-ratio: 16 / 9; background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); }
+        body { background: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(251, 114, 153, 0.14), transparent 60%), radial-gradient(ellipse 50% 40% at 90% 110%, rgba(0, 174, 236, 0.10), transparent 60%), #121212; color: #fff; font-family: 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 20px; }
+        .title-badge { display: inline-block; margin-bottom: 14px; padding: 5px 16px; font-size: 0.8rem; letter-spacing: 2px; color: #fb7299; border: 1px solid rgba(251, 114, 153, 0.45); border-radius: 999px; background: rgba(251, 114, 153, 0.08); }
+        h1 { font-size: 2.5rem; margin-bottom: 32px; text-align: center; background: linear-gradient(90deg, #fb7299, #ffffff 55%, #00aeec); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 24px rgba(251, 114, 153, 0.25); }
+        .video-container { position: relative; width: 100%; max-width: 900px; aspect-ratio: 16 / 9; background: #000; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 24px rgba(0, 0, 0, 0.55), 0 0 60px rgba(251, 114, 153, 0.08); animation: fadeUp 0.6s ease both; }
         .video-container iframe { width: 100%; height: 100%; border: none; }
-        .admin-link { margin-top: 20px; color: #666; text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
-        .admin-link:hover { color: #fff; }
-        .footer-credits { margin-top: 40px; text-align: center; font-size: 0.9rem; color: #888; line-height: 1.6; }
-        .footer-credits a { color: #00aeec; text-decoration: none; }
+        .admin-link { margin-top: 24px; padding: 8px 22px; color: #9aa0a6; text-decoration: none; font-size: 0.9rem; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 999px; transition: color 0.3s, border-color 0.3s, background 0.3s; }
+        .admin-link:hover { color: #fff; border-color: #fb7299; background: rgba(251, 114, 153, 0.12); }
+        .footer-credits { margin-top: 44px; text-align: center; font-size: 0.9rem; color: #888; line-height: 1.8; }
+        .footer-credits a { color: #00aeec; text-decoration: none; transition: color 0.3s; }
         .footer-credits a:hover { color: #fff; text-decoration: underline; }
-        @media (max-width: 768px) { h1 { font-size: 1.8rem; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 768px) { body { padding: 24px 16px; } h1 { font-size: 1.8rem; margin-bottom: 24px; } .footer-credits { margin-top: 32px; font-size: 0.8rem; } }
     </style>
 </head>
 <body>
+    <span class="title-badge">WEEKLY RANKING · 周榜</span>
     <h1>BliBli_week副站排名</h1>
     <div class="video-container">
         <iframe src="//player.bilibili.com/player.html?bvid=${newBv}&page=1&high_quality=1&danmaku=0" allowfullscreen="allowfullscreen"></iframe>
@@ -385,7 +519,7 @@
 
             document.getElementById('current-bv').value = newBv;
             document.getElementById('new-bv').value = '';
-            alert('✅ 文件已生成！请将下载的 index.html 上传到服务器覆盖原文件。');
+            showToast('✅ 文件已生成！请将下载的 index.html 上传到服务器覆盖原文件。', 'success');
         }
     </script>
 </body>
