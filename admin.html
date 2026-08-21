@@ -338,6 +338,245 @@
             .content-area { padding: 16px; }
             .card { padding: 20px; }
         }
+
+        /* ==================== 视频生成面板 ==================== */
+        .vg-layout {
+            display: grid;
+            grid-template-columns: 1fr 480px;
+            gap: 24px;
+            max-width: 1400px;
+        }
+        .vg-form-section { min-height: 0; }
+        .vg-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .vg-header h2 {
+            color: var(--dark);
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .vg-header h2::before {
+            content: '';
+            width: 4px; height: 22px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, #a8e063, #56ab2f);
+        }
+        .btn-generate {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #a8e063, #56ab2f);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.3s;
+            white-space: nowrap;
+        }
+        .btn-generate:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(86, 171, 47, 0.35); }
+        .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* 排名条目卡片 */
+        .rank-entry {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 12px;
+            overflow: hidden;
+            border-left: 4px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .rank-entry.active { border-left-color: #56ab2f; }
+        .rank-entry-header {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            cursor: pointer;
+            user-select: none;
+            background: #fafbfc;
+            transition: background 0.2s;
+        }
+        .rank-entry-header:hover { background: #f0f4f8; }
+        .rank-entry-header .arrow {
+            margin-right: 12px;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            transition: transform 0.3s;
+        }
+        .rank-entry.expanded .rank-entry-header .arrow { transform: rotate(90deg); }
+        .rank-entry-header .rank-num {
+            width: 36px; height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a8e063, #56ab2f);
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-right: 14px;
+        }
+        .rank-entry-header .rank-title-preview {
+            flex: 1;
+            font-size: 0.95rem;
+            color: var(--dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .rank-entry-header .rank-status {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            margin-left: 10px;
+        }
+        .rank-entry-header .rank-status.pending { background: #fff3e0; color: #e65100; }
+        .rank-entry-body {
+            display: none;
+            padding: 18px;
+            border-top: 1px solid #eee;
+        }
+        .rank-entry.expanded .rank-entry-body { display: block; }
+
+        /* 表单网格 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .form-grid .full-width { grid-column: 1 / -1; }
+        .form-group-sm label { font-size: 0.8rem; margin-bottom: 5px; }
+        .form-group-sm input,
+        .form-group-sm select {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+        .form-group-sm input:focus,
+        .form-group-sm select:focus { border-color: #56ab2f; }
+        .file-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .file-input-wrap input[type="file"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: #fafafa;
+        }
+        .file-input-wrap .file-name {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Canvas 预览区 */
+        .vg-preview-section {
+            position: sticky;
+            top: 0;
+            align-self: start;
+        }
+        .preview-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 18px;
+        }
+        .preview-card h3 {
+            font-size: 1rem;
+            color: var(--dark);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .canvas-wrap {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .canvas-wrap canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .canvas-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 0.9rem;
+            gap: 8px;
+        }
+        .canvas-placeholder span { font-size: 2rem; }
+
+        /* 进度条 */
+        .progress-bar-wrap {
+            margin-top: 14px;
+            display: none;
+        }
+        .progress-bar-wrap.visible { display: block; }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+        }
+        .progress-track {
+            height: 8px;
+            background: #eee;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a8e063, #56ab2f);
+            border-radius: 999px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        /* 素材路径提示 */
+        .asset-hint {
+            background: #f0f7ff;
+            border: 1px solid #b3d4fc;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            font-size: 0.8rem;
+            color: #1a5276;
+            line-height: 1.6;
+        }
+        .asset-hint strong { color: #2c3e50; }
+
+        @media (max-width: 1100px) {
+            .vg-layout { grid-template-columns: 1fr; }
+            .vg-preview-section { position: static; }
+        }
     </style>
 </head>
 <body>
@@ -396,9 +635,44 @@
 
             <!-- 面板2：视频生成 -->
             <div id="video-gen" class="panel">
-                <div class="placeholder-box">
-                    <div>⚠️ 暂未开放 ⚠️</div>
-                    <small>该功能正在建设中，敬请期待</small>
+                <div class="vg-layout">
+                    <!-- 左侧：数据录入表单 -->
+                    <div class="vg-form-section">
+                        <div class="vg-header">
+                            <h2>周榜视频生成 · Top 20</h2>
+                            <button class="btn-generate" id="btn-generate" onclick="startVideoGeneration()">🎬 开始生成视频</button>
+                        </div>
+            
+                        <div class="asset-hint">
+                            <strong> 素材路径已写死：</strong>所有 UI 素材从 <code>F:\新建文件夹 (2)\新建文件夹\</code> 自动加载，无需手动放置。<br>
+                            素材清单：NEW.png、上升.png、下降.png、持平.png、RE.png、排名底图.png、历史顶图.png、历史底图.png
+                        </div>
+            
+                        <div id="rank-entries"></div>
+                    </div>
+            
+                    <!-- 右侧：Canvas 预览 -->
+                    <div class="vg-preview-section">
+                        <div class="preview-card">
+                            <h3>🖼️ 实时预览</h3>
+                            <div class="canvas-wrap">
+                                <canvas id="preview-canvas" width="1920" height="1080"></canvas>
+                                <div class="canvas-placeholder" id="canvas-placeholder">
+                                    <span>🎥</span>
+                                    <div>填写数据后自动预览</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar-wrap" id="progress-wrap">
+                                <div class="progress-label">
+                                    <span id="progress-text">准备中...</span>
+                                    <span id="progress-percent">0%</span>
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-fill" id="progress-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -554,6 +828,434 @@
             document.getElementById('new-bv').value = '';
             showToast('✅ 文件已生成！请将下载的 index.html 上传到服务器覆盖原文件。', 'success');
         }
+
+        /* ==================== 视频生成功能 ==================== */
+        const TOTAL_RANKS = 20;
+        const CHANGE_TYPES = [
+            { value: 'new', label: 'New（新上榜）' },
+            { value: 'up', label: '↑ 上升' },
+            { value: 'down', label: '↓ 下降' },
+            { value: 'flat', label: '— 持平' },
+            { value: 're', label: 'Re（重新上榜）' }
+        ];
+
+        // 排名数据
+        let rankData = Array.from({ length: TOTAL_RANKS }, (_, i) => ({
+            rank: i + 1,
+            changeType: i === 0 ? 'new' : 'flat',
+            songName: '',
+            chineseName: '',
+            producer: '',
+            vocalist: '',
+            lastWeekRank: '',
+            weeksOnChart: '',
+            highestRank: '',
+            videoFile: null
+        }));
+
+        // 素材图片缓存
+        const assets = {};
+        const ASSET_PATHS = {
+            newText: 'F:\\新建文件夹 (2)\\新建文件夹\\NEW.png',
+            upArrow: 'F:\\新建文件夹 (2)\\新建文件夹\\上升.png',
+            downArrow: 'F:\\新建文件夹 (2)\\新建文件夹\\下降.png',
+            flatBar: 'F:\\新建文件夹 (2)\\新建文件夹\\持平.png',
+            reText: 'F:\\新建文件夹 (2)\\新建文件夹\\RE.png',
+            rankCircle: 'F:\\新建文件夹 (2)\\新建文件夹\\排名底图.png',
+            historyTop: 'F:\\新建文件夹 (2)\\新建文件夹\\历史顶图.png',
+            historyBottom: 'F:\\新建文件夹 (2)\\新建文件夹\\历史底图.png'
+        };
+
+        // 初始化：生成表单 + 加载素材
+        function initVideoGenerator() {
+            renderRankEntries();
+            loadAssets();
+            // 延迟绘制预览，等待 DOM 和素材加载
+            setTimeout(() => drawPreview(0), 300);
+        }
+
+        // 渲染20个排名条目
+        function renderRankEntries() {
+            const container = document.getElementById('rank-entries');
+            container.innerHTML = rankData.map((d, i) => `
+                <div class="rank-entry${i === 0 ? ' expanded active' : ''}" id="entry-${i}">
+                    <div class="rank-entry-header" onclick="toggleEntry(${i})">
+                        <span class="arrow">▶</span>
+                        <div class="rank-num">${d.rank}</div>
+                        <div class="rank-title-preview">${d.title || '未填写标题...'}</div>
+                        <span class="rank-status ${d.videoFile ? '' : 'pending'}">${d.videoFile ? '✅ 已选视频' : '⏳ 待选视频'}</span>
+                    </div>
+                    <div class="rank-entry-body">
+                        <div class="form-grid">
+                            <div class="form-group-sm full-width">
+                                <label> 选择高潮视频片段：</label>
+                                <div class="file-input-wrap">
+                                    <input type="file" accept="video/mp4,video/webm" onchange="handleVideoSelect(${i}, this)">
+                                    <span class="file-name" id="fname-${i}">${d.videoFile ? d.videoFile.name : '未选择'}</span>
+                                </div>
+                            </div>
+                            <div class="form-group-sm">
+                                <label>排名变化类型：</label>
+                                <select onchange="updateField(${i}, 'changeType', this.value)">
+                                    ${CHANGE_TYPES.map(t => `<option value="${t.value}"${d.changeType === t.value ? ' selected' : ''}>${t.label}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group-sm">
+                                <label>歌名（日文/原名）：</label>
+                                <input type="text" placeholder="如：急性恋愛中毒" value="${d.songName}" oninput="updateField(${i}, 'songName', this.value)">
+                            </div>
+                            <div class="form-group-sm">
+                                <label>中文名：</label>
+                                <input type="text" placeholder="如：急性恋爱中毒" value="${d.chineseName}" oninput="updateField(${i}, 'chineseName', this.value)">
+                            </div>
+                            <div class="form-group-sm">
+                                <label>P主：</label>
+                                <input type="text" placeholder="如：ぴーなた" value="${d.producer}" oninput="updateField(${i}, 'producer', this.value)">
+                            </div>
+                            <div class="form-group-sm">
+                                <label>演唱歌姬：</label>
+                                <input type="text" placeholder="如：重音テト" value="${d.vocalist}" oninput="updateField(${i}, 'vocalist', this.value)">
+                            </div>
+                            <div class="form-group-sm">
+                                <label>上周排名：</label>
+                                <input type="number" placeholder="如：20" value="${d.lastWeekRank}" oninput="updateField(${i}, 'lastWeekRank', this.value)">
+                            </div>
+                            <div class="form-group-sm">
+                                <label>在榜周数：</label>
+                                <input type="number" placeholder="如：1" value="${d.weeksOnChart}" oninput="updateField(${i}, 'weeksOnChart', this.value)">
+                            </div>
+                            <div class="form-group-sm">
+                                <label>最高排名：</label>
+                                <input type="number" placeholder="如：20" value="${d.highestRank}" oninput="updateField(${i}, 'highestRank', this.value)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 切换条目展开/收起 + 切换预览
+        function toggleEntry(index) {
+            const entry = document.getElementById(`entry-${index}`);
+            const wasExpanded = entry.classList.contains('expanded');
+            // 收起所有
+            document.querySelectorAll('.rank-entry').forEach(el => el.classList.remove('expanded', 'active'));
+            // 展开当前
+            entry.classList.add('expanded', 'active');
+            // 更新预览
+            drawPreview(index);
+        }
+
+        // 当前预览的排名索引
+        let currentPreviewRank = 0;
+
+        // 更新字段
+        function updateField(index, field, value) {
+            rankData[index][field] = value;
+            // 更新标题预览
+            const preview = document.querySelector(`#entry-${index} .rank-title-preview`);
+            if (field === 'songName' || field === 'chineseName') {
+                const d = rankData[index];
+                const name = d.chineseName || d.songName || '未填写...';
+                preview.textContent = name;
+            }
+            // 如果正在预览此排名，刷新 Canvas
+            if (index === currentPreviewRank) drawPreview(index);
+        }
+
+        // 处理视频选择
+        function handleVideoSelect(index, input) {
+            const file = input.files[0];
+            if (!file) return;
+            rankData[index].videoFile = file;
+            document.getElementById(`fname-${index}`).textContent = file.name;
+            // 更新状态标签
+            const status = document.querySelector(`#entry-${index} .rank-status`);
+            status.textContent = '✅ 已选视频';
+            status.classList.remove('pending');
+            showToast(`第${index + 1}名视频已选择`, 'success');
+            // 更新预览
+            if (index === currentPreviewRank) drawPreview(index);
+        }
+
+        // 加载素材图片
+        function loadAssets() {
+            Object.entries(ASSET_PATHS).forEach(([key, path]) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => { assets[key] = img; };
+                img.onerror = () => { console.warn(`素材加载失败: ${path}`); };
+                img.src = path;
+            });
+        }
+
+        // Canvas 预览绘制
+        function drawPreview(rankIndex) {
+            const canvas = document.getElementById('preview-canvas');
+            const ctx = canvas.getContext('2d');
+            const d = rankData[rankIndex];
+            const W = 1920, H = 1080;
+            currentPreviewRank = rankIndex;
+
+            // 深色占位背景（预览模式不播放视频）
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, W, H);
+            // 中心提示
+            ctx.fillStyle = '#0f3460';
+            ctx.font = 'bold 100px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText(`#${d.rank}`, W / 2, H / 2 - 30);
+            ctx.font = '36px Microsoft YaHei';
+            ctx.fillStyle = '#888';
+            const previewName = d.chineseName || d.songName || '等待填写...';
+            ctx.fillText(previewName, W / 2, H / 2 + 30);
+
+            // 绘制 UI 叠加层（预览时完全显示）
+            ctx.globalAlpha = 1;
+
+            // 左下角：排名圆框 + 变化标记
+            if (assets.rankCircle) {
+                ctx.drawImage(assets.rankCircle, 60, H - 280, 200, 200);
+            }
+            // 排名数字
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 90px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText(String(d.rank), 160, H - 155);
+
+            // 变化标记
+            const changeImg = getChangeImage(d.changeType);
+            if (changeImg) {
+                ctx.drawImage(changeImg, 80, H - 70, 160, 50);
+            }
+
+            // 标题：歌名（中文名）
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 52px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            const displayName = d.chineseName || d.songName || '';
+            ctx.fillText(displayName, 300, H - 200);
+            // 副标题：P主 - 演唱歌姬
+            ctx.font = '32px Microsoft YaHei';
+            ctx.fillStyle = '#ccc';
+            const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
+            ctx.fillText(artistLine || '', 300, H - 150);
+
+            // 歌词框（不再使用）
+
+            // 数据框背景（历史底图）
+            if (assets.historyBottom) ctx.drawImage(assets.historyBottom, W - 520, H - 170, 460, 120);
+            // 三个数据
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 56px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            const dataX = [W - 430, W - 290, W - 150];
+            const dataVals = [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'];
+            dataVals.forEach((v, i) => ctx.fillText(v, dataX[i], H - 90));
+
+            // 底部标签（历史顶图）
+            if (assets.historyTop) ctx.drawImage(assets.historyTop, W - 520, H - 55, 460, 35);
+
+            ctx.globalAlpha = 1;
+            document.getElementById('canvas-placeholder').style.display = 'none';
+        }
+
+        // 获取变化标记图片
+        function getChangeImage(type) {
+            const map = {
+                new: assets.newText,
+                up: assets.upArrow,
+                down: assets.downArrow,
+                flat: assets.flatBar,
+                re: assets.reText
+            };
+            return map[type] || null;
+        }
+
+        // 开始生成视频
+        async function startVideoGeneration() {
+            // 验证：检查是否所有排名都有视频
+            const missing = rankData.filter(d => !d.videoFile);
+            if (missing.length > 0) {
+                showToast(`还有 ${missing.length} 个排名未选择视频！`, 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-generate');
+            btn.disabled = true;
+            btn.textContent = '⏳ 生成中...';
+
+            const progressWrap = document.getElementById('progress-wrap');
+            progressWrap.classList.add('visible');
+
+            try {
+                await generateVideo(progressWrap);
+                showToast('✅ 视频生成完成！', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('❌ 生成失败：' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🎬 开始生成视频';
+            }
+        }
+
+        // 核心：生成视频
+        async function generateVideo(progressWrap) {
+            const canvas = document.getElementById('preview-canvas');
+            const ctx = canvas.getContext('2d');
+            const W = 1920, H = 1080;
+            const FADE_DURATION = 0.5; // 淡入淡出各0.5秒
+
+            // 创建 MediaRecorder
+            const stream = canvas.captureStream(30);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9', videoBitsPerSecond: 8000000 });
+            const chunks = [];
+            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+            const downloadPromise = new Promise(resolve => {
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `bliBli_week_ranking_${new Date().toISOString().slice(0, 10)}.webm`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    resolve();
+                };
+            });
+
+            recorder.start();
+
+            // 逐个处理每个排名
+            for (let i = 0; i < TOTAL_RANKS; i++) {
+                const d = rankData[i];
+                const progress = ((i) / TOTAL_RANKS * 100).toFixed(0);
+                updateProgress(progressWrap, `正在处理第 ${i + 1}/20 名...`, progress);
+
+                // 创建临时 video 元素
+                const videoUrl = URL.createObjectURL(d.videoFile);
+                const video = document.createElement('video');
+                video.src = videoUrl;
+                video.muted = false;
+                video.playsInline = true;
+                await new Promise(r => { video.onloadedmetadata = r; });
+
+                const duration = video.duration;
+
+                // 淡入阶段（0 ~ FADE_DURATION）
+                const fadeInStart = performance.now();
+                while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
+                    const elapsed = (performance.now() - fadeInStart) / 1000;
+                    const alpha = Math.min(elapsed / FADE_DURATION, 1);
+                    drawFrame(ctx, video, d, alpha, W, H);
+                    await sleepFrame();
+                }
+
+                // 播放阶段（FADE_DURATION ~ duration - FADE_DURATION）
+                video.play();
+                const playStart = performance.now();
+                const playDuration = (duration - FADE_DURATION * 2) * 1000;
+                while (performance.now() - playStart < playDuration) {
+                    drawFrame(ctx, video, d, 1, W, H);
+                    await sleepFrame();
+                }
+                video.pause();
+
+                // 淡出阶段
+                const fadeOutStart = performance.now();
+                while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
+                    const elapsed = (performance.now() - fadeOutStart) / 1000;
+                    const alpha = 1 - Math.min(elapsed / FADE_DURATION, 1);
+                    drawFrame(ctx, video, d, alpha, W, H);
+                    await sleepFrame();
+                }
+
+                URL.revokeObjectURL(videoUrl);
+                video.remove();
+            }
+
+            updateProgress(progressWrap, '正在导出...', '100');
+            recorder.stop();
+            await downloadPromise;
+        }
+
+        // 绘制单帧
+        function drawFrame(ctx, video, d, uiAlpha, W, H) {
+            // 绘制视频背景
+            ctx.globalAlpha = 1;
+            ctx.drawImage(video, 0, 0, W, H);
+
+            // 绘制 UI 叠加层（带透明度）
+            ctx.globalAlpha = uiAlpha;
+
+            // 左下角：排名圆框
+            if (assets.rankCircle) ctx.drawImage(assets.rankCircle, 60, H - 280, 200, 200);
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 90px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText(String(d.rank), 160, H - 155);
+
+            // 变化标记
+            const changeImg = getChangeImage(d.changeType);
+            if (changeImg) ctx.drawImage(changeImg, 80, H - 70, 160, 50);
+
+            // 标题：歌名（中文名）
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 52px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            const displayName = d.chineseName || d.songName || '';
+            ctx.fillText(displayName, 300, H - 200);
+            // 副标题：P主 - 演唱歌姬
+            ctx.font = '32px Microsoft YaHei';
+            ctx.fillStyle = '#ccc';
+            const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
+            ctx.fillText(artistLine || '', 300, H - 150);
+
+            // 歌词框（不再使用）
+
+            // 数据框（历史底图）
+            if (assets.historyBottom) ctx.drawImage(assets.historyBottom, W - 520, H - 170, 460, 120);
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 56px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
+                ctx.fillText(v, W - 430 + i * 140, H - 90);
+            });
+
+            // 底部标签（历史顶图）
+            if (assets.historyTop) ctx.drawImage(assets.historyTop, W - 520, H - 55, 460, 35);
+
+            ctx.globalAlpha = 1;
+        }
+
+        function updateProgress(wrap, text, percent) {
+            document.getElementById('progress-text').textContent = text;
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('progress-fill').style.width = percent + '%';
+        }
+
+        function sleepFrame() {
+            return new Promise(r => requestAnimationFrame(r));
+        }
+
+        // 页面加载完成后初始化视频生成器
+        window.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('video-gen').classList.contains('active')) {
+                initVideoGenerator();
+            }
+        });
+
+        // 切换到视频生成面板时初始化
+        const _origSwitchTab = window.switchTab;
+        window.switchTab = function(tabId, element) {
+            _origSwitchTab(tabId, element);
+            if (tabId === 'video-gen' && !window._vgInitialized) {
+                initVideoGenerator();
+                window._vgInitialized = true;
+            }
+        };
     </script>
 </body>
 </html>
