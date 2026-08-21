@@ -1145,12 +1145,13 @@
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
 
-            // 变化标记（放在圆形右下角，原始大小）
+            // 变化标记（放在圆形右下角，合适大小）
             const changeImg = getChangeImage(d.changeType);
             if (changeImg) {
                 // 圆形右下角：(60+200, H-280+200) = (260, H-80)
-                // 标记中心对齐右下角
-                ctx.drawImage(changeImg, 260 - changeImg.naturalWidth / 2, H - 80 - changeImg.naturalHeight / 2);
+                // 标记中心对齐右下角，尺寸 120×120
+                const size = 120;
+                ctx.drawImage(changeImg, 260 - size / 2, H - 80 - size / 2, size, size);
             }
 
             // 标题：歌名（中文名）
@@ -1332,9 +1333,12 @@
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
 
-            // 变化标记（圆形右下角，原始大小）
+            // 变化标记（圆形右下角，合适大小）
             const changeImg = getChangeImage(d.changeType);
-            if (changeImg) ctx.drawImage(changeImg, 260 - changeImg.naturalWidth / 2, H - 80 - changeImg.naturalHeight / 2);
+            if (changeImg) {
+                const size = 120;
+                ctx.drawImage(changeImg, 260 - size / 2, H - 80 - size / 2, size, size);
+            }
 
             // 标题：歌名（中文名）
             ctx.fillStyle = '#fff';
@@ -1577,9 +1581,12 @@
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
             
-            // 变化标记（圆形右下角，原始大小）
+            // 变化标记（圆形右下角，合适大小）
             const changeImg = getChangeImage(d.changeType);
-            if (changeImg) ctx.drawImage(changeImg, 260 - changeImg.naturalWidth / 2, H - 80 - changeImg.naturalHeight / 2);
+            if (changeImg) {
+                const size = 120;
+                ctx.drawImage(changeImg, 260 - size / 2, H - 80 - size / 2, size, size);
+            }
             
             // 标题：歌名（中文名）
             ctx.fillStyle = '#fff';
