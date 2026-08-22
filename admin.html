@@ -904,7 +904,9 @@
             lastWeekRank: '',
             weeksOnChart: '',
             highestRank: '',
-            videoFile: null
+            videoFile: null,
+            startTime: 0,      // 视频开始时间（秒）
+            endTime: 0         // 视频结束时间（秒）
         }));
 
         // 素材图片缓存
@@ -966,11 +968,12 @@
                     <div class="rank-entry-body">
                         <div class="form-grid">
                             <div class="form-group-sm full-width">
-                                <label> 选择高潮视频片段：</label>
+                                <label>🎬 选择高潮视频片段：</label>
                                 <div class="file-input-wrap">
                                     <input type="file" accept="video/mp4,video/webm" onchange="handleVideoSelect(${i}, this)">
                                     <span class="file-name" id="fname-${i}">${d.videoFile ? d.videoFile.name : '未选择'}</span>
                                 </div>
+                                <button onclick="openVideoTrimModal(${i})" style="margin-top: 8px; padding: 6px 12px; background: #3498db; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem;" ${d.videoFile ? '' : 'disabled'}>✂️ 裁剪片段</button>
                             </div>
                             <div class="form-group-sm">
                                 <label>排名变化类型：</label>
@@ -1051,9 +1054,11 @@
             const status = document.querySelector(`#entry-${index} .rank-status`);
             status.textContent = '✅ 已选视频';
             status.classList.remove('pending');
-            showToast(`第${index + 1}名视频已选择`, 'success');
+            showToast(`第${index + 1}名视频已选择，请裁剪片段`, 'success');
             // 更新预览
             if (index === currentPreviewRank) drawPreview(index);
+            // 自动打开裁剪模态框
+            setTimeout(() => openVideoTrimModal(index), 300);
         }
 
         // Canvas 预览绘制
@@ -1213,8 +1218,14 @@
                 stream.getAudioTracks().forEach(t => stream.removeTrack(t));
                 video.captureStream().getAudioTracks().forEach(t => stream.addTrack(t));
 
-                const duration = video.duration;
-                const totalSegmentTime = duration * 1000;
+                // 使用裁剪设置
+                const startTime = d.startTime || 0;
+                const endTime = d.endTime || video.duration;
+                const clipDuration = endTime - startTime; // 裁剪后的时长（秒）
+                const totalSegmentTime = clipDuration * 1000;
+                
+                // 设置视频起始位置
+                video.currentTime = startTime;
 
                 // 淡入阶段（0 ~ FADE_DURATION）
                 const fadeInStart = performance.now();
@@ -1228,8 +1239,13 @@
                 // 播放阶段：等待视频真正开始播放
                 await video.play();
                 const playStart = performance.now();
-                const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 0);
+                const playDuration = Math.max((clipDuration - FADE_DURATION * 2) * 1000, 0);
                 while (performance.now() - playStart < playDuration) {
+                    // 检查是否到达结束点
+                    if (video.currentTime >= endTime) {
+                        video.pause();
+                        break;
+                    }
                     if (!video.paused && !video.ended) {
                         drawFrame(ctx, video, d, 1, W, H);
                     }
@@ -1418,6 +1434,7 @@
                                         <input type="file" accept="video/mp4,video/webm" onchange="handleSingleVideoSelect(${actualRank - 1}, this)">
                                         <span class="file-name" id="single-fname-${actualRank - 1}">${d.videoFile ? d.videoFile.name : '未选择'}</span>
                                     </div>
+                                    <button onclick="openVideoTrimModal(${actualRank - 1})" style="margin-top: 8px; padding: 6px 12px; background: #3498db; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem;" ${d.videoFile ? '' : 'disabled'}>✂️ 裁剪片段</button>
                                 </div>
                                 <div class="form-group-sm">
                                     <label>排名变化类型：</label>
@@ -1490,9 +1507,11 @@
             const status = document.querySelector(`#single-entry-${index} .rank-status`);
             status.textContent = '✅ 已选视频';
             status.classList.remove('pending');
-            showToast(`第${index + 1}名视频已选择`, 'success');
+            showToast(`第${index + 1}名视频已选择，请裁剪片段`, 'success');
             // 更新预览
             drawSinglePreview(index);
+            // 自动打开裁剪模态框
+            setTimeout(() => openVideoTrimModal(index), 300);
         }
         
         // 绘制单个排名的预览
@@ -1644,8 +1663,14 @@
                 stream.getAudioTracks().forEach(t => stream.removeTrack(t));
                 video.captureStream().getAudioTracks().forEach(t => stream.addTrack(t));
                 
-                const duration = video.duration;
-                const totalSegmentTime = duration * 1000; // 整个片段总时长（毫秒）
+                // 使用裁剪设置
+                const startTime = d.startTime || 0;
+                const endTime = d.endTime || video.duration;
+                const clipDuration = endTime - startTime; // 裁剪后的时长（秒）
+                const totalSegmentTime = clipDuration * 1000;
+                
+                // 设置视频起始位置
+                video.currentTime = startTime;
                 
                 // 淡入阶段（0 ~ FADE_DURATION 秒）
                 const fadeInStart = performance.now();
@@ -1659,8 +1684,13 @@
                 // 播放阶段：等待视频真正开始播放
                 await video.play();
                 const playStart = performance.now();
-                const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 0);
+                const playDuration = Math.max((clipDuration - FADE_DURATION * 2) * 1000, 0);
                 while (performance.now() - playStart < playDuration) {
+                    // 检查是否到达结束点
+                    if (video.currentTime >= endTime) {
+                        video.pause();
+                        break;
+                    }
                     // 同步视频当前帧到 canvas
                     if (!video.paused && !video.ended) {
                         drawFrame(ctx, video, d, 1, W, H);
@@ -1699,6 +1729,138 @@
             document.getElementById('single-progress-percent').textContent = percent + '%';
             document.getElementById('single-progress-fill').style.width = percent + '%';
         }
+
+        /* ==================== 视频裁剪功能 ==================== */
+        let currentTrimIndex = -1; // 当前裁剪的排名索引
+        let trimVideo = null;      // 裁剪用的 video 元素
+
+        // 打开视频裁剪模态框
+        function openVideoTrimModal(index) {
+            const data = rankData[index];
+            if (!data.videoFile) {
+                showToast('请先选择视频文件！', 'error');
+                return;
+            }
+            
+            currentTrimIndex = index;
+            const modal = document.getElementById('trim-modal');
+            const video = document.getElementById('trim-video');
+            
+            // 设置视频源
+            const url = URL.createObjectURL(data.videoFile);
+            video.src = url;
+            
+            // 设置初始时间
+            document.getElementById('trim-start').value = data.startTime || 0;
+            document.getElementById('trim-end').value = data.endTime || 0;
+            document.getElementById('trim-duration').textContent = '视频总时长: 0.00 秒';
+            
+            // 显示模态框
+            modal.style.display = 'flex';
+            
+            // 视频加载后获取时长
+            video.onloadedmetadata = () => {
+                document.getElementById('trim-duration').textContent = `视频总时长: ${video.duration.toFixed(2)} 秒`;
+                // 如果未设置结束时间，默认设为视频末尾
+                if (!data.endTime || data.endTime === 0) {
+                    document.getElementById('trim-end').value = video.duration.toFixed(2);
+                }
+            };
+        }
+
+        // 关闭裁剪模态框
+        function closeTrimModal() {
+            const modal = document.getElementById('trim-modal');
+            const video = document.getElementById('trim-video');
+            video.pause();
+            video.src = '';
+            modal.style.display = 'none';
+            currentTrimIndex = -1;
+        }
+
+        // 设置开始时间点
+        function setTrimStart() {
+            const video = document.getElementById('trim-video');
+            document.getElementById('trim-start').value = video.currentTime.toFixed(2);
+        }
+
+        // 设置结束时间点
+        function setTrimEnd() {
+            const video = document.getElementById('trim-video');
+            document.getElementById('trim-end').value = video.currentTime.toFixed(2);
+        }
+
+        // 预览裁剪片段
+        function previewTrim() {
+            const video = document.getElementById('trim-video');
+            const start = parseFloat(document.getElementById('trim-start').value) || 0;
+            const end = parseFloat(document.getElementById('trim-end').value) || video.duration;
+            
+            video.currentTime = start;
+            video.play();
+            
+            // 到达结束点时暂停
+            const checkEnd = () => {
+                if (video.currentTime >= end) {
+                    video.pause();
+                    video.removeEventListener('timeupdate', checkEnd);
+                }
+            };
+            video.addEventListener('timeupdate', checkEnd);
+        }
+
+        // 保存裁剪设置
+        function saveTrimSettings() {
+            const video = document.getElementById('trim-video');
+            const start = parseFloat(document.getElementById('trim-start').value) || 0;
+            const end = parseFloat(document.getElementById('trim-end').value) || video.duration;
+            
+            if (start >= end) {
+                showToast('开始时间必须小于结束时间！', 'error');
+                return;
+            }
+            
+            if (currentTrimIndex >= 0) {
+                rankData[currentTrimIndex].startTime = start;
+                rankData[currentTrimIndex].endTime = end;
+                showToast(`已保存裁剪设置: ${start.toFixed(2)}s - ${end.toFixed(2)}s`, 'success');
+            }
+            
+            closeTrimModal();
+        }
     </script>
+
+    <!-- 视频裁剪模态框 -->
+    <div id="trim-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: #fff; border-radius: 16px; padding: 30px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h2 style="margin-top: 0; color: var(--dark);">🎬 裁剪视频片段</h2>
+            <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">选择视频的高潮片段作为周榜使用</p>
+            
+            <div style="background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
+                <video id="trim-video" controls style="width: 100%; max-height: 360px;"></video>
+            </div>
+            
+            <div id="trim-duration" style="text-align: center; color: var(--text-sub); margin-bottom: 20px; font-size: 0.9rem;">视频总时长: 0.00 秒</div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--dark); margin-bottom: 5px;">开始时间（秒）</label>
+                    <input type="number" id="trim-start" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                    <button onclick="setTrimStart()" style="margin-top: 8px; padding: 6px 12px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📍 设为当前帧</button>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--dark); margin-bottom: 5px;">结束时间（秒）</label>
+                    <input type="number" id="trim-end" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                    <button onclick="setTrimEnd()" style="margin-top: 8px; padding: 6px 12px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📍 设为当前帧</button>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="previewTrim()" style="padding: 10px 20px; background: #3498db; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">▶ 预览片段</button>
+                <button onclick="closeTrimModal()" style="padding: 10px 20px; background: #95a5a6; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">取消</button>
+                <button onclick="saveTrimSettings()" style="padding: 10px 20px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">✅ 保存</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
