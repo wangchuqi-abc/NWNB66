@@ -1206,9 +1206,10 @@
 
             recorder.start();
 
-            // 逐个处理每个排名
-            for (let i = 0; i < TOTAL_RANKS; i++) {
+            // 逐个处理每个排名（从20到1）
+            for (let i = TOTAL_RANKS - 1; i >= 0; i--) {
                 const d = rankData[i];
+                const processedCount = TOTAL_RANKS - i; // 已处理的数量
 
                 // 创建临时 video 元素（不静音，否则录不到声音）
                 const videoUrl = URL.createObjectURL(d.videoFile);
@@ -1258,8 +1259,8 @@
                     // 实时更新进度
                     const elapsed = performance.now() - fadeInStart;
                     const rankProgress = Math.min(elapsed / totalSegmentTime, 1);
-                    const overallProgress = ((i + rankProgress) / TOTAL_RANKS * 100).toFixed(0);
-                    updateProgress(progressWrap, `正在处理第 ${i + 1}/20 名...`, overallProgress);
+                    const overallProgress = ((processedCount - 1 + rankProgress) / TOTAL_RANKS * 100).toFixed(0);
+                    updateProgress(progressWrap, `正在处理第 ${d.rank} 名（${processedCount}/${TOTAL_RANKS}）...`, overallProgress);
                     await sleepFrame();
                 }
                 video.pause();
@@ -1658,9 +1659,11 @@
             
             const totalRanks = endRank - startRank + 1;
             
+            // 从大到小处理（如从5到1）
             for (let i = 0; i < totalRanks; i++) {
-                const rankIndex = startRank - 1 + i;
+                const rankIndex = endRank - 1 - i; // 从 endRank 开始往前
                 const d = rankData[rankIndex];
+                const processedCount = i + 1; // 已处理的数量
                 
                 const videoUrl = URL.createObjectURL(d.videoFile);
                 const video = document.createElement('video');
@@ -1710,8 +1713,8 @@
                     // 实时更新进度（基于已用时间）
                     const elapsed = performance.now() - fadeInStart;
                     const rankProgress = Math.min(elapsed / totalSegmentTime, 1);
-                    const overallProgress = ((i + rankProgress) / totalRanks * 100).toFixed(0);
-                    updateSingleProgress(progressWrap, `正在处理第 ${d.rank} 名...`, overallProgress);
+                    const overallProgress = ((processedCount - 1 + rankProgress) / totalRanks * 100).toFixed(0);
+                    updateSingleProgress(progressWrap, `正在处理第 ${d.rank} 名（${processedCount}/${totalRanks}）...`, overallProgress);
                     await sleepFrame();
                 }
                 video.pause();
