@@ -1054,6 +1054,9 @@
             const status = document.querySelector(`#entry-${index} .rank-status`);
             status.textContent = '✅ 已选视频';
             status.classList.remove('pending');
+            // 启用裁剪按钮
+            const trimBtn = document.querySelector(`#entry-${index} button[onclick*="openVideoTrimModal"]`);
+            if (trimBtn) trimBtn.disabled = false;
             showToast(`第${index + 1}名视频已选择，请裁剪片段`, 'success');
             // 更新预览
             if (index === currentPreviewRank) drawPreview(index);
@@ -1220,12 +1223,15 @@
 
                 // 使用裁剪设置
                 const startTime = d.startTime || 0;
-                const endTime = d.endTime || video.duration;
+                const endTime = d.endTime > 0 ? d.endTime : video.duration;
                 const clipDuration = endTime - startTime; // 裁剪后的时长（秒）
                 const totalSegmentTime = clipDuration * 1000;
                 
-                // 设置视频起始位置
-                video.currentTime = startTime;
+                // 设置视频起始位置并等待 seek 完成
+                if (startTime > 0) {
+                    video.currentTime = startTime;
+                    await new Promise(r => { video.onseeked = r; });
+                }
 
                 // 淡入阶段（0 ~ FADE_DURATION）
                 const fadeInStart = performance.now();
@@ -1507,6 +1513,9 @@
             const status = document.querySelector(`#single-entry-${index} .rank-status`);
             status.textContent = '✅ 已选视频';
             status.classList.remove('pending');
+            // 启用裁剪按钮
+            const trimBtn = document.querySelector(`#single-entry-${index} button[onclick*="openVideoTrimModal"]`);
+            if (trimBtn) trimBtn.disabled = false;
             showToast(`第${index + 1}名视频已选择，请裁剪片段`, 'success');
             // 更新预览
             drawSinglePreview(index);
@@ -1665,12 +1674,15 @@
                 
                 // 使用裁剪设置
                 const startTime = d.startTime || 0;
-                const endTime = d.endTime || video.duration;
+                const endTime = d.endTime > 0 ? d.endTime : video.duration;
                 const clipDuration = endTime - startTime; // 裁剪后的时长（秒）
                 const totalSegmentTime = clipDuration * 1000;
                 
-                // 设置视频起始位置
-                video.currentTime = startTime;
+                // 设置视频起始位置并等待 seek 完成
+                if (startTime > 0) {
+                    video.currentTime = startTime;
+                    await new Promise(r => { video.onseeked = r; });
+                }
                 
                 // 淡入阶段（0 ~ FADE_DURATION 秒）
                 const fadeInStart = performance.now();
