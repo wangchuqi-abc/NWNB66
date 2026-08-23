@@ -563,6 +563,22 @@
             .vg-layout { grid-template-columns: 1fr; }
             .vg-preview-section { position: static; }
         }
+
+        /* 版本号样式 */
+        #version-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: #999;
+            font-size: 12px;
+            background: rgba(255,255,255,0.85);
+            padding: 4px 12px;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            z-index: 999;
+            backdrop-filter: blur(4px);
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="entered">
@@ -750,6 +766,9 @@
         </div>
     </div>
 
+    <!-- ==================== 版本信息 ==================== -->
+    <div id="version-info">版本 2.1 (2026-08-23) — 完全重写视频录制核心，修复空文件 BUG</div>
+
     <script>
         /* ---------- 账号配置 ---------- */
         const VALID_USER = 'admin';
@@ -778,7 +797,6 @@
             setTimeout(() => { overlay.style.display = 'none'; }, 450);
             document.body.classList.add('entered');
             if (showWelcome) showToast('欢迎回来，站长！', 'success');
-            // 初始化素材加载
             setTimeout(loadAssets, 100);
         }
 
@@ -1344,7 +1362,7 @@
             ctx.globalAlpha = 1;
         }
 
-        // ==================== 视频生成核心（修复版） ====================
+        // ==================== 视频生成核心（完全重写版） ====================
         async function startVideoGeneration() {
             const missing = rankData.filter(d => !d.videoFile);
             if (missing.length > 0) {
@@ -1368,6 +1386,12 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = '🎬 开始生成视频';
+                // 进度条重置
+                setTimeout(() => {
+                    progressWrap.classList.remove('visible');
+                    document.getElementById('progress-fill').style.width = '0%';
+                    document.getElementById('progress-percent').textContent = '0%';
+                }, 2000);
             }
         }
 
@@ -1377,65 +1401,114 @@
             const W = 1920, H = 1080;
             const FADE_DURATION = 0.5;
 
+            // 初始黑屏
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, W, H);
+
             const stream = canvas.captureStream(30);
+            
+            // 检查 MIME 类型
+            let mimeType = 'video/webm;codecs=vp9';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = 'video/webm;codecs=vp8';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm';
+                }
+            }
+            console.log('📹 使用 MIME:', mimeType);
+
             const recorder = new MediaRecorder(stream, { 
-                mimeType: 'video/webm; codecs=vp9', 
-                videoBitsPerSecond: 8000000 
+                mimeType: mimeType,
+                videoBitsPerSecond: 5000000 
             });
+            
             const chunks = [];
-            recorder.ondataavailable = e => { 
-                if (e.data.size > 0) chunks.push(e.data); 
+            let resolveStop, rejectStop;
+            const stopPromise = new Promise((resolve, reject) => {
+                resolveStop = resolve;
+                rejectStop = reject;
+            });
+
+            recorder.ondataavailable = e => {
+                if (e.data && e.data.size > 0) {
+                    chunks.push(e.data);
+                    console.log(`📦 数据块: ${(e.data.size/1024).toFixed(1)} KB`);
+                }
             };
 
-            const recordingComplete = new Promise(resolve => {
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/webm' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `bliBli_week_ranking_${new Date().toISOString().slice(0, 10)}.webm`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    resolve();
-                };
-            });
+            recorder.onstop = () => {
+                console.log(`🛑 录制停止，数据块: ${chunks.length}`);
+                if (chunks.length === 0) {
+                    rejectStop(new Error('没有数据'));
+                    return;
+                }
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                console.log(`📊 文件大小: ${(blob.size/1024/1024).toFixed(2)} MB`);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ranking_${new Date().toISOString().slice(0,10)}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                resolveStop();
+            };
 
-            recorder.start();
+            recorder.onerror = (e) => {
+                console.error('❌ 录制错误:', e);
+                rejectStop(e);
+            };
 
+            console.log('🎬 开始录制...');
+            recorder.start(1000);
+
+            // 处理所有排名（从20到1）
             for (let i = TOTAL_RANKS - 1; i >= 0; i--) {
                 const d = rankData[i];
+                if (!d.videoFile) {
+                    console.warn(`⚠️ 第 ${d.rank} 名无视频，跳过`);
+                    continue;
+                }
+
                 const processedCount = TOTAL_RANKS - i;
+                console.log(`🎯 第 ${d.rank} 名 (${processedCount}/${TOTAL_RANKS})`);
 
                 const videoUrl = URL.createObjectURL(d.videoFile);
                 const video = document.createElement('video');
                 video.src = videoUrl;
                 video.playsInline = true;
-                await new Promise(r => { video.onloadedmetadata = r; });
+                video.muted = false;
+                video.crossOrigin = 'anonymous';
+                
+                await new Promise((r) => { video.onloadedmetadata = r; });
 
-                stream.getAudioTracks().forEach(t => stream.removeTrack(t));
-                video.captureStream().getAudioTracks().forEach(t => stream.addTrack(t));
+                // 添加音频
+                const audioStream = video.captureStream();
+                audioStream.getAudioTracks().forEach(t => stream.addTrack(t));
 
                 const startTime = d.startTime || 0;
                 const endTime = d.endTime > 0 ? d.endTime : video.duration;
-                const clipDuration = endTime - startTime;
-                const totalSegmentTime = clipDuration * 1000;
+                const duration = endTime - startTime;
 
                 if (startTime > 0) {
                     video.currentTime = startTime;
                     await new Promise(r => { video.onseeked = r; });
                 }
 
+                // 淡入
                 const fadeInStart = performance.now();
                 while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
-                    const elapsed = (performance.now() - fadeInStart) / 1000;
-                    const alpha = Math.min(elapsed / FADE_DURATION, 1);
-                    drawFrame(ctx, video, d, alpha, W, H);
+                    const p = (performance.now() - fadeInStart) / (FADE_DURATION * 1000);
+                    drawFrame(ctx, video, d, Math.min(p, 1), W, H);
                     await sleepFrame();
                 }
 
+                // 播放
                 await video.play();
                 const playStart = performance.now();
-                const playDuration = Math.max((clipDuration - FADE_DURATION * 2) * 1000, 0);
+                const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 0);
+                
                 while (performance.now() - playStart < playDuration) {
                     if (video.currentTime >= endTime) {
                         video.pause();
@@ -1445,30 +1518,34 @@
                         drawFrame(ctx, video, d, 1, W, H);
                     }
                     const elapsed = performance.now() - fadeInStart;
-                    const rankProgress = Math.min(elapsed / totalSegmentTime, 1);
-                    const overallProgress = ((processedCount - 1 + rankProgress) / TOTAL_RANKS * 100).toFixed(0);
-                    updateProgress(progressWrap, `正在处理第 ${d.rank} 名（${processedCount}/${TOTAL_RANKS}）...`, overallProgress);
+                    const progress = Math.min(elapsed / (duration * 1000), 1);
+                    const overall = ((processedCount - 1 + progress) / TOTAL_RANKS * 100).toFixed(0);
+                    updateProgress(progressWrap, `第 ${d.rank} 名 (${processedCount}/${TOTAL_RANKS})...`, overall);
                     await sleepFrame();
                 }
                 video.pause();
 
+                // 淡出
                 const fadeOutStart = performance.now();
                 while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
-                    const elapsed = (performance.now() - fadeOutStart) / 1000;
-                    const alpha = 1 - Math.min(elapsed / FADE_DURATION, 1);
-                    if (!video.paused && !video.ended) {
-                        drawFrame(ctx, video, d, alpha, W, H);
-                    }
+                    const p = (performance.now() - fadeOutStart) / (FADE_DURATION * 1000);
+                    drawFrame(ctx, video, d, 1 - Math.min(p, 1), W, H);
                     await sleepFrame();
                 }
 
+                // 清理
+                stream.getAudioTracks().forEach(t => stream.removeTrack(t));
                 URL.revokeObjectURL(videoUrl);
                 video.remove();
             }
 
-            updateProgress(progressWrap, '正在导出视频...', '100');
+            // ✅ 关键：所有视频处理完成后才停止录制
+            updateProgress(progressWrap, '导出中...', '100');
+            console.log('📝 所有片段处理完成，停止录制...');
+            
             recorder.stop();
-            await recordingComplete;
+            await stopPromise;
+            console.log('✅ 视频生成完成！');
         }
 
         function updateProgress(wrap, text, percent) {
@@ -1750,6 +1827,11 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = '🎯 生成选定排名';
+                setTimeout(() => {
+                    progressWrap.classList.remove('visible');
+                    document.getElementById('single-progress-fill').style.width = '0%';
+                    document.getElementById('single-progress-percent').textContent = '0%';
+                }, 2000);
             }
         }
 
@@ -1759,49 +1841,95 @@
             const W = 1920, H = 1080;
             const FADE_DURATION = 0.5;
 
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, W, H);
+
             const stream = canvas.captureStream(30);
+            
+            let mimeType = 'video/webm;codecs=vp9';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = 'video/webm;codecs=vp8';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm';
+                }
+            }
+            console.log('📹 使用 MIME:', mimeType);
+
             const recorder = new MediaRecorder(stream, { 
-                mimeType: 'video/webm; codecs=vp9', 
-                videoBitsPerSecond: 8000000 
+                mimeType: mimeType,
+                videoBitsPerSecond: 5000000 
             });
             const chunks = [];
-            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-
-            const recordingComplete = new Promise(resolve => {
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/webm' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `bliBli_week_rank_${startRank}-${endRank}_${new Date().toISOString().slice(0, 10)}.webm`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    resolve();
-                };
+            let resolveStop, rejectStop;
+            const stopPromise = new Promise((resolve, reject) => {
+                resolveStop = resolve;
+                rejectStop = reject;
             });
 
-            recorder.start();
+            recorder.ondataavailable = e => {
+                if (e.data && e.data.size > 0) {
+                    chunks.push(e.data);
+                    console.log(`📦 数据块: ${(e.data.size/1024).toFixed(1)} KB`);
+                }
+            };
+
+            recorder.onstop = () => {
+                console.log(`🛑 录制停止，数据块: ${chunks.length}`);
+                if (chunks.length === 0) {
+                    rejectStop(new Error('没有数据'));
+                    return;
+                }
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                console.log(`📊 文件大小: ${(blob.size/1024/1024).toFixed(2)} MB`);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `rank_${startRank}-${endRank}_${new Date().toISOString().slice(0,10)}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                resolveStop();
+            };
+
+            recorder.onerror = (e) => {
+                console.error('❌ 录制错误:', e);
+                rejectStop(e);
+            };
+
+            console.log('🎬 开始录制...');
+            recorder.start(1000);
 
             const totalRanks = endRank - startRank + 1;
 
+            // 从 endRank 到 startRank 倒序处理
             for (let i = 0; i < totalRanks; i++) {
                 const rankIndex = endRank - 1 - i;
                 const d = rankData[rankIndex];
                 const processedCount = i + 1;
 
+                if (!d.videoFile) {
+                    console.warn(`⚠️ 第 ${d.rank} 名无视频，跳过`);
+                    continue;
+                }
+
+                console.log(`🎯 第 ${d.rank} 名 (${processedCount}/${totalRanks})`);
+
                 const videoUrl = URL.createObjectURL(d.videoFile);
                 const video = document.createElement('video');
                 video.src = videoUrl;
                 video.playsInline = true;
-                await new Promise(r => { video.onloadedmetadata = r; });
+                video.muted = false;
+                video.crossOrigin = 'anonymous';
+                
+                await new Promise((r) => { video.onloadedmetadata = r; });
 
-                stream.getAudioTracks().forEach(t => stream.removeTrack(t));
-                video.captureStream().getAudioTracks().forEach(t => stream.addTrack(t));
+                const audioStream = video.captureStream();
+                audioStream.getAudioTracks().forEach(t => stream.addTrack(t));
 
                 const startTime = d.startTime || 0;
                 const endTime = d.endTime > 0 ? d.endTime : video.duration;
-                const clipDuration = endTime - startTime;
-                const totalSegmentTime = clipDuration * 1000;
+                const duration = endTime - startTime;
 
                 if (startTime > 0) {
                     video.currentTime = startTime;
@@ -1810,15 +1938,15 @@
 
                 const fadeInStart = performance.now();
                 while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
-                    const elapsed = (performance.now() - fadeInStart) / 1000;
-                    const alpha = Math.min(elapsed / FADE_DURATION, 1);
-                    drawFrame(ctx, video, d, alpha, W, H);
+                    const p = (performance.now() - fadeInStart) / (FADE_DURATION * 1000);
+                    drawFrame(ctx, video, d, Math.min(p, 1), W, H);
                     await sleepFrame();
                 }
 
                 await video.play();
                 const playStart = performance.now();
-                const playDuration = Math.max((clipDuration - FADE_DURATION * 2) * 1000, 0);
+                const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 0);
+                
                 while (performance.now() - playStart < playDuration) {
                     if (video.currentTime >= endTime) {
                         video.pause();
@@ -1828,30 +1956,31 @@
                         drawFrame(ctx, video, d, 1, W, H);
                     }
                     const elapsed = performance.now() - fadeInStart;
-                    const rankProgress = Math.min(elapsed / totalSegmentTime, 1);
-                    const overallProgress = ((processedCount - 1 + rankProgress) / totalRanks * 100).toFixed(0);
-                    updateSingleProgress(progressWrap, `正在处理第 ${d.rank} 名（${processedCount}/${totalRanks}）...`, overallProgress);
+                    const progress = Math.min(elapsed / (duration * 1000), 1);
+                    const overall = ((processedCount - 1 + progress) / totalRanks * 100).toFixed(0);
+                    updateSingleProgress(progressWrap, `第 ${d.rank} 名 (${processedCount}/${totalRanks})...`, overall);
                     await sleepFrame();
                 }
                 video.pause();
 
                 const fadeOutStart = performance.now();
                 while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
-                    const elapsed = (performance.now() - fadeOutStart) / 1000;
-                    const alpha = 1 - Math.min(elapsed / FADE_DURATION, 1);
-                    if (!video.paused && !video.ended) {
-                        drawFrame(ctx, video, d, alpha, W, H);
-                    }
+                    const p = (performance.now() - fadeOutStart) / (FADE_DURATION * 1000);
+                    drawFrame(ctx, video, d, 1 - Math.min(p, 1), W, H);
                     await sleepFrame();
                 }
 
+                stream.getAudioTracks().forEach(t => stream.removeTrack(t));
                 URL.revokeObjectURL(videoUrl);
                 video.remove();
             }
 
-            updateSingleProgress(progressWrap, '正在导出视频...', '100');
+            updateSingleProgress(progressWrap, '导出中...', '100');
+            console.log('📝 所有片段处理完成，停止录制...');
+            
             recorder.stop();
-            await recordingComplete;
+            await stopPromise;
+            console.log('✅ 单个视频生成完成！');
         }
 
         function updateSingleProgress(wrap, text, percent) {
