@@ -578,6 +578,7 @@
             z-index: 999;
             backdrop-filter: blur(4px);
             pointer-events: none;
+            font-family: 'Microsoft YaHei', sans-serif;
         }
     </style>
 </head>
@@ -767,7 +768,7 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 3.0 (2026-08-23) — 使用 AudioContext 混音，彻底解决轨道修改错误</div>
+    <div id="version-info">版本 3.1 (2026-08-23) — 20→1 倒序录制 + 预加载优化</div>
 
     <script>
         /* ---------- 账号配置 ---------- */
@@ -1399,7 +1400,7 @@
             }
         }
 
-        // ==================== 视频生成核心（版本 3.0 - 使用 AudioContext） ====================
+        // ==================== 视频生成核心（版本 3.1 - 20→1 + 预加载） ====================
         async function startVideoGeneration() {
             const missing = rankData.filter(d => !d.videoFile);
             if (missing.length > 0) {
@@ -1450,17 +1451,44 @@
             ctx.textAlign = 'center';
             ctx.fillText('🎬 准备录制...', W/2, H/2);
 
+            // ===== 🔥 预加载：提前加载前5个视频到内存，减少卡顿 =====
+            console.log('🔥 预加载视频中...');
+            const preloadCount = Math.min(5, TOTAL_RANKS);
+            const preloadVideos = [];
+            for (let i = 0; i < preloadCount; i++) {
+                const idx = TOTAL_RANKS - 1 - i;
+                const d = rankData[idx];
+                if (d && d.videoFile) {
+                    try {
+                        const v = document.createElement('video');
+                        v.src = URL.createObjectURL(d.videoFile);
+                        v.preload = 'auto';
+                        v.muted = true;
+                        v.load();
+                        preloadVideos.push({ video: v, url: v.src, rank: d.rank });
+                        console.log(`📥 预加载第 ${d.rank} 名完成`);
+                    } catch (e) {
+                        console.warn(`⚠️ 预加载第 ${d.rank} 名失败:`, e);
+                    }
+                }
+            }
+            // 等待预加载完成（给浏览器一点时间）
+            await new Promise(r => setTimeout(r, 500));
+            
+            // 清理预加载的视频（释放内存）
+            preloadVideos.forEach(({ video, url }) => {
+                try {
+                    video.remove();
+                    URL.revokeObjectURL(url);
+                } catch (e) {}
+            });
+            console.log('✅ 预加载完成');
+
             // 创建 MediaStream：视频来自 Canvas，音频来自 AudioContext
             const canvasStream = canvas.captureStream(30);
-            
-            // 合并音频流
             const audioTracks = audioDest.stream.getAudioTracks();
             const combinedStream = new MediaStream();
-            
-            // 添加视频轨道
             canvasStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
-            
-            // 添加音频轨道
             audioTracks.forEach(t => combinedStream.addTrack(t));
             
             console.log(`📹 视频轨道: ${canvasStream.getVideoTracks().length}, 音频轨道: ${audioTracks.length}`);
@@ -1498,7 +1526,7 @@
                         return;
                     }
                     if (chunks.length === 0) {
-                        reject(new Error('❌ 没有录制到任何数据！'));
+                        reject(new Error('❌ 没有录制到任何数据！请检查视频文件是否可播放。'));
                         return;
                     }
                     try {
@@ -1527,7 +1555,7 @@
             console.log('🎬 开始录制...');
             recorder.start(1000);
 
-            // 处理所有排名（从20到1）
+            // ===== 从第20名到第1名（倒序录制） =====
             for (let i = TOTAL_RANKS - 1; i >= 0; i--) {
                 const d = rankData[i];
                 if (!d.videoFile) {
@@ -1551,9 +1579,9 @@
                         setTimeout(() => reject(new Error('视频加载超时')), 10000);
                     });
 
-                    console.log(`📹 视频时长: ${video.duration.toFixed(2)}s`);
+                    console.log(`📹 第 ${d.rank} 名 时长: ${video.duration.toFixed(2)}s`);
 
-                    // 🔥 关键：连接音频到混音器（不修改 MediaStream）
+                    // 连接音频到混音器
                     connectVideoAudio(video);
 
                     const startTime = d.startTime || 0;
@@ -1575,10 +1603,8 @@
                         await sleepFrame();
                     }
 
-                    // 播放（视频和音频一起播放）
+                    // 播放
                     await video.play();
-                    
-                    // 恢复 AudioContext（用户手势后才可以播放音频）
                     if (audioContext && audioContext.state === 'suspended') {
                         await audioContext.resume();
                     }
@@ -1619,6 +1645,7 @@
 
                 } catch (err) {
                     console.error(`❌ 处理第 ${d.rank} 名时出错:`, err);
+                    // 继续处理下一个
                     continue;
                 }
             }
@@ -1641,7 +1668,7 @@
             return new Promise(r => requestAnimationFrame(r));
         }
 
-        // ==================== 单个视频生成（版本 3.0） ====================
+        // ==================== 单个视频生成（版本 3.1） ====================
         function updateSingleRankPreview() {
             const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
             const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
@@ -2006,6 +2033,7 @@
 
             const totalRanks = endRank - startRank + 1;
 
+            // 从 endRank 到 startRank 倒序处理（单个生成也是倒序，保持一致性）
             for (let i = 0; i < totalRanks; i++) {
                 const rankIndex = endRank - 1 - i;
                 const d = rankData[rankIndex];
@@ -2031,9 +2059,8 @@
                         setTimeout(() => reject(new Error('视频加载超时')), 10000);
                     });
 
-                    console.log(`📹 视频时长: ${video.duration.toFixed(2)}s`);
+                    console.log(`📹 第 ${d.rank} 名 时长: ${video.duration.toFixed(2)}s`);
 
-                    // 连接音频
                     connectVideoAudio(video);
 
                     const startTime = d.startTime || 0;
