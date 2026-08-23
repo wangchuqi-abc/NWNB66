@@ -767,7 +767,7 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 2.1 (2026-08-23) — 完全重写视频录制核心，修复空文件 BUG</div>
+    <div id="version-info">版本 3.0 (2026-08-23) — 使用 AudioContext 混音，彻底解决轨道修改错误</div>
 
     <script>
         /* ---------- 账号配置 ---------- */
@@ -953,7 +953,7 @@
         const REQUIRED_ASSETS = Object.keys(ASSET_PATHS).length;
         let assetsLoaded = false;
 
-        // ==================== 素材加载增强版 ====================
+        // ==================== 素材加载 ====================
         function createFallbackAsset(type) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -1055,7 +1055,7 @@
             });
             
             assetsLoaded = true;
-            console.log(`✅ 全部 ${keys.length} 个素材已加载（部分可能为降级方案）`);
+            console.log(`✅ 全部 ${keys.length} 个素材已加载`);
             
             if (currentPreviewRank !== undefined) {
                 drawPreview(currentPreviewRank);
@@ -1362,7 +1362,44 @@
             ctx.globalAlpha = 1;
         }
 
-        // ==================== 视频生成核心（完全重写版） ====================
+        // ==================== 音频混音器 ====================
+        let audioContext = null;
+        let currentAudioNode = null;
+        let audioDestination = null;
+
+        function initAudioMixer() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioDestination = audioContext.createMediaStreamDestination();
+                console.log('🎵 AudioContext 已初始化');
+            }
+            return audioDestination;
+        }
+
+        function connectVideoAudio(video) {
+            if (!audioContext) return null;
+            
+            // 断开之前的音频
+            if (currentAudioNode) {
+                try {
+                    currentAudioNode.disconnect();
+                } catch (e) {}
+                currentAudioNode = null;
+            }
+
+            try {
+                const source = audioContext.createMediaElementSource(video);
+                source.connect(audioDestination);
+                currentAudioNode = source;
+                console.log('🎵 音频已连接到混音器');
+                return source;
+            } catch (e) {
+                console.warn('⚠️ 音频连接失败:', e);
+                return null;
+            }
+        }
+
+        // ==================== 视频生成核心（版本 3.0 - 使用 AudioContext） ====================
         async function startVideoGeneration() {
             const missing = rankData.filter(d => !d.videoFile);
             if (missing.length > 0) {
@@ -1386,7 +1423,6 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = '🎬 开始生成视频';
-                // 进度条重置
                 setTimeout(() => {
                     progressWrap.classList.remove('visible');
                     document.getElementById('progress-fill').style.width = '0%';
@@ -1401,13 +1437,35 @@
             const W = 1920, H = 1080;
             const FADE_DURATION = 0.5;
 
-            // 初始黑屏
+            // 初始化音频混音器
+            const audioDest = initAudioMixer();
+
+            // 初始画面
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 60px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText('🎬 准备录制...', W/2, H/2);
 
-            const stream = canvas.captureStream(30);
+            // 创建 MediaStream：视频来自 Canvas，音频来自 AudioContext
+            const canvasStream = canvas.captureStream(30);
             
-            // 检查 MIME 类型
+            // 合并音频流
+            const audioTracks = audioDest.stream.getAudioTracks();
+            const combinedStream = new MediaStream();
+            
+            // 添加视频轨道
+            canvasStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
+            
+            // 添加音频轨道
+            audioTracks.forEach(t => combinedStream.addTrack(t));
+            
+            console.log(`📹 视频轨道: ${canvasStream.getVideoTracks().length}, 音频轨道: ${audioTracks.length}`);
+
+            // 检测 MIME 类型
             let mimeType = 'video/webm;codecs=vp9';
             if (!MediaRecorder.isTypeSupported(mimeType)) {
                 mimeType = 'video/webm;codecs=vp8';
@@ -1417,17 +1475,13 @@
             }
             console.log('📹 使用 MIME:', mimeType);
 
-            const recorder = new MediaRecorder(stream, { 
+            const recorder = new MediaRecorder(combinedStream, { 
                 mimeType: mimeType,
                 videoBitsPerSecond: 5000000 
             });
             
             const chunks = [];
-            let resolveStop, rejectStop;
-            const stopPromise = new Promise((resolve, reject) => {
-                resolveStop = resolve;
-                rejectStop = reject;
-            });
+            let recorderError = null;
 
             recorder.ondataavailable = e => {
                 if (e.data && e.data.size > 0) {
@@ -1436,29 +1490,39 @@
                 }
             };
 
-            recorder.onstop = () => {
-                console.log(`🛑 录制停止，数据块: ${chunks.length}`);
-                if (chunks.length === 0) {
-                    rejectStop(new Error('没有数据'));
-                    return;
-                }
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                console.log(`📊 文件大小: ${(blob.size/1024/1024).toFixed(2)} MB`);
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `ranking_${new Date().toISOString().slice(0,10)}.webm`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(url), 5000);
-                resolveStop();
-            };
+            const recordingComplete = new Promise((resolve, reject) => {
+                recorder.onstop = () => {
+                    console.log(`🛑 录制停止，数据块: ${chunks.length}`);
+                    if (recorderError) {
+                        reject(recorderError);
+                        return;
+                    }
+                    if (chunks.length === 0) {
+                        reject(new Error('❌ 没有录制到任何数据！'));
+                        return;
+                    }
+                    try {
+                        const blob = new Blob(chunks, { type: 'video/webm' });
+                        console.log(`📊 文件大小: ${(blob.size/1024/1024).toFixed(2)} MB`);
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `ranking_${new Date().toISOString().slice(0,10)}.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        setTimeout(() => URL.revokeObjectURL(url), 5000);
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    }
+                };
 
-            recorder.onerror = (e) => {
-                console.error('❌ 录制错误:', e);
-                rejectStop(e);
-            };
+                recorder.onerror = (e) => {
+                    console.error('❌ 录制错误:', e);
+                    recorderError = e;
+                };
+            });
 
             console.log('🎬 开始录制...');
             recorder.start(1000);
@@ -1474,77 +1538,96 @@
                 const processedCount = TOTAL_RANKS - i;
                 console.log(`🎯 第 ${d.rank} 名 (${processedCount}/${TOTAL_RANKS})`);
 
-                const videoUrl = URL.createObjectURL(d.videoFile);
-                const video = document.createElement('video');
-                video.src = videoUrl;
-                video.playsInline = true;
-                video.muted = false;
-                video.crossOrigin = 'anonymous';
-                
-                await new Promise((r) => { video.onloadedmetadata = r; });
+                try {
+                    const videoUrl = URL.createObjectURL(d.videoFile);
+                    const video = document.createElement('video');
+                    video.src = videoUrl;
+                    video.playsInline = true;
+                    video.crossOrigin = 'anonymous';
+                    
+                    await new Promise((resolve, reject) => {
+                        video.onloadedmetadata = resolve;
+                        video.onerror = reject;
+                        setTimeout(() => reject(new Error('视频加载超时')), 10000);
+                    });
 
-                // 添加音频
-                const audioStream = video.captureStream();
-                audioStream.getAudioTracks().forEach(t => stream.addTrack(t));
+                    console.log(`📹 视频时长: ${video.duration.toFixed(2)}s`);
 
-                const startTime = d.startTime || 0;
-                const endTime = d.endTime > 0 ? d.endTime : video.duration;
-                const duration = endTime - startTime;
+                    // 🔥 关键：连接音频到混音器（不修改 MediaStream）
+                    connectVideoAudio(video);
 
-                if (startTime > 0) {
-                    video.currentTime = startTime;
-                    await new Promise(r => { video.onseeked = r; });
-                }
+                    const startTime = d.startTime || 0;
+                    const endTime = d.endTime > 0 ? d.endTime : video.duration;
+                    const duration = Math.max(endTime - startTime, 0.5);
 
-                // 淡入
-                const fadeInStart = performance.now();
-                while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
-                    const p = (performance.now() - fadeInStart) / (FADE_DURATION * 1000);
-                    drawFrame(ctx, video, d, Math.min(p, 1), W, H);
-                    await sleepFrame();
-                }
+                    console.log(`⏱️ 片段: ${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s (时长: ${duration.toFixed(2)}s)`);
 
-                // 播放
-                await video.play();
-                const playStart = performance.now();
-                const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 0);
-                
-                while (performance.now() - playStart < playDuration) {
-                    if (video.currentTime >= endTime) {
-                        video.pause();
-                        break;
+                    if (startTime > 0) {
+                        video.currentTime = startTime;
+                        await new Promise(r => { video.onseeked = r; });
                     }
-                    if (!video.paused && !video.ended) {
-                        drawFrame(ctx, video, d, 1, W, H);
+
+                    // 淡入
+                    const fadeInStart = performance.now();
+                    while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
+                        const p = (performance.now() - fadeInStart) / (FADE_DURATION * 1000);
+                        drawFrame(ctx, video, d, Math.min(p, 1), W, H);
+                        await sleepFrame();
                     }
-                    const elapsed = performance.now() - fadeInStart;
-                    const progress = Math.min(elapsed / (duration * 1000), 1);
-                    const overall = ((processedCount - 1 + progress) / TOTAL_RANKS * 100).toFixed(0);
-                    updateProgress(progressWrap, `第 ${d.rank} 名 (${processedCount}/${TOTAL_RANKS})...`, overall);
-                    await sleepFrame();
-                }
-                video.pause();
 
-                // 淡出
-                const fadeOutStart = performance.now();
-                while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
-                    const p = (performance.now() - fadeOutStart) / (FADE_DURATION * 1000);
-                    drawFrame(ctx, video, d, 1 - Math.min(p, 1), W, H);
-                    await sleepFrame();
-                }
+                    // 播放（视频和音频一起播放）
+                    await video.play();
+                    
+                    // 恢复 AudioContext（用户手势后才可以播放音频）
+                    if (audioContext && audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
 
-                // 清理
-                stream.getAudioTracks().forEach(t => stream.removeTrack(t));
-                URL.revokeObjectURL(videoUrl);
-                video.remove();
+                    const playStart = performance.now();
+                    const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 100);
+                    
+                    let frameCount = 0;
+                    while (performance.now() - playStart < playDuration) {
+                        if (video.currentTime >= endTime) {
+                            video.pause();
+                            break;
+                        }
+                        if (!video.paused && !video.ended) {
+                            drawFrame(ctx, video, d, 1, W, H);
+                            frameCount++;
+                        }
+                        const elapsed = performance.now() - fadeInStart;
+                        const progress = Math.min(elapsed / (duration * 1000), 1);
+                        const overall = ((processedCount - 1 + progress) / TOTAL_RANKS * 100).toFixed(0);
+                        updateProgress(progressWrap, `第 ${d.rank} 名 (${processedCount}/${TOTAL_RANKS})...`, overall);
+                        await sleepFrame();
+                    }
+                    video.pause();
+                    console.log(`🎞️ 第 ${d.rank} 名渲染 ${frameCount} 帧`);
+
+                    // 淡出
+                    const fadeOutStart = performance.now();
+                    while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
+                        const p = (performance.now() - fadeOutStart) / (FADE_DURATION * 1000);
+                        drawFrame(ctx, video, d, 1 - Math.min(p, 1), W, H);
+                        await sleepFrame();
+                    }
+
+                    // 清理
+                    URL.revokeObjectURL(videoUrl);
+                    video.remove();
+
+                } catch (err) {
+                    console.error(`❌ 处理第 ${d.rank} 名时出错:`, err);
+                    continue;
+                }
             }
 
-            // ✅ 关键：所有视频处理完成后才停止录制
             updateProgress(progressWrap, '导出中...', '100');
             console.log('📝 所有片段处理完成，停止录制...');
             
             recorder.stop();
-            await stopPromise;
+            await recordingComplete;
             console.log('✅ 视频生成完成！');
         }
 
@@ -1558,7 +1641,7 @@
             return new Promise(r => requestAnimationFrame(r));
         }
 
-        // ==================== 单个视频生成 ====================
+        // ==================== 单个视频生成（版本 3.0） ====================
         function updateSingleRankPreview() {
             const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
             const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
@@ -1841,11 +1924,26 @@
             const W = 1920, H = 1080;
             const FADE_DURATION = 0.5;
 
+            // 初始化音频混音器
+            const audioDest = initAudioMixer();
+
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 60px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText('🎬 准备录制...', W/2, H/2);
 
-            const stream = canvas.captureStream(30);
+            const canvasStream = canvas.captureStream(30);
+            const audioTracks = audioDest.stream.getAudioTracks();
+            const combinedStream = new MediaStream();
+            canvasStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
+            audioTracks.forEach(t => combinedStream.addTrack(t));
             
+            console.log(`📹 视频轨道: ${canvasStream.getVideoTracks().length}, 音频轨道: ${audioTracks.length}`);
+
             let mimeType = 'video/webm;codecs=vp9';
             if (!MediaRecorder.isTypeSupported(mimeType)) {
                 mimeType = 'video/webm;codecs=vp8';
@@ -1855,16 +1953,12 @@
             }
             console.log('📹 使用 MIME:', mimeType);
 
-            const recorder = new MediaRecorder(stream, { 
+            const recorder = new MediaRecorder(combinedStream, { 
                 mimeType: mimeType,
                 videoBitsPerSecond: 5000000 
             });
             const chunks = [];
-            let resolveStop, rejectStop;
-            const stopPromise = new Promise((resolve, reject) => {
-                resolveStop = resolve;
-                rejectStop = reject;
-            });
+            let recorderError = null;
 
             recorder.ondataavailable = e => {
                 if (e.data && e.data.size > 0) {
@@ -1873,36 +1967,45 @@
                 }
             };
 
-            recorder.onstop = () => {
-                console.log(`🛑 录制停止，数据块: ${chunks.length}`);
-                if (chunks.length === 0) {
-                    rejectStop(new Error('没有数据'));
-                    return;
-                }
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                console.log(`📊 文件大小: ${(blob.size/1024/1024).toFixed(2)} MB`);
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `rank_${startRank}-${endRank}_${new Date().toISOString().slice(0,10)}.webm`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(url), 5000);
-                resolveStop();
-            };
+            const recordingComplete = new Promise((resolve, reject) => {
+                recorder.onstop = () => {
+                    console.log(`🛑 录制停止，数据块: ${chunks.length}`);
+                    if (recorderError) {
+                        reject(recorderError);
+                        return;
+                    }
+                    if (chunks.length === 0) {
+                        reject(new Error('❌ 没有录制到任何数据！'));
+                        return;
+                    }
+                    try {
+                        const blob = new Blob(chunks, { type: 'video/webm' });
+                        console.log(`📊 文件大小: ${(blob.size/1024/1024).toFixed(2)} MB`);
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `rank_${startRank}-${endRank}_${new Date().toISOString().slice(0,10)}.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        setTimeout(() => URL.revokeObjectURL(url), 5000);
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    }
+                };
 
-            recorder.onerror = (e) => {
-                console.error('❌ 录制错误:', e);
-                rejectStop(e);
-            };
+                recorder.onerror = (e) => {
+                    console.error('❌ 录制错误:', e);
+                    recorderError = e;
+                };
+            });
 
             console.log('🎬 开始录制...');
             recorder.start(1000);
 
             const totalRanks = endRank - startRank + 1;
 
-            // 从 endRank 到 startRank 倒序处理
             for (let i = 0; i < totalRanks; i++) {
                 const rankIndex = endRank - 1 - i;
                 const d = rankData[rankIndex];
@@ -1915,71 +2018,90 @@
 
                 console.log(`🎯 第 ${d.rank} 名 (${processedCount}/${totalRanks})`);
 
-                const videoUrl = URL.createObjectURL(d.videoFile);
-                const video = document.createElement('video');
-                video.src = videoUrl;
-                video.playsInline = true;
-                video.muted = false;
-                video.crossOrigin = 'anonymous';
-                
-                await new Promise((r) => { video.onloadedmetadata = r; });
+                try {
+                    const videoUrl = URL.createObjectURL(d.videoFile);
+                    const video = document.createElement('video');
+                    video.src = videoUrl;
+                    video.playsInline = true;
+                    video.crossOrigin = 'anonymous';
+                    
+                    await new Promise((resolve, reject) => {
+                        video.onloadedmetadata = resolve;
+                        video.onerror = reject;
+                        setTimeout(() => reject(new Error('视频加载超时')), 10000);
+                    });
 
-                const audioStream = video.captureStream();
-                audioStream.getAudioTracks().forEach(t => stream.addTrack(t));
+                    console.log(`📹 视频时长: ${video.duration.toFixed(2)}s`);
 
-                const startTime = d.startTime || 0;
-                const endTime = d.endTime > 0 ? d.endTime : video.duration;
-                const duration = endTime - startTime;
+                    // 连接音频
+                    connectVideoAudio(video);
 
-                if (startTime > 0) {
-                    video.currentTime = startTime;
-                    await new Promise(r => { video.onseeked = r; });
-                }
+                    const startTime = d.startTime || 0;
+                    const endTime = d.endTime > 0 ? d.endTime : video.duration;
+                    const duration = Math.max(endTime - startTime, 0.5);
 
-                const fadeInStart = performance.now();
-                while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
-                    const p = (performance.now() - fadeInStart) / (FADE_DURATION * 1000);
-                    drawFrame(ctx, video, d, Math.min(p, 1), W, H);
-                    await sleepFrame();
-                }
+                    console.log(`⏱️ 片段: ${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s (时长: ${duration.toFixed(2)}s)`);
 
-                await video.play();
-                const playStart = performance.now();
-                const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 0);
-                
-                while (performance.now() - playStart < playDuration) {
-                    if (video.currentTime >= endTime) {
-                        video.pause();
-                        break;
+                    if (startTime > 0) {
+                        video.currentTime = startTime;
+                        await new Promise(r => { video.onseeked = r; });
                     }
-                    if (!video.paused && !video.ended) {
-                        drawFrame(ctx, video, d, 1, W, H);
+
+                    const fadeInStart = performance.now();
+                    while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
+                        const p = (performance.now() - fadeInStart) / (FADE_DURATION * 1000);
+                        drawFrame(ctx, video, d, Math.min(p, 1), W, H);
+                        await sleepFrame();
                     }
-                    const elapsed = performance.now() - fadeInStart;
-                    const progress = Math.min(elapsed / (duration * 1000), 1);
-                    const overall = ((processedCount - 1 + progress) / totalRanks * 100).toFixed(0);
-                    updateSingleProgress(progressWrap, `第 ${d.rank} 名 (${processedCount}/${totalRanks})...`, overall);
-                    await sleepFrame();
-                }
-                video.pause();
 
-                const fadeOutStart = performance.now();
-                while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
-                    const p = (performance.now() - fadeOutStart) / (FADE_DURATION * 1000);
-                    drawFrame(ctx, video, d, 1 - Math.min(p, 1), W, H);
-                    await sleepFrame();
-                }
+                    await video.play();
+                    if (audioContext && audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
 
-                stream.getAudioTracks().forEach(t => stream.removeTrack(t));
-                URL.revokeObjectURL(videoUrl);
-                video.remove();
+                    const playStart = performance.now();
+                    const playDuration = Math.max((duration - FADE_DURATION * 2) * 1000, 100);
+                    
+                    let frameCount = 0;
+                    while (performance.now() - playStart < playDuration) {
+                        if (video.currentTime >= endTime) {
+                            video.pause();
+                            break;
+                        }
+                        if (!video.paused && !video.ended) {
+                            drawFrame(ctx, video, d, 1, W, H);
+                            frameCount++;
+                        }
+                        const elapsed = performance.now() - fadeInStart;
+                        const progress = Math.min(elapsed / (duration * 1000), 1);
+                        const overall = ((processedCount - 1 + progress) / totalRanks * 100).toFixed(0);
+                        updateSingleProgress(progressWrap, `第 ${d.rank} 名 (${processedCount}/${totalRanks})...`, overall);
+                        await sleepFrame();
+                    }
+                    video.pause();
+                    console.log(`🎞️ 第 ${d.rank} 名渲染 ${frameCount} 帧`);
+
+                    const fadeOutStart = performance.now();
+                    while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
+                        const p = (performance.now() - fadeOutStart) / (FADE_DURATION * 1000);
+                        drawFrame(ctx, video, d, 1 - Math.min(p, 1), W, H);
+                        await sleepFrame();
+                    }
+
+                    URL.revokeObjectURL(videoUrl);
+                    video.remove();
+
+                } catch (err) {
+                    console.error(`❌ 处理第 ${d.rank} 名时出错:`, err);
+                    continue;
+                }
             }
 
             updateSingleProgress(progressWrap, '导出中...', '100');
             console.log('📝 所有片段处理完成，停止录制...');
             
             recorder.stop();
-            await stopPromise;
+            await recordingComplete;
             console.log('✅ 单个视频生成完成！');
         }
 
