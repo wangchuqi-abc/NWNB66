@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
+<!-- saved from url=(0032)https://nianwan.cn.mt/admin.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <!-- 手机端适配核心代码：防止缩放，适配真实设备宽度 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BliBli_week 副站管理后台</title>
@@ -39,7 +39,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.45s ease; /* 进入后台时淡出 */
+            transition: opacity 0.45s ease;
         }
         #login-overlay.hiding { opacity: 0; pointer-events: none; }
         .login-box {
@@ -49,8 +49,8 @@
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
-            width: 90%;          /* 手机端自适应宽度 */
-            max-width: 420px;    /* 电脑端最大宽度 */
+            width: 90%;
+            max-width: 420px;
             text-align: center;
             animation: fadeIn 0.5s ease;
         }
@@ -107,7 +107,7 @@
             color: #ecf0f1;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease; /* 手机端滑动动画 */
+            transition: transform 0.3s ease;
             z-index: 100;
         }
         .sidebar-header {
@@ -151,7 +151,6 @@
         }
         .logout-btn:hover { background-color: #e74c3c; }
 
-        /* 手机端：点击菜单后收起侧边栏的遮罩 */
         #sidebar-mask {
             display: none;
             position: fixed;
@@ -164,7 +163,6 @@
         /* ==================== 右侧主内容区 ==================== */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* 顶部栏 */
         .top-bar {
             background-color: #fff;
             padding: 14px 22px;
@@ -175,7 +173,7 @@
             z-index: 10;
         }
         .menu-toggle {
-            display: none; /* 默认隐藏，手机端显示 */
+            display: none;
             background: none;
             border: none;
             font-size: 1.5rem;
@@ -220,7 +218,6 @@
         }
         .placeholder-box small { font-size: 0.85rem; color: #b0b8bc; }
 
-        /* 表单卡片 */
         .card {
             background: #fff;
             padding: 26px;
@@ -271,7 +268,6 @@
         .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(52, 152, 219, 0.3); }
         .hint { margin-top: 12px; font-size: 0.8rem; color: var(--text-sub); }
 
-        /* Toast 提示 */
         #toast {
             position: fixed;
             left: 50%;
@@ -302,10 +298,7 @@
             75% { transform: translateX(6px); }
         }
 
-        /* ==================== 进入后台过渡动画 ==================== */
-        /* 未进入前：侧边栏与主内容区隐藏 */
         .sidebar, .main-content { opacity: 0; }
-        /* 进入后：侧边栏先淡入，主内容区稍后上浮淡入 */
         body.entered .sidebar {
             opacity: 1;
             transition: opacity 0.5s ease, transform 0.3s ease;
@@ -313,7 +306,6 @@
         body.entered .main-content {
             animation: riseIn 0.55s ease 0.2s both;
         }
-        /* 面板卡片依次上浮（配合标签切换动画） */
         body.entered .panel.active .card,
         body.entered .panel.active .placeholder-box {
             animation: fadeIn 0.5s ease both;
@@ -323,15 +315,14 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ==================== 手机端响应式断点 ==================== */
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
                 top: 0; left: 0;
                 height: 100%;
-                transform: translateX(-100%); /* 默认隐藏在屏幕外 */
+                transform: translateX(-100%);
             }
-            .sidebar.open { transform: translateX(0); } /* 点击菜单后滑出 */
+            .sidebar.open { transform: translateX(0); }
             .sidebar.open + #sidebar-mask { display: block; }
             .menu-toggle { display: block; }
             .page-title { font-size: 1rem; }
@@ -381,7 +372,6 @@
         .btn-generate:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(86, 171, 47, 0.35); }
         .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* 排名条目卡片 */
         .rank-entry {
             background: #fff;
             border-radius: 10px;
@@ -445,7 +435,6 @@
         }
         .rank-entry.expanded .rank-entry-body { display: block; }
 
-        /* 表单网格 */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -487,7 +476,6 @@
             white-space: nowrap;
         }
 
-        /* Canvas 预览区 */
         .vg-preview-section {
             position: sticky;
             top: 0;
@@ -533,7 +521,6 @@
         }
         .canvas-placeholder span { font-size: 2rem; }
 
-        /* 进度条 */
         .progress-bar-wrap {
             margin-top: 14px;
             display: none;
@@ -560,7 +547,6 @@
             width: 0%;
         }
 
-        /* 素材路径提示 */
         .asset-hint {
             background: #f0f7ff;
             border: 1px solid #b3d4fc;
@@ -579,10 +565,10 @@
         }
     </style>
 </head>
-<body>
+<body class="entered">
 
     <!-- 登录遮罩层 -->
-    <div id="login-overlay">
+    <div id="login-overlay" class="hiding" style="display: none;">
         <div class="login-box">
             <div class="login-logo">📺</div>
             <h2>哔哩哔哩WEEK<br>工作人员后台</h2>
@@ -610,7 +596,6 @@
     <!-- 右侧内容 -->
     <div class="main-content">
         <div class="top-bar">
-            <!-- 手机端菜单按钮 -->
             <button class="menu-toggle" onclick="toggleMenu()">☰</button>
             <div class="page-title" id="page-title">周榜BV号替换</div>
             <div class="user-info"><span class="user-avatar">站</span>站长</div>
@@ -623,7 +608,7 @@
                     <h2>当前播放配置</h2>
                     <div class="form-group">
                         <label>当前视频 BV号：</label>
-                        <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly>
+                        <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly="">
                     </div>
                     <div class="form-group">
                         <label>更新为新 BV号：</label>
@@ -637,7 +622,6 @@
             <!-- 面板 2：批量视频生成 -->
             <div id="video-gen" class="panel">
                 <div class="vg-layout">
-                    <!-- 左侧：数据录入表单 -->
                     <div class="vg-form-section">
                         <div class="vg-header">
                             <h2>周榜视频生成 · Top 20</h2>
@@ -647,14 +631,13 @@
                         <div id="rank-entries"></div>
                     </div>
             
-                    <!-- 右侧：Canvas 预览 -->
                     <div class="vg-preview-section">
                         <div class="preview-card">
                             <h3>🖼️ 实时预览</h3>
                             <div class="canvas-wrap">
                                 <canvas id="preview-canvas" width="1920" height="1080"></canvas>
                                 <div class="canvas-placeholder" id="canvas-placeholder">
-                                    <span></span>
+                                    <span>🎬</span>
                                     <div>填写数据后自动预览</div>
                                 </div>
                             </div>
@@ -693,7 +676,7 @@
                             </div>
                             <div class="form-group">
                                 <label>生成数量：</label>
-                                <input type="text" id="single-rank-count" value="5 个排名" readonly style="background-color: #f9f9f9; color: #7f8c8d;">
+                                <input type="text" id="single-rank-count" value="5 个排名" readonly="" style="background-color: #f9f9f9; color: #7f8c8d;">
                             </div>
                         </div>
             
@@ -702,7 +685,6 @@
                             <div id="single-rank-preview" style="max-height: 300px; overflow-y: auto;"></div>
                         </div>
 
-                        <!-- 填写表单区域 -->
                         <div id="single-rank-forms"></div>
                     </div>
             
@@ -712,7 +694,7 @@
                             <div class="canvas-wrap">
                                 <canvas id="single-preview-canvas" width="1920" height="1080"></canvas>
                                 <div class="canvas-placeholder" id="single-canvas-placeholder">
-                                    <span></span>
+                                    <span>🎯</span>
                                     <div>选择排名后自动预览</div>
                                 </div>
                             </div>
@@ -735,12 +717,45 @@
     <!-- Toast 提示容器 -->
     <div id="toast"></div>
 
+    <!-- 视频裁剪模态框 -->
+    <div id="trim-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: #fff; border-radius: 16px; padding: 30px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h2 style="margin-top: 0; color: var(--dark);">🎬 裁剪视频片段</h2>
+            <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">选择视频的高潮片段作为周榜使用</p>
+            
+            <div style="background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
+                <video id="trim-video" controls="" style="width: 100%; max-height: 360px;"></video>
+            </div>
+            
+            <div id="trim-duration" style="text-align: center; color: var(--text-sub); margin-bottom: 20px; font-size: 0.9rem;">视频总时长: 0.00 秒</div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--dark); margin-bottom: 5px;">开始时间（秒）</label>
+                    <input type="number" id="trim-start" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                    <button onclick="setTrimStart()" style="margin-top: 8px; padding: 6px 12px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📍 设为当前帧</button>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--dark); margin-bottom: 5px;">结束时间（秒）</label>
+                    <input type="number" id="trim-end" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                    <button onclick="setTrimEnd()" style="margin-top: 8px; padding: 6px 12px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📍 设为当前帧</button>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="previewTrim()" style="padding: 10px 20px; background: #3498db; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">▶ 预览片段</button>
+                <button onclick="closeTrimModal()" style="padding: 10px 20px; background: #95a5a6; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">取消</button>
+                <button onclick="saveTrimSettings()" style="padding: 10px 20px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">✅ 保存</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         /* ---------- 账号配置 ---------- */
         const VALID_USER = 'admin';
         const VALID_PASS = '123456789@';
 
-        /* ---------- Toast 提示（替代 alert） ---------- */
+        /* ---------- Toast 提示 ---------- */
         let toastTimer = null;
         function showToast(msg, type) {
             const toast = document.getElementById('toast');
@@ -757,41 +772,37 @@
             }
         };
 
-        // 进入后台：登录层淡出，主界面渐入
         function enterDashboard(showWelcome) {
             const overlay = document.getElementById('login-overlay');
             overlay.classList.add('hiding');
             setTimeout(() => { overlay.style.display = 'none'; }, 450);
-
             document.body.classList.add('entered');
             if (showWelcome) showToast('欢迎回来，站长！', 'success');
+            // 初始化素材加载
+            setTimeout(loadAssets, 100);
         }
 
         function checkLogin() {
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
             const errorMsg = document.getElementById('error-msg');
-
             if (user === VALID_USER && pass === VALID_PASS) {
                 localStorage.setItem('isLoggedIn', 'true');
                 enterDashboard(true);
             } else {
                 errorMsg.style.display = 'block';
-                // 重新触发动画
                 errorMsg.style.animation = 'none';
                 void errorMsg.offsetWidth;
                 errorMsg.style.animation = '';
             }
         }
 
-        // 输入框内按回车也可登录
         ['login-user', 'login-pass'].forEach(id => {
             document.getElementById(id).addEventListener('keydown', e => {
                 if (e.key === 'Enter') checkLogin();
             });
         });
 
-        // 退出登录
         function logout() {
             if (confirm('确定要退出登录吗？')) {
                 localStorage.removeItem('isLoggedIn');
@@ -800,21 +811,25 @@
         }
 
         /* ---------- 界面交互 ---------- */
-        // 切换标签页
         function switchTab(tabId, element) {
             document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
-
             const titleMap = { 'bv-replace': '周榜 BV 号替换', 'video-gen': '批量视频生成', 'single-video-gen': '单个视频生成' };
             document.getElementById('page-title').innerText = titleMap[tabId];
-
-            // 手机端：点击菜单后自动收起侧边栏
             closeSidebarOnMobile();
+            
+            if (tabId === 'video-gen' && !window._vgInitialized) {
+                renderRankEntries();
+                setTimeout(() => drawPreview(0), 300);
+                window._vgInitialized = true;
+            }
+            if (tabId === 'single-video-gen') {
+                updateSingleRankPreview();
+            }
         }
 
-        // 手机端菜单开关
         function toggleMenu() {
             document.getElementById('sidebar').classList.toggle('open');
         }
@@ -830,7 +845,6 @@
             const newBv = document.getElementById('new-bv').value.trim();
             if (!newBv) { showToast('请输入新的 BV号！', 'error'); return; }
 
-            // 注意：此模板与「BliBli_week副站排名.html」保持同步
             const indexHtmlTemplate = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -867,7 +881,6 @@
 </body>
 </html>`;
 
-            // 生成 index.html 并触发下载
             const blob = new Blob([indexHtmlTemplate], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -893,7 +906,6 @@
             { value: 're', label: 'Re（重新上榜）' }
         ];
 
-        // 排名数据
         let rankData = Array.from({ length: TOTAL_RANKS }, (_, i) => ({
             rank: i + 1,
             changeType: i === 0 ? 'new' : 'flat',
@@ -905,13 +917,11 @@
             weeksOnChart: '',
             highestRank: '',
             videoFile: null,
-            startTime: 0,      // 视频开始时间（秒）
-            endTime: 0         // 视频结束时间（秒）
+            startTime: 0,
+            endTime: 0
         }));
 
-        // 素材图片缓存
         const assets = {};
-        // 素材路径映射（网站根目录）
         const ASSET_PATHS = {
             newText: './NEW.png',
             upArrow: './上升.png',
@@ -923,38 +933,148 @@
             historyBottom: './历史底图.png'
         };
         const REQUIRED_ASSETS = Object.keys(ASSET_PATHS).length;
+        let assetsLoaded = false;
 
-        // 自动加载素材
-        function loadAssets() {
-            let loaded = 0;
-            for (const [key, path] of Object.entries(ASSET_PATHS)) {
-                const img = new Image();
-                img.onload = () => {
-                    assets[key] = img;
-                    loaded++;
-                    if (loaded === REQUIRED_ASSETS) {
-                        console.log(`✅ 全部 ${REQUIRED_ASSETS} 个素材已加载`);
-                        // 刷新预览
-                        drawPreview(currentPreviewRank);
-                        drawSinglePreview(currentPreviewRank);
-                    }
-                };
-                img.onerror = () => {
-                    console.warn(`素材加载失败: ${path}`);
-                };
-                img.src = path;
+        // ==================== 素材加载增强版 ====================
+        function createFallbackAsset(type) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const size = 128;
+            canvas.width = size;
+            canvas.height = size;
+            
+            const colors = {
+                newText: '#4CAF50',
+                upArrow: '#4CAF50',
+                downArrow: '#f44336',
+                flatBar: '#FFC107',
+                reText: '#2196F3',
+                rankCircle: '#2c3e50',
+                historyTop: '#1a252f',
+                historyBottom: '#2c3e50'
+            };
+            
+            ctx.fillStyle = colors[type] || '#666';
+            ctx.fillRect(0, 0, size, size);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const labels = {
+                newText: 'NEW',
+                upArrow: '↑',
+                downArrow: '↓',
+                flatBar: '—',
+                reText: 'RE',
+                rankCircle: '#',
+                historyTop: 'TOP',
+                historyBottom: 'HISTORY'
+            };
+            ctx.fillText(labels[type] || '?', size/2, size/2);
+            
+            const img = new Image();
+            img.src = canvas.toDataURL('image/png');
+            return img;
+        }
+
+        function loadAssetWithRetry(key, path, maxRetries = 3, delay = 500) {
+            return new Promise((resolve) => {
+                let retries = 0;
+                
+                function attemptLoad() {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    
+                    const timeoutId = setTimeout(() => {
+                        img.src = '';
+                        retries++;
+                        if (retries < maxRetries) {
+                            console.warn(`素材 ${key} 加载超时，第 ${retries + 1} 次重试...`);
+                            setTimeout(attemptLoad, delay);
+                        } else {
+                            console.warn(`素材 ${key} 加载失败，使用降级方案`);
+                            resolve(createFallbackAsset(key));
+                        }
+                    }, 8000);
+                    
+                    img.onload = () => {
+                        clearTimeout(timeoutId);
+                        console.log(`✅ 素材 ${key} 加载成功`);
+                        resolve(img);
+                    };
+                    
+                    img.onerror = () => {
+                        clearTimeout(timeoutId);
+                        retries++;
+                        if (retries < maxRetries) {
+                            console.warn(`素材 ${key} 加载失败，第 ${retries + 1} 次重试...`);
+                            setTimeout(attemptLoad, delay);
+                        } else {
+                            console.warn(`素材 ${key} 加载失败，使用降级方案`);
+                            resolve(createFallbackAsset(key));
+                        }
+                    };
+                    
+                    img.src = path + '?t=' + Date.now() + '_' + Math.random();
+                }
+                
+                attemptLoad();
+            });
+        }
+
+        async function loadAssets() {
+            if (assetsLoaded) return;
+            
+            const keys = Object.keys(ASSET_PATHS);
+            const loadPromises = keys.map(key => 
+                loadAssetWithRetry(key, ASSET_PATHS[key])
+            );
+            
+            const results = await Promise.all(loadPromises);
+            results.forEach((img, index) => {
+                assets[keys[index]] = img;
+            });
+            
+            assetsLoaded = true;
+            console.log(`✅ 全部 ${keys.length} 个素材已加载（部分可能为降级方案）`);
+            
+            if (currentPreviewRank !== undefined) {
+                drawPreview(currentPreviewRank);
             }
+            const startRank = parseInt(document.getElementById('single-start-rank')?.value) || 1;
+            drawSinglePreview(startRank - 1);
         }
 
-        // 初始化：生成表单
-        function initVideoGenerator() {
-            loadAssets(); // 自动加载素材
-            renderRankEntries();
-            // 延迟绘制预览
-            setTimeout(() => drawPreview(0), 300);
+        // ==================== 安全绘制函数 ====================
+        function safeDrawImage(ctx, img, x, y, w, h) {
+            if (img && img.complete && img.naturalWidth > 0) {
+                try {
+                    ctx.drawImage(img, x, y, w, h);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+            return false;
         }
 
-        // 渲染20个排名条目
+        function getChangeImage(type) {
+            const map = {
+                new: assets.newText,
+                up: assets.upArrow,
+                down: assets.downArrow,
+                flat: assets.flatBar,
+                re: assets.reText
+            };
+            const img = map[type];
+            if (img && img.complete && img.naturalWidth > 0) {
+                return img;
+            }
+            return null;
+        }
+
+        // ==================== 渲染排名条目 ====================
         function renderRankEntries() {
             const container = document.getElementById('rank-entries');
             container.innerHTML = rankData.map((d, i) => `
@@ -962,7 +1082,7 @@
                     <div class="rank-entry-header" onclick="toggleEntry(${i})">
                         <span class="arrow">▶</span>
                         <div class="rank-num">${d.rank}</div>
-                        <div class="rank-title-preview">${d.title || '未填写标题...'}</div>
+                        <div class="rank-title-preview">${d.chineseName || d.songName || '未填写标题...'}</div>
                         <span class="rank-status ${d.videoFile ? '' : 'pending'}">${d.videoFile ? '✅ 已选视频' : '⏳ 待选视频'}</span>
                     </div>
                     <div class="rank-entry-body">
@@ -1015,56 +1135,41 @@
             `).join('');
         }
 
-        // 切换条目展开/收起 + 切换预览
+        let currentPreviewRank = 0;
+
         function toggleEntry(index) {
-            const entry = document.getElementById(`entry-${index}`);
-            const wasExpanded = entry.classList.contains('expanded');
-            // 收起所有
             document.querySelectorAll('.rank-entry').forEach(el => el.classList.remove('expanded', 'active'));
-            // 展开当前
+            const entry = document.getElementById(`entry-${index}`);
             entry.classList.add('expanded', 'active');
-            // 更新预览
             drawPreview(index);
         }
 
-        // 当前预览的排名索引
-        let currentPreviewRank = 0;
-
-        // 更新字段
         function updateField(index, field, value) {
             rankData[index][field] = value;
-            // 更新标题预览
             const preview = document.querySelector(`#entry-${index} .rank-title-preview`);
             if (field === 'songName' || field === 'chineseName') {
                 const d = rankData[index];
-                const name = d.chineseName || d.songName || '未填写...';
-                preview.textContent = name;
+                preview.textContent = d.chineseName || d.songName || '未填写...';
             }
-            // 如果正在预览此排名，刷新 Canvas
             if (index === currentPreviewRank) drawPreview(index);
         }
 
-        // 处理视频选择
         function handleVideoSelect(index, input) {
             const file = input.files[0];
             if (!file) return;
             rankData[index].videoFile = file;
             document.getElementById(`fname-${index}`).textContent = file.name;
-            // 更新状态标签
             const status = document.querySelector(`#entry-${index} .rank-status`);
             status.textContent = '✅ 已选视频';
             status.classList.remove('pending');
-            // 启用裁剪按钮
             const trimBtn = document.querySelector(`#entry-${index} button[onclick*="openVideoTrimModal"]`);
             if (trimBtn) trimBtn.disabled = false;
             showToast(`第${index + 1}名视频已选择，请裁剪片段`, 'success');
-            // 更新预览
             if (index === currentPreviewRank) drawPreview(index);
-            // 自动打开裁剪模态框
             setTimeout(() => openVideoTrimModal(index), 300);
         }
 
-        // Canvas 预览绘制
+        // ==================== 绘制函数 ====================
         function drawPreview(rankIndex) {
             const canvas = document.getElementById('preview-canvas');
             const ctx = canvas.getContext('2d');
@@ -1072,10 +1177,9 @@
             const W = 1920, H = 1080;
             currentPreviewRank = rankIndex;
 
-            // 深色占位背景（预览模式不播放视频）
             ctx.fillStyle = '#1a1a2e';
             ctx.fillRect(0, 0, W, H);
-            // 中心提示
+            
             ctx.fillStyle = '#0f3460';
             ctx.font = 'bold 100px Microsoft YaHei';
             ctx.textAlign = 'center';
@@ -1085,74 +1189,163 @@
             const previewName = d.chineseName || d.songName || '等待填写...';
             ctx.fillText(previewName, W / 2, H / 2 + 30);
 
-            // 绘制 UI 叠加层（预览时完全显示）
             ctx.globalAlpha = 1;
 
-            // 左下角：排名圆框
             if (assets.rankCircle) {
-                ctx.drawImage(assets.rankCircle, 60, H - 280, 200, 200);
+                safeDrawImage(ctx, assets.rankCircle, 60, H - 280, 200, 200);
+            } else {
+                ctx.beginPath();
+                ctx.arc(160, H - 180, 100, 0, Math.PI * 2);
+                ctx.fillStyle = '#2c3e50';
+                ctx.fill();
+                ctx.strokeStyle = '#56ab2f';
+                ctx.lineWidth = 4;
+                ctx.stroke();
             }
-            // 排名数字
+            
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 90px Microsoft YaHei';
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
 
-            // 变化标记（放在圆形右下角，合适大小）
             const changeImg = getChangeImage(d.changeType);
             if (changeImg) {
-                // 圆形右下角：(60+200, H-280+200) = (260, H-80)
-                // 标记中心对齐右下角，尺寸 120×120
                 const size = 120;
-                ctx.drawImage(changeImg, 260 - size / 2, H - 80 - size / 2, size, size);
+                safeDrawImage(ctx, changeImg, 260 - size / 2, H - 80 - size / 2, size, size);
+            } else {
+                const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 40px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                ctx.fillText(changeLabels[d.changeType] || '', 260, H - 50);
             }
 
-            // 标题：歌名（中文名）
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 52px Microsoft YaHei';
             ctx.textAlign = 'left';
             const displayName = d.chineseName || d.songName || '';
             ctx.fillText(displayName, 300, H - 200);
-            // 副标题：P主 - 演唱歌姬
             ctx.font = '32px Microsoft YaHei';
             ctx.fillStyle = '#ccc';
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
             ctx.fillText(artistLine || '', 300, H - 150);
 
-            // 歌词框（不再使用）
-
-            // 数据框背景（历史底图）
-            if (assets.historyBottom) ctx.drawImage(assets.historyBottom, W - 520, H - 170, 460, 120);
-            // 三个数据
+            if (assets.historyBottom) {
+                safeDrawImage(ctx, assets.historyBottom, W - 520, H - 170, 460, 120);
+            } else {
+                ctx.fillStyle = 'rgba(26, 37, 47, 0.8)';
+                ctx.fillRect(W - 520, H - 170, 460, 120);
+            }
+            
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 56px Microsoft YaHei';
             ctx.textAlign = 'center';
-            const dataX = [W - 430, W - 290, W - 150];
-            const dataVals = [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'];
-            dataVals.forEach((v, i) => ctx.fillText(v, dataX[i], H - 90));
+            [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
+                ctx.fillText(v, W - 430 + i * 140, H - 90);
+            });
 
-            // 底部标签（历史顶图）
-            if (assets.historyTop) ctx.drawImage(assets.historyTop, W - 520, H - 55, 460, 35);
+            if (assets.historyTop) {
+                safeDrawImage(ctx, assets.historyTop, W - 520, H - 55, 460, 35);
+            } else {
+                ctx.fillStyle = 'rgba(26, 37, 47, 0.6)';
+                ctx.fillRect(W - 520, H - 55, 460, 35);
+                ctx.fillStyle = '#fff';
+                ctx.font = '18px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                const labels = ['上周排名', '在榜周数', '最高排名'];
+                labels.forEach((label, i) => {
+                    ctx.fillText(label, W - 430 + i * 140, H - 32);
+                });
+            }
 
             ctx.globalAlpha = 1;
-            document.getElementById('canvas-placeholder').style.display = 'none';
+            const placeholder = document.getElementById('canvas-placeholder');
+            if (placeholder) placeholder.style.display = 'none';
         }
 
-        // 获取变化标记图片
-        function getChangeImage(type) {
-            const map = {
-                new: assets.newText,
-                up: assets.upArrow,
-                down: assets.downArrow,
-                flat: assets.flatBar,
-                re: assets.reText
-            };
-            return map[type] || null;
+        function drawFrame(ctx, video, d, uiAlpha, W, H) {
+            ctx.globalAlpha = 1;
+            try {
+                ctx.drawImage(video, 0, 0, W, H);
+            } catch (e) {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, W, H);
+            }
+
+            ctx.globalAlpha = uiAlpha;
+
+            if (assets.rankCircle) {
+                safeDrawImage(ctx, assets.rankCircle, 60, H - 280, 200, 200);
+            } else {
+                ctx.beginPath();
+                ctx.arc(160, H - 180, 100, 0, Math.PI * 2);
+                ctx.fillStyle = '#2c3e50';
+                ctx.fill();
+                ctx.strokeStyle = '#56ab2f';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+            
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 90px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText(String(d.rank), 160, H - 155);
+
+            const changeImg = getChangeImage(d.changeType);
+            if (changeImg) {
+                const size = 120;
+                safeDrawImage(ctx, changeImg, 260 - size / 2, H - 80 - size / 2, size, size);
+            } else {
+                const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 40px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                ctx.fillText(changeLabels[d.changeType] || '', 260, H - 50);
+            }
+
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 52px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            const displayName = d.chineseName || d.songName || '';
+            ctx.fillText(displayName, 300, H - 200);
+            ctx.font = '32px Microsoft YaHei';
+            ctx.fillStyle = '#ccc';
+            const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
+            ctx.fillText(artistLine || '', 300, H - 150);
+
+            if (assets.historyBottom) {
+                safeDrawImage(ctx, assets.historyBottom, W - 520, H - 170, 460, 120);
+            } else {
+                ctx.fillStyle = 'rgba(26, 37, 47, 0.8)';
+                ctx.fillRect(W - 520, H - 170, 460, 120);
+            }
+            
+            ctx.fillStyle = '#56ab2f';
+            ctx.font = 'bold 56px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
+                ctx.fillText(v, W - 430 + i * 140, H - 90);
+            });
+
+            if (assets.historyTop) {
+                safeDrawImage(ctx, assets.historyTop, W - 520, H - 55, 460, 35);
+            } else {
+                ctx.fillStyle = 'rgba(26, 37, 47, 0.6)';
+                ctx.fillRect(W - 520, H - 55, 460, 35);
+                ctx.fillStyle = '#fff';
+                ctx.font = '18px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                const labels = ['上周排名', '在榜周数', '最高排名'];
+                labels.forEach((label, i) => {
+                    ctx.fillText(label, W - 430 + i * 140, H - 32);
+                });
+            }
+
+            ctx.globalAlpha = 1;
         }
 
-        // 开始生成视频
+        // ==================== 视频生成核心（修复版） ====================
         async function startVideoGeneration() {
-            // 验证：检查是否所有排名都有视频
             const missing = rankData.filter(d => !d.videoFile);
             if (missing.length > 0) {
                 showToast(`还有 ${missing.length} 个排名未选择视频！`, 'error');
@@ -1178,20 +1371,23 @@
             }
         }
 
-        // 核心：生成视频
         async function generateVideo(progressWrap) {
             const canvas = document.getElementById('preview-canvas');
             const ctx = canvas.getContext('2d');
             const W = 1920, H = 1080;
-            const FADE_DURATION = 0.5; // 淡入淡出各0.5秒
+            const FADE_DURATION = 0.5;
 
-            // 创建 MediaRecorder
             const stream = canvas.captureStream(30);
-            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9', videoBitsPerSecond: 8000000 });
+            const recorder = new MediaRecorder(stream, { 
+                mimeType: 'video/webm; codecs=vp9', 
+                videoBitsPerSecond: 8000000 
+            });
             const chunks = [];
-            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            recorder.ondataavailable = e => { 
+                if (e.data.size > 0) chunks.push(e.data); 
+            };
 
-            const downloadPromise = new Promise(resolve => {
+            const recordingComplete = new Promise(resolve => {
                 recorder.onstop = () => {
                     const blob = new Blob(chunks, { type: 'video/webm' });
                     const url = URL.createObjectURL(blob);
@@ -1206,35 +1402,29 @@
 
             recorder.start();
 
-            // 逐个处理每个排名（从20到1）
             for (let i = TOTAL_RANKS - 1; i >= 0; i--) {
                 const d = rankData[i];
-                const processedCount = TOTAL_RANKS - i; // 已处理的数量
+                const processedCount = TOTAL_RANKS - i;
 
-                // 创建临时 video 元素（不静音，否则录不到声音）
                 const videoUrl = URL.createObjectURL(d.videoFile);
                 const video = document.createElement('video');
                 video.src = videoUrl;
                 video.playsInline = true;
                 await new Promise(r => { video.onloadedmetadata = r; });
 
-                // 将当前视频的音频轨道加入录制流（先移除上一条，避免混音）
                 stream.getAudioTracks().forEach(t => stream.removeTrack(t));
                 video.captureStream().getAudioTracks().forEach(t => stream.addTrack(t));
 
-                // 使用裁剪设置
                 const startTime = d.startTime || 0;
                 const endTime = d.endTime > 0 ? d.endTime : video.duration;
-                const clipDuration = endTime - startTime; // 裁剪后的时长（秒）
+                const clipDuration = endTime - startTime;
                 const totalSegmentTime = clipDuration * 1000;
-                
-                // 设置视频起始位置并等待 seek 完成
+
                 if (startTime > 0) {
                     video.currentTime = startTime;
                     await new Promise(r => { video.onseeked = r; });
                 }
 
-                // 淡入阶段（0 ~ FADE_DURATION）
                 const fadeInStart = performance.now();
                 while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
                     const elapsed = (performance.now() - fadeInStart) / 1000;
@@ -1243,12 +1433,10 @@
                     await sleepFrame();
                 }
 
-                // 播放阶段：等待视频真正开始播放
                 await video.play();
                 const playStart = performance.now();
                 const playDuration = Math.max((clipDuration - FADE_DURATION * 2) * 1000, 0);
                 while (performance.now() - playStart < playDuration) {
-                    // 检查是否到达结束点
                     if (video.currentTime >= endTime) {
                         video.pause();
                         break;
@@ -1256,7 +1444,6 @@
                     if (!video.paused && !video.ended) {
                         drawFrame(ctx, video, d, 1, W, H);
                     }
-                    // 实时更新进度
                     const elapsed = performance.now() - fadeInStart;
                     const rankProgress = Math.min(elapsed / totalSegmentTime, 1);
                     const overallProgress = ((processedCount - 1 + rankProgress) / TOTAL_RANKS * 100).toFixed(0);
@@ -1265,7 +1452,6 @@
                 }
                 video.pause();
 
-                // 淡出阶段
                 const fadeOutStart = performance.now();
                 while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
                     const elapsed = (performance.now() - fadeOutStart) / 1000;
@@ -1280,61 +1466,9 @@
                 video.remove();
             }
 
-            updateProgress(progressWrap, '正在导出...', '100');
+            updateProgress(progressWrap, '正在导出视频...', '100');
             recorder.stop();
-            await downloadPromise;
-        }
-
-        // 绘制单帧
-        function drawFrame(ctx, video, d, uiAlpha, W, H) {
-            // 绘制视频背景
-            ctx.globalAlpha = 1;
-            ctx.drawImage(video, 0, 0, W, H);
-
-            // 绘制 UI 叠加层（带透明度）
-            ctx.globalAlpha = uiAlpha;
-
-            // 左下角：排名圆框
-            if (assets.rankCircle) ctx.drawImage(assets.rankCircle, 60, H - 280, 200, 200);
-            ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 90px Microsoft YaHei';
-            ctx.textAlign = 'center';
-            ctx.fillText(String(d.rank), 160, H - 155);
-
-            // 变化标记（圆形右下角，合适大小）
-            const changeImg = getChangeImage(d.changeType);
-            if (changeImg) {
-                const size = 120;
-                ctx.drawImage(changeImg, 260 - size / 2, H - 80 - size / 2, size, size);
-            }
-
-            // 标题：歌名（中文名）
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 52px Microsoft YaHei';
-            ctx.textAlign = 'left';
-            const displayName = d.chineseName || d.songName || '';
-            ctx.fillText(displayName, 300, H - 200);
-            // 副标题：P主 - 演唱歌姬
-            ctx.font = '32px Microsoft YaHei';
-            ctx.fillStyle = '#ccc';
-            const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
-            ctx.fillText(artistLine || '', 300, H - 150);
-
-            // 歌词框（不再使用）
-
-            // 数据框（历史底图）
-            if (assets.historyBottom) ctx.drawImage(assets.historyBottom, W - 520, H - 170, 460, 120);
-            ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 56px Microsoft YaHei';
-            ctx.textAlign = 'center';
-            [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
-                ctx.fillText(v, W - 430 + i * 140, H - 90);
-            });
-
-            // 底部标签（历史顶图）
-            if (assets.historyTop) ctx.drawImage(assets.historyTop, W - 520, H - 55, 460, 35);
-
-            ctx.globalAlpha = 1;
+            await recordingComplete;
         }
 
         function updateProgress(wrap, text, percent) {
@@ -1347,33 +1481,11 @@
             return new Promise(r => requestAnimationFrame(r));
         }
 
-        // 页面加载完成后初始化视频生成器
-        window.addEventListener('DOMContentLoaded', () => {
-            if (document.getElementById('video-gen').classList.contains('active')) {
-                initVideoGenerator();
-            }
-        });
-
-        // 切换到视频生成面板时初始化
-        const _origSwitchTab = window.switchTab;
-        window.switchTab = function(tabId, element) {
-            _origSwitchTab(tabId, element);
-            if (tabId === 'video-gen' && !window._vgInitialized) {
-                initVideoGenerator();
-                window._vgInitialized = true;
-            }
-            if (tabId === 'single-video-gen') {
-                updateSingleRankPreview();
-            }
-        };
-
-        /* ==================== 单个视频生成功能 ==================== */
-        // 更新单个生成的排名预览
+        // ==================== 单个视频生成 ====================
         function updateSingleRankPreview() {
             const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
             const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
             
-            // 验证范围
             const validStart = Math.max(1, Math.min(20, startRank));
             const validEnd = Math.max(1, Math.min(20, endRank));
             
@@ -1385,7 +1497,6 @@
             const count = validEnd - validStart + 1;
             document.getElementById('single-rank-count').value = `${count} 个排名`;
             
-            // 更新预览列表
             const previewContainer = document.getElementById('single-rank-preview');
             const ranks = rankData.slice(validStart - 1, validEnd);
             
@@ -1409,16 +1520,13 @@
                 `;
             }).join('');
             
-            // 默认预览第一个
             if (ranks.length > 0) {
                 drawSinglePreview(validStart - 1);
             }
             
-            // 生成填写表单
             renderSingleRankForms(validStart, validEnd);
         }
-        
-        // 渲染单个排名的填写表单
+
         function renderSingleRankForms(startRank, endRank) {
             const container = document.getElementById('single-rank-forms');
             const ranks = rankData.slice(startRank - 1, endRank);
@@ -1483,59 +1591,47 @@
                 `;
             }).join('');
         }
-        
-        // 切换单个条目展开/收起
+
         function toggleSingleEntry(index) {
             const entry = document.getElementById(`single-entry-${index}`);
             entry.classList.toggle('expanded');
         }
-        
-        // 更新单个排名字段
+
         function updateSingleField(index, field, value) {
             rankData[index][field] = value;
-            // 更新标题预览
             const preview = document.querySelector(`#single-entry-${index} .rank-title-preview`);
             if (field === 'songName' || field === 'chineseName') {
                 const d = rankData[index];
-                const name = d.chineseName || d.songName || '未填写...';
-                preview.textContent = name;
+                preview.textContent = d.chineseName || d.songName || '未填写...';
             }
-            // 刷新预览
             drawSinglePreview(index);
         }
-        
-        // 处理单个视频选择
+
         function handleSingleVideoSelect(index, input) {
             const file = input.files[0];
             if (!file) return;
             rankData[index].videoFile = file;
             document.getElementById(`single-fname-${index}`).textContent = file.name;
-            // 更新状态标签
             const status = document.querySelector(`#single-entry-${index} .rank-status`);
             status.textContent = '✅ 已选视频';
             status.classList.remove('pending');
-            // 启用裁剪按钮
             const trimBtn = document.querySelector(`#single-entry-${index} button[onclick*="openVideoTrimModal"]`);
             if (trimBtn) trimBtn.disabled = false;
             showToast(`第${index + 1}名视频已选择，请裁剪片段`, 'success');
-            // 更新预览
             drawSinglePreview(index);
-            // 自动打开裁剪模态框
             setTimeout(() => openVideoTrimModal(index), 300);
         }
-        
-        // 绘制单个排名的预览
+
         function drawSinglePreview(rankIndex) {
             const canvas = document.getElementById('single-preview-canvas');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             const d = rankData[rankIndex];
             const W = 1920, H = 1080;
-            
-            // 深色占位背景
+
             ctx.fillStyle = '#1a1a2e';
             ctx.fillRect(0, 0, W, H);
-            
-            // 中心提示
+
             ctx.fillStyle = '#0f3460';
             ctx.font = 'bold 100px Microsoft YaHei';
             ctx.textAlign = 'center';
@@ -1544,53 +1640,81 @@
             ctx.fillStyle = '#888';
             const previewName = d.chineseName || d.songName || '等待填写...';
             ctx.fillText(previewName, W / 2, H / 2 + 30);
-            
-            // 绘制 UI 叠加层
+
             ctx.globalAlpha = 1;
+
+            if (assets.rankCircle) {
+                safeDrawImage(ctx, assets.rankCircle, 60, H - 280, 200, 200);
+            } else {
+                ctx.beginPath();
+                ctx.arc(160, H - 180, 100, 0, Math.PI * 2);
+                ctx.fillStyle = '#2c3e50';
+                ctx.fill();
+                ctx.strokeStyle = '#56ab2f';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
             
-            // 左下角：排名圆框
-            if (assets.rankCircle) ctx.drawImage(assets.rankCircle, 60, H - 280, 200, 200);
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 90px Microsoft YaHei';
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
-            
-            // 变化标记（圆形右下角，合适大小）
+
             const changeImg = getChangeImage(d.changeType);
             if (changeImg) {
                 const size = 120;
-                ctx.drawImage(changeImg, 260 - size / 2, H - 80 - size / 2, size, size);
+                safeDrawImage(ctx, changeImg, 260 - size / 2, H - 80 - size / 2, size, size);
+            } else {
+                const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 40px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                ctx.fillText(changeLabels[d.changeType] || '', 260, H - 50);
             }
-            
-            // 标题：歌名（中文名）
+
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 52px Microsoft YaHei';
             ctx.textAlign = 'left';
             const displayName = d.chineseName || d.songName || '';
             ctx.fillText(displayName, 300, H - 200);
-            // 副标题：P 主 - 演唱歌姬
             ctx.font = '32px Microsoft YaHei';
             ctx.fillStyle = '#ccc';
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
             ctx.fillText(artistLine || '', 300, H - 150);
+
+            if (assets.historyBottom) {
+                safeDrawImage(ctx, assets.historyBottom, W - 520, H - 170, 460, 120);
+            } else {
+                ctx.fillStyle = 'rgba(26, 37, 47, 0.8)';
+                ctx.fillRect(W - 520, H - 170, 460, 120);
+            }
             
-            // 数据框（历史底图）
-            if (assets.historyBottom) ctx.drawImage(assets.historyBottom, W - 520, H - 170, 460, 120);
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 56px Microsoft YaHei';
             ctx.textAlign = 'center';
             [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
                 ctx.fillText(v, W - 430 + i * 140, H - 90);
             });
-            
-            // 底部标签（历史顶图）
-            if (assets.historyTop) ctx.drawImage(assets.historyTop, W - 520, H - 55, 460, 35);
-            
+
+            if (assets.historyTop) {
+                safeDrawImage(ctx, assets.historyTop, W - 520, H - 55, 460, 35);
+            } else {
+                ctx.fillStyle = 'rgba(26, 37, 47, 0.6)';
+                ctx.fillRect(W - 520, H - 55, 460, 35);
+                ctx.fillStyle = '#fff';
+                ctx.font = '18px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                const labels = ['上周排名', '在榜周数', '最高排名'];
+                labels.forEach((label, i) => {
+                    ctx.fillText(label, W - 430 + i * 140, H - 32);
+                });
+            }
+
             ctx.globalAlpha = 1;
-            document.getElementById('single-canvas-placeholder').style.display = 'none';
+            const placeholder = document.getElementById('single-canvas-placeholder');
+            if (placeholder) placeholder.style.display = 'none';
         }
-        
-        // 开始单个视频生成
+
         async function startSingleVideoGeneration() {
             const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
             const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
@@ -1603,7 +1727,6 @@
                 return;
             }
             
-            // 检查选定范围内是否有未选视频的排名
             const selectedRanks = rankData.slice(validStart - 1, validEnd);
             const missing = selectedRanks.filter(d => !d.videoFile);
             if (missing.length > 0) {
@@ -1623,26 +1746,28 @@
                 showToast(`✅ 第${validStart}-${validEnd}名视频生成完成！`, 'success');
             } catch (err) {
                 console.error(err);
-                showToast(' 生成失败：' + err.message, 'error');
+                showToast('❌ 生成失败：' + err.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.textContent = '🎯 生成选定排名';
             }
         }
-        
-        // 核心：生成单个范围的视频
+
         async function generateSingleVideo(startRank, endRank, progressWrap) {
             const canvas = document.getElementById('single-preview-canvas');
             const ctx = canvas.getContext('2d');
             const W = 1920, H = 1080;
             const FADE_DURATION = 0.5;
-            
+
             const stream = canvas.captureStream(30);
-            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9', videoBitsPerSecond: 8000000 });
+            const recorder = new MediaRecorder(stream, { 
+                mimeType: 'video/webm; codecs=vp9', 
+                videoBitsPerSecond: 8000000 
+            });
             const chunks = [];
             recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-            
-            const downloadPromise = new Promise(resolve => {
+
+            const recordingComplete = new Promise(resolve => {
                 recorder.onstop = () => {
                     const blob = new Blob(chunks, { type: 'video/webm' });
                     const url = URL.createObjectURL(blob);
@@ -1654,40 +1779,35 @@
                     resolve();
                 };
             });
-            
+
             recorder.start();
-            
+
             const totalRanks = endRank - startRank + 1;
-            
-            // 从大到小处理（如从5到1）
+
             for (let i = 0; i < totalRanks; i++) {
-                const rankIndex = endRank - 1 - i; // 从 endRank 开始往前
+                const rankIndex = endRank - 1 - i;
                 const d = rankData[rankIndex];
-                const processedCount = i + 1; // 已处理的数量
-                
+                const processedCount = i + 1;
+
                 const videoUrl = URL.createObjectURL(d.videoFile);
                 const video = document.createElement('video');
                 video.src = videoUrl;
                 video.playsInline = true;
                 await new Promise(r => { video.onloadedmetadata = r; });
-                
-                // 将当前视频的音频轨道加入录制流（先移除上一条，避免混音）
+
                 stream.getAudioTracks().forEach(t => stream.removeTrack(t));
                 video.captureStream().getAudioTracks().forEach(t => stream.addTrack(t));
-                
-                // 使用裁剪设置
+
                 const startTime = d.startTime || 0;
                 const endTime = d.endTime > 0 ? d.endTime : video.duration;
-                const clipDuration = endTime - startTime; // 裁剪后的时长（秒）
+                const clipDuration = endTime - startTime;
                 const totalSegmentTime = clipDuration * 1000;
-                
-                // 设置视频起始位置并等待 seek 完成
+
                 if (startTime > 0) {
                     video.currentTime = startTime;
                     await new Promise(r => { video.onseeked = r; });
                 }
-                
-                // 淡入阶段（0 ~ FADE_DURATION 秒）
+
                 const fadeInStart = performance.now();
                 while (performance.now() - fadeInStart < FADE_DURATION * 1000) {
                     const elapsed = (performance.now() - fadeInStart) / 1000;
@@ -1695,22 +1815,18 @@
                     drawFrame(ctx, video, d, alpha, W, H);
                     await sleepFrame();
                 }
-                
-                // 播放阶段：等待视频真正开始播放
+
                 await video.play();
                 const playStart = performance.now();
                 const playDuration = Math.max((clipDuration - FADE_DURATION * 2) * 1000, 0);
                 while (performance.now() - playStart < playDuration) {
-                    // 检查是否到达结束点
                     if (video.currentTime >= endTime) {
                         video.pause();
                         break;
                     }
-                    // 同步视频当前帧到 canvas
                     if (!video.paused && !video.ended) {
                         drawFrame(ctx, video, d, 1, W, H);
                     }
-                    // 实时更新进度（基于已用时间）
                     const elapsed = performance.now() - fadeInStart;
                     const rankProgress = Math.min(elapsed / totalSegmentTime, 1);
                     const overallProgress = ((processedCount - 1 + rankProgress) / totalRanks * 100).toFixed(0);
@@ -1718,8 +1834,7 @@
                     await sleepFrame();
                 }
                 video.pause();
-                
-                // 淡出阶段
+
                 const fadeOutStart = performance.now();
                 while (performance.now() - fadeOutStart < FADE_DURATION * 1000) {
                     const elapsed = (performance.now() - fadeOutStart) / 1000;
@@ -1729,27 +1844,25 @@
                     }
                     await sleepFrame();
                 }
-                
+
                 URL.revokeObjectURL(videoUrl);
                 video.remove();
             }
-            
-            updateSingleProgress(progressWrap, '正在导出...', '100');
+
+            updateSingleProgress(progressWrap, '正在导出视频...', '100');
             recorder.stop();
-            await downloadPromise;
+            await recordingComplete;
         }
-        
+
         function updateSingleProgress(wrap, text, percent) {
             document.getElementById('single-progress-text').textContent = text;
             document.getElementById('single-progress-percent').textContent = percent + '%';
             document.getElementById('single-progress-fill').style.width = percent + '%';
         }
 
-        /* ==================== 视频裁剪功能 ==================== */
-        let currentTrimIndex = -1; // 当前裁剪的排名索引
-        let trimVideo = null;      // 裁剪用的 video 元素
+        // ==================== 视频裁剪功能 ====================
+        let currentTrimIndex = -1;
 
-        // 打开视频裁剪模态框
         function openVideoTrimModal(index) {
             const data = rankData[index];
             if (!data.videoFile) {
@@ -1761,29 +1874,23 @@
             const modal = document.getElementById('trim-modal');
             const video = document.getElementById('trim-video');
             
-            // 设置视频源
             const url = URL.createObjectURL(data.videoFile);
             video.src = url;
             
-            // 设置初始时间
             document.getElementById('trim-start').value = data.startTime || 0;
             document.getElementById('trim-end').value = data.endTime || 0;
             document.getElementById('trim-duration').textContent = '视频总时长: 0.00 秒';
             
-            // 显示模态框
             modal.style.display = 'flex';
             
-            // 视频加载后获取时长
             video.onloadedmetadata = () => {
                 document.getElementById('trim-duration').textContent = `视频总时长: ${video.duration.toFixed(2)} 秒`;
-                // 如果未设置结束时间，默认设为视频末尾
                 if (!data.endTime || data.endTime === 0) {
                     document.getElementById('trim-end').value = video.duration.toFixed(2);
                 }
             };
         }
 
-        // 关闭裁剪模态框
         function closeTrimModal() {
             const modal = document.getElementById('trim-modal');
             const video = document.getElementById('trim-video');
@@ -1793,19 +1900,16 @@
             currentTrimIndex = -1;
         }
 
-        // 设置开始时间点
         function setTrimStart() {
             const video = document.getElementById('trim-video');
             document.getElementById('trim-start').value = video.currentTime.toFixed(2);
         }
 
-        // 设置结束时间点
         function setTrimEnd() {
             const video = document.getElementById('trim-video');
             document.getElementById('trim-end').value = video.currentTime.toFixed(2);
         }
 
-        // 预览裁剪片段
         function previewTrim() {
             const video = document.getElementById('trim-video');
             const start = parseFloat(document.getElementById('trim-start').value) || 0;
@@ -1814,7 +1918,6 @@
             video.currentTime = start;
             video.play();
             
-            // 到达结束点时暂停
             const checkEnd = () => {
                 if (video.currentTime >= end) {
                     video.pause();
@@ -1824,7 +1927,6 @@
             video.addEventListener('timeupdate', checkEnd);
         }
 
-        // 保存裁剪设置
         function saveTrimSettings() {
             const video = document.getElementById('trim-video');
             const start = parseFloat(document.getElementById('trim-start').value) || 0;
@@ -1843,39 +1945,13 @@
             
             closeTrimModal();
         }
-    </script>
 
-    <!-- 视频裁剪模态框 -->
-    <div id="trim-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
-        <div style="background: #fff; border-radius: 16px; padding: 30px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
-            <h2 style="margin-top: 0; color: var(--dark);">🎬 裁剪视频片段</h2>
-            <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">选择视频的高潮片段作为周榜使用</p>
-            
-            <div style="background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
-                <video id="trim-video" controls style="width: 100%; max-height: 360px;"></video>
-            </div>
-            
-            <div id="trim-duration" style="text-align: center; color: var(--text-sub); margin-bottom: 20px; font-size: 0.9rem;">视频总时长: 0.00 秒</div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: var(--dark); margin-bottom: 5px;">开始时间（秒）</label>
-                    <input type="number" id="trim-start" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
-                    <button onclick="setTrimStart()" style="margin-top: 8px; padding: 6px 12px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📍 设为当前帧</button>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: var(--dark); margin-bottom: 5px;">结束时间（秒）</label>
-                    <input type="number" id="trim-end" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
-                    <button onclick="setTrimEnd()" style="margin-top: 8px; padding: 6px 12px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📍 设为当前帧</button>
-                </div>
-            </div>
-            
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="previewTrim()" style="padding: 10px 20px; background: #3498db; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">▶ 预览片段</button>
-                <button onclick="closeTrimModal()" style="padding: 10px 20px; background: #95a5a6; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">取消</button>
-                <button onclick="saveTrimSettings()" style="padding: 10px 20px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">✅ 保存</button>
-            </div>
-        </div>
-    </div>
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                setTimeout(loadAssets, 200);
+            }
+        });
+    </script>
 </body>
 </html>
