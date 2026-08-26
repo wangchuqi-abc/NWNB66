@@ -8,6 +8,15 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* ===== 加载本地字体：标小智无界黑 ===== */
+        @font-face {
+            font-family: 'BiaoXiaoZhi';
+            src: url('./标小智无界黑.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
+
         :root {
             --primary: #3498db;
             --primary-dark: #2980b9;
@@ -768,7 +777,7 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 3.2 (2026-08-23) — 黑边填充保持原始比例 + 预加载优化</div>
+    <div id="version-info">版本 3.3 (2026-08-26) — 数字使用"标小智无界黑"字体</div>
 
     <script>
         /* ---------- 账号配置 ---------- */
@@ -1188,7 +1197,7 @@
             setTimeout(() => openVideoTrimModal(index), 300);
         }
 
-        // ==================== 绘制函数（黑边填充版） ====================
+        // ==================== 绘制函数（黑边填充版 + 标小智无界黑数字字体） ====================
         function drawPreview(rankIndex) {
             const canvas = document.getElementById('preview-canvas');
             const ctx = canvas.getContext('2d');
@@ -1234,8 +1243,9 @@
                 ctx.stroke();
             }
             
+            // ===== 排名数字：标小智无界黑 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 90px Microsoft YaHei';
+            ctx.font = 'bold 90px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
 
@@ -1251,11 +1261,13 @@
                 ctx.fillText(changeLabels[d.changeType] || '', 260, H - 50);
             }
 
+            // 作品名：保持不变
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 52px Microsoft YaHei';
             ctx.textAlign = 'left';
             const displayName = d.chineseName || d.songName || '';
             ctx.fillText(displayName, 300, H - 200);
+            // P主/歌姬：保持不变
             ctx.font = '32px Microsoft YaHei';
             ctx.fillStyle = '#ccc';
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
@@ -1268,8 +1280,9 @@
                 ctx.fillRect(W - 520, H - 170, 460, 120);
             }
             
+            // ===== 三个数据数字：标小智无界黑 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 56px Microsoft YaHei';
+            ctx.font = 'bold 56px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
                 ctx.fillText(v, W - 430 + i * 140, H - 90);
@@ -1294,11 +1307,11 @@
             if (placeholder) placeholder.style.display = 'none';
         }
 
-        // ===== 核心：drawFrame 黑边填充版 =====
+        // ===== 核心：drawFrame 黑边填充版 + 标小智无界黑数字 =====
         function drawFrame(ctx, video, d, uiAlpha, W, H) {
             ctx.globalAlpha = 1;
 
-            // ===== 等比缩放 + 黑边填充（保持原始比例） =====
+            // 等比缩放 + 黑边填充
             const videoW = video.videoWidth || 1920;
             const videoH = video.videoHeight || 1080;
             const scale = Math.min(W / videoW, H / videoH);
@@ -1307,11 +1320,9 @@
             const offsetX = (W - scaledW) / 2;
             const offsetY = (H - scaledH) / 2;
 
-            // 先填充黑色背景
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, W, H);
 
-            // 绘制视频（等比缩放居中）
             try {
                 ctx.drawImage(video, offsetX, offsetY, scaledW, scaledH);
             } catch (e) {
@@ -1319,7 +1330,7 @@
                 ctx.fillRect(0, 0, W, H);
             }
 
-            // ===== UI 叠加层 =====
+            // UI 叠加层
             ctx.globalAlpha = uiAlpha;
 
             if (assets.rankCircle) {
@@ -1334,8 +1345,9 @@
                 ctx.stroke();
             }
             
+            // ===== 排名数字：标小智无界黑 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 90px Microsoft YaHei';
+            ctx.font = 'bold 90px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
 
@@ -1351,11 +1363,13 @@
                 ctx.fillText(changeLabels[d.changeType] || '', 260, H - 50);
             }
 
+            // 作品名：保持不变
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 52px Microsoft YaHei';
             ctx.textAlign = 'left';
             const displayName = d.chineseName || d.songName || '';
             ctx.fillText(displayName, 300, H - 200);
+            // P主/歌姬：保持不变
             ctx.font = '32px Microsoft YaHei';
             ctx.fillStyle = '#ccc';
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
@@ -1368,8 +1382,9 @@
                 ctx.fillRect(W - 520, H - 170, 460, 120);
             }
             
+            // ===== 三个数据数字：标小智无界黑 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 56px Microsoft YaHei';
+            ctx.font = 'bold 56px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
                 ctx.fillText(v, W - 430 + i * 140, H - 90);
@@ -1428,7 +1443,7 @@
             }
         }
 
-        // ==================== 视频生成核心（版本 3.2） ====================
+        // ==================== 视频生成核心（版本 3.3） ====================
         async function startVideoGeneration() {
             const missing = rankData.filter(d => !d.videoFile);
             if (missing.length > 0) {
@@ -1683,7 +1698,7 @@
             return new Promise(r => requestAnimationFrame(r));
         }
 
-        // ==================== 单个视频生成（版本 3.2） ====================
+        // ==================== 单个视频生成（版本 3.3） ====================
         function updateSingleRankPreview() {
             const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
             const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
@@ -1824,7 +1839,7 @@
             setTimeout(() => openVideoTrimModal(index), 300);
         }
 
-        // ===== 单个预览黑边填充版 =====
+        // ===== 单个预览黑边填充版 + 标小智无界黑数字 =====
         function drawSinglePreview(rankIndex) {
             const canvas = document.getElementById('single-preview-canvas');
             if (!canvas) return;
@@ -1870,8 +1885,9 @@
                 ctx.stroke();
             }
             
+            // ===== 排名数字：标小智无界黑 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 90px Microsoft YaHei';
+            ctx.font = 'bold 90px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(String(d.rank), 160, H - 155);
 
@@ -1887,11 +1903,13 @@
                 ctx.fillText(changeLabels[d.changeType] || '', 260, H - 50);
             }
 
+            // 作品名：保持不变
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 52px Microsoft YaHei';
             ctx.textAlign = 'left';
             const displayName = d.chineseName || d.songName || '';
             ctx.fillText(displayName, 300, H - 200);
+            // P主/歌姬：保持不变
             ctx.font = '32px Microsoft YaHei';
             ctx.fillStyle = '#ccc';
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
@@ -1904,8 +1922,9 @@
                 ctx.fillRect(W - 520, H - 170, 460, 120);
             }
             
+            // ===== 三个数据数字：标小智无界黑 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 56px Microsoft YaHei';
+            ctx.font = 'bold 56px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
                 ctx.fillText(v, W - 430 + i * 140, H - 90);
