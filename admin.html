@@ -777,7 +777,7 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 3.3 (2026-08-26) — 数字使用"标小智无界黑"字体</div>
+    <div id="version-info">版本 3.4 (2026-08-26) — 修复字体加载导致素材加载失败问题</div>
 
     <script>
         /* ---------- 账号配置 ---------- */
@@ -963,7 +963,7 @@
         const REQUIRED_ASSETS = Object.keys(ASSET_PATHS).length;
         let assetsLoaded = false;
 
-        // ==================== 素材加载 ====================
+        // ==================== 素材加载（独立于字体，互不影响） ====================
         function createFallbackAsset(type) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -1054,6 +1054,8 @@
         async function loadAssets() {
             if (assetsLoaded) return;
             
+            console.log('📦 开始加载素材...');
+            
             const keys = Object.keys(ASSET_PATHS);
             const loadPromises = keys.map(key => 
                 loadAssetWithRetry(key, ASSET_PATHS[key])
@@ -1065,8 +1067,9 @@
             });
             
             assetsLoaded = true;
-            console.log(`✅ 全部 ${keys.length} 个素材已加载`);
+            console.log(`✅ 全部 ${keys.length} 个素材已加载完成`);
             
+            // 刷新预览
             if (currentPreviewRank !== undefined) {
                 drawPreview(currentPreviewRank);
             }
@@ -1443,7 +1446,7 @@
             }
         }
 
-        // ==================== 视频生成核心（版本 3.3） ====================
+        // ==================== 视频生成核心（版本 3.4） ====================
         async function startVideoGeneration() {
             const missing = rankData.filter(d => !d.videoFile);
             if (missing.length > 0) {
@@ -1698,7 +1701,7 @@
             return new Promise(r => requestAnimationFrame(r));
         }
 
-        // ==================== 单个视频生成（版本 3.3） ====================
+        // ==================== 单个视频生成（版本 3.4） ====================
         function updateSingleRankPreview() {
             const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
             const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
