@@ -744,7 +744,7 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 4.0 (2026-08-28) — 独立登录页 + 登录状态管理</div>
+    <div id="version-info">版本 4.1 (2026-08-28) — 修复页面空白问题</div>
 
     <script>
         // ============================================================
@@ -762,6 +762,8 @@
                 if (userEl) userEl.textContent = user;
                 const overlay = document.getElementById('loading-overlay');
                 if (overlay) overlay.classList.remove('show');
+                // 🔥 关键修复：添加 entered 类让页面显示
+                document.body.classList.add('entered');
             });
         })();
 
