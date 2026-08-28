@@ -777,7 +777,7 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 3.4 (2026-08-26) — 修复字体加载导致素材加载失败问题</div>
+    <div id="version-info">版本 3.5 (2026-08-28) — 排名数字放大至130px并居中</div>
 
     <script>
         /* ---------- 账号配置 ---------- */
@@ -963,7 +963,7 @@
         const REQUIRED_ASSETS = Object.keys(ASSET_PATHS).length;
         let assetsLoaded = false;
 
-        // ==================== 素材加载（独立于字体，互不影响） ====================
+        // ==================== 素材加载 ====================
         function createFallbackAsset(type) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -1069,7 +1069,6 @@
             assetsLoaded = true;
             console.log(`✅ 全部 ${keys.length} 个素材已加载完成`);
             
-            // 刷新预览
             if (currentPreviewRank !== undefined) {
                 drawPreview(currentPreviewRank);
             }
@@ -1246,11 +1245,12 @@
                 ctx.stroke();
             }
             
-            // ===== 排名数字：标小智无界黑 =====
+            // ===== 排名数字：放大到130px，居中 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 90px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.font = 'bold 130px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(String(d.rank), 160, H - 155);
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(d.rank), 160, H - 180);
 
             const changeImg = getChangeImage(d.changeType);
             if (changeImg) {
@@ -1306,6 +1306,7 @@
             }
 
             ctx.globalAlpha = 1;
+            ctx.textBaseline = 'alphabetic'; // 恢复默认
             const placeholder = document.getElementById('canvas-placeholder');
             if (placeholder) placeholder.style.display = 'none';
         }
@@ -1348,11 +1349,12 @@
                 ctx.stroke();
             }
             
-            // ===== 排名数字：标小智无界黑 =====
+            // ===== 排名数字：放大到130px，居中 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 90px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.font = 'bold 130px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(String(d.rank), 160, H - 155);
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(d.rank), 160, H - 180);
 
             const changeImg = getChangeImage(d.changeType);
             if (changeImg) {
@@ -1408,6 +1410,7 @@
             }
 
             ctx.globalAlpha = 1;
+            ctx.textBaseline = 'alphabetic'; // 恢复默认
         }
 
         // ==================== 音频混音器 ====================
@@ -1446,7 +1449,7 @@
             }
         }
 
-        // ==================== 视频生成核心（版本 3.4） ====================
+        // ==================== 视频生成核心（版本 3.5） ====================
         async function startVideoGeneration() {
             const missing = rankData.filter(d => !d.videoFile);
             if (missing.length > 0) {
@@ -1701,7 +1704,7 @@
             return new Promise(r => requestAnimationFrame(r));
         }
 
-        // ==================== 单个视频生成（版本 3.4） ====================
+        // ==================== 单个视频生成（版本 3.5） ====================
         function updateSingleRankPreview() {
             const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
             const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
@@ -1888,11 +1891,12 @@
                 ctx.stroke();
             }
             
-            // ===== 排名数字：标小智无界黑 =====
+            // ===== 排名数字：放大到130px，居中 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 90px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.font = 'bold 130px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(String(d.rank), 160, H - 155);
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(d.rank), 160, H - 180);
 
             const changeImg = getChangeImage(d.changeType);
             if (changeImg) {
@@ -1948,6 +1952,7 @@
             }
 
             ctx.globalAlpha = 1;
+            ctx.textBaseline = 'alphabetic';
             const placeholder = document.getElementById('single-canvas-placeholder');
             if (placeholder) placeholder.style.display = 'none';
         }
