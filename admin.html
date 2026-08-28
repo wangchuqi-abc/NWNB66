@@ -35,80 +35,6 @@
             overflow: hidden;
         }
 
-        /* ==================== 登录界面 ==================== */
-        #login-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background:
-                radial-gradient(ellipse 55% 45% at 15% 10%, rgba(52, 152, 219, 0.12), transparent 60%),
-                radial-gradient(ellipse 50% 45% at 90% 95%, rgba(44, 62, 80, 0.10), transparent 60%),
-                linear-gradient(135deg, #e8e8e8, #f5f5f5, #eeeeee);
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.45s ease;
-        }
-        #login-overlay.hiding { opacity: 0; pointer-events: none; }
-        .login-box {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(8px);
-            padding: 44px 32px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
-            width: 90%;
-            max-width: 420px;
-            text-align: center;
-            animation: fadeIn 0.5s ease;
-        }
-        .login-logo {
-            width: 56px; height: 56px;
-            margin: 0 auto 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.6rem;
-            background: linear-gradient(135deg, var(--dark), var(--primary));
-            border-radius: 14px;
-            color: #fff;
-            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.35);
-        }
-        .login-box h2 { margin-bottom: 28px; color: var(--dark); font-size: 1.4rem; line-height: 1.5; }
-        .login-box input {
-            width: 100%;
-            padding: 14px 16px;
-            margin-bottom: 18px;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            font-size: 1rem;
-            outline: none;
-            transition: border 0.3s, box-shadow 0.3s;
-        }
-        .login-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
-        .login-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--dark), var(--primary));
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            letter-spacing: 4px;
-            transition: transform 0.2s, box-shadow 0.3s;
-        }
-        .login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(52, 152, 219, 0.35); }
-        .error-msg {
-            color: #e74c3c;
-            font-size: 14px;
-            margin-top: 12px;
-            display: none;
-            animation: shake 0.4s ease;
-        }
-
         /* ==================== 左侧导航栏 ==================== */
         .sidebar {
             width: 250px;
@@ -589,19 +515,60 @@
             pointer-events: none;
             font-family: 'Microsoft YaHei', sans-serif;
         }
+
+        /* ===== 加载遮罩 ===== */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #loading-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #loading-overlay .spinner {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        #loading-overlay .spinner .icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        #loading-overlay .spinner p {
+            color: #666;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+        #loading-overlay .spinner .dots::after {
+            content: '';
+            animation: dots 1.2s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
     </style>
 </head>
-<body class="entered">
+<body>
 
-    <!-- 登录遮罩层 -->
-    <div id="login-overlay" class="hiding" style="display: none;">
-        <div class="login-box">
-            <div class="login-logo">📺</div>
-            <h2>哔哩哔哩WEEK<br>工作人员后台</h2>
-            <input type="text" id="login-user" placeholder="请输入用户名" autocomplete="username">
-            <input type="password" id="login-pass" placeholder="请输入密码" autocomplete="current-password">
-            <button class="login-btn" onclick="checkLogin()">进入后台</button>
-            <div class="error-msg" id="error-msg">用户名或密码错误！</div>
+    <!-- ===== 加载遮罩 ===== -->
+    <div id="loading-overlay" class="show">
+        <div class="spinner">
+            <div class="icon">⏳</div>
+            <p>加载中<span class="dots"></span></p>
         </div>
     </div>
 
@@ -624,7 +591,7 @@
         <div class="top-bar">
             <button class="menu-toggle" onclick="toggleMenu()">☰</button>
             <div class="page-title" id="page-title">周榜BV号替换</div>
-            <div class="user-info"><span class="user-avatar">站</span>站长</div>
+            <div class="user-info"><span class="user-avatar">站</span><span id="currentUser">站长</span></div>
         </div>
 
         <div class="content-area">
@@ -777,12 +744,26 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 3.5 (2026-08-28) — 排名数字放大至130px并居中</div>
+    <div id="version-info">版本 4.0 (2026-08-28) — 独立登录页 + 登录状态管理</div>
 
     <script>
-        /* ---------- 账号配置 ---------- */
-        const VALID_USER = 'admin';
-        const VALID_PASS = '123456789@';
+        // ============================================================
+        // 🔐 登录状态检查（必须在页面加载前执行）
+        // ============================================================
+        (function checkAuth() {
+            const isLoggedIn = localStorage.getItem('bili_admin_logged_in');
+            if (isLoggedIn !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            const user = localStorage.getItem('bili_admin_user') || '站长';
+            document.addEventListener('DOMContentLoaded', function() {
+                const userEl = document.getElementById('currentUser');
+                if (userEl) userEl.textContent = user;
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) overlay.classList.remove('show');
+            });
+        })();
 
         /* ---------- Toast 提示 ---------- */
         let toastTimer = null;
@@ -794,47 +775,13 @@
             toastTimer = setTimeout(() => { toast.className = ''; }, 2600);
         }
 
-        /* ---------- 登录状态 ---------- */
-        window.onload = function () {
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                enterDashboard(false);
-            }
-        };
-
-        function enterDashboard(showWelcome) {
-            const overlay = document.getElementById('login-overlay');
-            overlay.classList.add('hiding');
-            setTimeout(() => { overlay.style.display = 'none'; }, 450);
-            document.body.classList.add('entered');
-            if (showWelcome) showToast('欢迎回来，站长！', 'success');
-            setTimeout(loadAssets, 100);
-        }
-
-        function checkLogin() {
-            const user = document.getElementById('login-user').value;
-            const pass = document.getElementById('login-pass').value;
-            const errorMsg = document.getElementById('error-msg');
-            if (user === VALID_USER && pass === VALID_PASS) {
-                localStorage.setItem('isLoggedIn', 'true');
-                enterDashboard(true);
-            } else {
-                errorMsg.style.display = 'block';
-                errorMsg.style.animation = 'none';
-                void errorMsg.offsetWidth;
-                errorMsg.style.animation = '';
-            }
-        }
-
-        ['login-user', 'login-pass'].forEach(id => {
-            document.getElementById(id).addEventListener('keydown', e => {
-                if (e.key === 'Enter') checkLogin();
-            });
-        });
-
+        /* ---------- 退出登录 ---------- */
         function logout() {
             if (confirm('确定要退出登录吗？')) {
-                localStorage.removeItem('isLoggedIn');
-                location.reload();
+                localStorage.removeItem('bili_admin_logged_in');
+                localStorage.removeItem('bili_admin_user');
+                localStorage.removeItem('bili_admin_login_time');
+                window.location.href = 'login.html';
             }
         }
 
@@ -901,7 +848,7 @@
     <div class="video-container">
         <iframe src="//player.bilibili.com/player.html?bvid=${newBv}&page=1&high_quality=1&danmaku=0" allowfullscreen="allowfullscreen"></iframe>
     </div>
-    <a href="admin.html" class="admin-link">管理员界面</a>
+    <a href="login.html" class="admin-link">管理员界面</a>
     <div class="footer-credits">
         <p>视频数据来源：<a href="https://vocabili.top/" target="_blank">https://vocabili.top/</a></p>
         <p>感谢 biliboard 工作室所有人员对此网站的支持</p>
@@ -1199,7 +1146,7 @@
             setTimeout(() => openVideoTrimModal(index), 300);
         }
 
-        // ==================== 绘制函数（黑边填充版 + 标小智无界黑数字字体） ====================
+        // ==================== 绘制函数 ====================
         function drawPreview(rankIndex) {
             const canvas = document.getElementById('preview-canvas');
             const ctx = canvas.getContext('2d');
@@ -1245,7 +1192,7 @@
                 ctx.stroke();
             }
             
-            // ===== 排名数字：放大到130px，居中 =====
+            // 排名数字：放大到130px，居中
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 130px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
@@ -1264,13 +1211,11 @@
                 ctx.fillText(changeLabels[d.changeType] || '', 260, H - 50);
             }
 
-            // 作品名：保持不变
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 52px Microsoft YaHei';
             ctx.textAlign = 'left';
             const displayName = d.chineseName || d.songName || '';
             ctx.fillText(displayName, 300, H - 200);
-            // P主/歌姬：保持不变
             ctx.font = '32px Microsoft YaHei';
             ctx.fillStyle = '#ccc';
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
@@ -1283,7 +1228,6 @@
                 ctx.fillRect(W - 520, H - 170, 460, 120);
             }
             
-            // ===== 三个数据数字：标小智无界黑 =====
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 56px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
@@ -1306,16 +1250,14 @@
             }
 
             ctx.globalAlpha = 1;
-            ctx.textBaseline = 'alphabetic'; // 恢复默认
+            ctx.textBaseline = 'alphabetic';
             const placeholder = document.getElementById('canvas-placeholder');
             if (placeholder) placeholder.style.display = 'none';
         }
 
-        // ===== 核心：drawFrame 黑边填充版 + 标小智无界黑数字 =====
         function drawFrame(ctx, video, d, uiAlpha, W, H) {
             ctx.globalAlpha = 1;
 
-            // 等比缩放 + 黑边填充
             const videoW = video.videoWidth || 1920;
             const videoH = video.videoHeight || 1080;
             const scale = Math.min(W / videoW, H / videoH);
@@ -1334,7 +1276,6 @@
                 ctx.fillRect(0, 0, W, H);
             }
 
-            // UI 叠加层
             ctx.globalAlpha = uiAlpha;
 
             if (assets.rankCircle) {
@@ -1349,7 +1290,6 @@
                 ctx.stroke();
             }
             
-            // ===== 排名数字：放大到130px，居中 =====
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 130px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
@@ -1368,13 +1308,11 @@
                 ctx.fillText(changeLabels[d.changeType] || '', 260, H - 50);
             }
 
-            // 作品名：保持不变
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 52px Microsoft YaHei';
             ctx.textAlign = 'left';
             const displayName = d.chineseName || d.songName || '';
             ctx.fillText(displayName, 300, H - 200);
-            // P主/歌姬：保持不变
             ctx.font = '32px Microsoft YaHei';
             ctx.fillStyle = '#ccc';
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
@@ -1387,7 +1325,6 @@
                 ctx.fillRect(W - 520, H - 170, 460, 120);
             }
             
-            // ===== 三个数据数字：标小智无界黑 =====
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 56px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
@@ -1410,7 +1347,7 @@
             }
 
             ctx.globalAlpha = 1;
-            ctx.textBaseline = 'alphabetic'; // 恢复默认
+            ctx.textBaseline = 'alphabetic';
         }
 
         // ==================== 音频混音器 ====================
@@ -1449,7 +1386,7 @@
             }
         }
 
-        // ==================== 视频生成核心（版本 3.5） ====================
+        // ==================== 视频生成核心 ====================
         async function startVideoGeneration() {
             const missing = rankData.filter(d => !d.videoFile);
             if (missing.length > 0) {
@@ -1498,7 +1435,6 @@
             ctx.textAlign = 'center';
             ctx.fillText('🎬 准备录制...', W/2, H/2);
 
-            // 预加载
             console.log('🔥 预加载视频中...');
             const preloadCount = Math.min(5, TOTAL_RANKS);
             const preloadVideos = [];
@@ -1597,7 +1533,6 @@
             console.log('🎬 开始录制...');
             recorder.start(1000);
 
-            // 从第20名到第1名（倒序）
             for (let i = TOTAL_RANKS - 1; i >= 0; i--) {
                 const d = rankData[i];
                 if (!d.videoFile) {
@@ -1704,7 +1639,7 @@
             return new Promise(r => requestAnimationFrame(r));
         }
 
-        // ==================== 单个视频生成（版本 3.5） ====================
+        // ==================== 单个视频生成 ====================
         function updateSingleRankPreview() {
             const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
             const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
@@ -1845,7 +1780,6 @@
             setTimeout(() => openVideoTrimModal(index), 300);
         }
 
-        // ===== 单个预览黑边填充版 + 标小智无界黑数字 =====
         function drawSinglePreview(rankIndex) {
             const canvas = document.getElementById('single-preview-canvas');
             if (!canvas) return;
@@ -1891,7 +1825,6 @@
                 ctx.stroke();
             }
             
-            // ===== 排名数字：放大到130px，居中 =====
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 130px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
@@ -1910,13 +1843,11 @@
                 ctx.fillText(changeLabels[d.changeType] || '', 260, H - 50);
             }
 
-            // 作品名：保持不变
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 52px Microsoft YaHei';
             ctx.textAlign = 'left';
             const displayName = d.chineseName || d.songName || '';
             ctx.fillText(displayName, 300, H - 200);
-            // P主/歌姬：保持不变
             ctx.font = '32px Microsoft YaHei';
             ctx.fillStyle = '#ccc';
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
@@ -1929,7 +1860,6 @@
                 ctx.fillRect(W - 520, H - 170, 460, 120);
             }
             
-            // ===== 三个数据数字：标小智无界黑 =====
             ctx.fillStyle = '#56ab2f';
             ctx.font = 'bold 56px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
@@ -2277,10 +2207,16 @@
             closeTrimModal();
         }
 
-        // 初始化
+        // ==================== 初始化 ====================
         window.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                setTimeout(loadAssets, 200);
+            setTimeout(loadAssets, 200);
+            if (document.getElementById('video-gen').classList.contains('active')) {
+                renderRankEntries();
+                setTimeout(() => drawPreview(0), 300);
+                window._vgInitialized = true;
+            }
+            if (document.getElementById('single-video-gen').classList.contains('active')) {
+                updateSingleRankPreview();
             }
         });
     </script>
