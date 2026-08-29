@@ -744,7 +744,7 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 4.1 (2026-08-28) — 修复页面空白问题</div>
+    <div id="version-info">版本 4.2 (2026-08-29) — 排名数字动态大小：1-10名130px，11-20名100px</div>
 
     <script>
         // ============================================================
@@ -762,7 +762,7 @@
                 if (userEl) userEl.textContent = user;
                 const overlay = document.getElementById('loading-overlay');
                 if (overlay) overlay.classList.remove('show');
-                // 🔥 关键修复：添加 entered 类让页面显示
+                // 显示页面内容
                 document.body.classList.add('entered');
             });
         })();
@@ -1005,6 +1005,16 @@
             
             console.log('📦 开始加载素材...');
             
+            // 🔥 提前加载字体
+            try {
+                await document.fonts.load('bold 130px BiaoXiaoZhi');
+                await document.fonts.load('bold 56px BiaoXiaoZhi');
+                await document.fonts.ready;
+                console.log('✅ 字体已加载完成');
+            } catch (e) {
+                console.warn('⚠️ 字体加载失败:', e);
+            }
+            
             const keys = Object.keys(ASSET_PATHS);
             const loadPromises = keys.map(key => 
                 loadAssetWithRetry(key, ASSET_PATHS[key])
@@ -1194,9 +1204,11 @@
                 ctx.stroke();
             }
             
-            // 排名数字：放大到130px，居中
+            // ===== 排名数字：1-10名130px，11-20名100px =====
+            var rank = parseInt(d.rank);
+            var fontSize = rank <= 10 ? 130 : 100;
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 130px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.font = 'bold ' + fontSize + 'px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(String(d.rank), 160, H - 180);
@@ -1292,8 +1304,11 @@
                 ctx.stroke();
             }
             
+            // ===== 排名数字：1-10名130px，11-20名100px =====
+            var rank = parseInt(d.rank);
+            var fontSize = rank <= 10 ? 130 : 100;
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 130px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.font = 'bold ' + fontSize + 'px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(String(d.rank), 160, H - 180);
@@ -1425,6 +1440,16 @@
             const ctx = canvas.getContext('2d');
             const W = 1920, H = 1080;
             const FADE_DURATION = 0.5;
+
+            // 🔥 强制等待字体加载完成
+            try {
+                await document.fonts.load('bold 130px BiaoXiaoZhi');
+                await document.fonts.load('bold 56px BiaoXiaoZhi');
+                await document.fonts.ready;
+                console.log('✅ 字体已就绪，开始录制');
+            } catch (e) {
+                console.warn('⚠️ 字体加载失败，使用系统字体');
+            }
 
             const audioDest = initAudioMixer();
 
@@ -1827,8 +1852,11 @@
                 ctx.stroke();
             }
             
+            // ===== 排名数字：1-10名130px，11-20名100px =====
+            var rank = parseInt(d.rank);
+            var fontSize = rank <= 10 ? 130 : 100;
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 130px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.font = 'bold ' + fontSize + 'px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(String(d.rank), 160, H - 180);
@@ -1937,6 +1965,16 @@
             const ctx = canvas.getContext('2d');
             const W = 1920, H = 1080;
             const FADE_DURATION = 0.5;
+
+            // 🔥 强制等待字体加载完成
+            try {
+                await document.fonts.load('bold 130px BiaoXiaoZhi');
+                await document.fonts.load('bold 56px BiaoXiaoZhi');
+                await document.fonts.ready;
+                console.log('✅ 字体已就绪，开始单个录制');
+            } catch (e) {
+                console.warn('⚠️ 字体加载失败，使用系统字体');
+            }
 
             const audioDest = initAudioMixer();
 
