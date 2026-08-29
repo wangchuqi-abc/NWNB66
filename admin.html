@@ -744,7 +744,7 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 4.2 (2026-08-29) — 排名数字动态大小：1-10名130px，11-20名100px</div>
+    <div id="version-info">版本 4.5 (2026-08-29) — 右下角数字放大到64px并上移</div>
 
     <script>
         // ============================================================
@@ -762,7 +762,6 @@
                 if (userEl) userEl.textContent = user;
                 const overlay = document.getElementById('loading-overlay');
                 if (overlay) overlay.classList.remove('show');
-                // 显示页面内容
                 document.body.classList.add('entered');
             });
         })();
@@ -1005,10 +1004,9 @@
             
             console.log('📦 开始加载素材...');
             
-            // 🔥 提前加载字体
             try {
                 await document.fonts.load('bold 130px BiaoXiaoZhi');
-                await document.fonts.load('bold 56px BiaoXiaoZhi');
+                await document.fonts.load('bold 64px BiaoXiaoZhi');
                 await document.fonts.ready;
                 console.log('✅ 字体已加载完成');
             } catch (e) {
@@ -1235,6 +1233,7 @@
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
             ctx.fillText(artistLine || '', 300, H - 150);
 
+            // ===== 历史底图（位置不变） =====
             if (assets.historyBottom) {
                 safeDrawImage(ctx, assets.historyBottom, W - 520, H - 170, 460, 120);
             } else {
@@ -1242,13 +1241,16 @@
                 ctx.fillRect(W - 520, H - 170, 460, 120);
             }
             
+            // ===== 三个数据数字：放大到64px，往上移到H-115 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 56px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.font = 'bold 64px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
-                ctx.fillText(v, W - 430 + i * 140, H - 90);
+                ctx.fillText(v, W - 430 + i * 140, H - 115);
             });
 
+            // ===== 历史顶图（位置不变） =====
             if (assets.historyTop) {
                 safeDrawImage(ctx, assets.historyTop, W - 520, H - 55, 460, 35);
             } else {
@@ -1257,9 +1259,10 @@
                 ctx.fillStyle = '#fff';
                 ctx.font = '18px Microsoft YaHei';
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 const labels = ['上周排名', '在榜周数', '最高排名'];
                 labels.forEach((label, i) => {
-                    ctx.fillText(label, W - 430 + i * 140, H - 32);
+                    ctx.fillText(label, W - 430 + i * 140, H - 38);
                 });
             }
 
@@ -1335,6 +1338,7 @@
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
             ctx.fillText(artistLine || '', 300, H - 150);
 
+            // ===== 历史底图（位置不变） =====
             if (assets.historyBottom) {
                 safeDrawImage(ctx, assets.historyBottom, W - 520, H - 170, 460, 120);
             } else {
@@ -1342,13 +1346,16 @@
                 ctx.fillRect(W - 520, H - 170, 460, 120);
             }
             
+            // ===== 三个数据数字：放大到64px，往上移到H-115 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 56px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.font = 'bold 64px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
-                ctx.fillText(v, W - 430 + i * 140, H - 90);
+                ctx.fillText(v, W - 430 + i * 140, H - 115);
             });
 
+            // ===== 历史顶图（位置不变） =====
             if (assets.historyTop) {
                 safeDrawImage(ctx, assets.historyTop, W - 520, H - 55, 460, 35);
             } else {
@@ -1357,9 +1364,10 @@
                 ctx.fillStyle = '#fff';
                 ctx.font = '18px Microsoft YaHei';
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 const labels = ['上周排名', '在榜周数', '最高排名'];
                 labels.forEach((label, i) => {
-                    ctx.fillText(label, W - 430 + i * 140, H - 32);
+                    ctx.fillText(label, W - 430 + i * 140, H - 38);
                 });
             }
 
@@ -1441,10 +1449,9 @@
             const W = 1920, H = 1080;
             const FADE_DURATION = 0.5;
 
-            // 🔥 强制等待字体加载完成
             try {
                 await document.fonts.load('bold 130px BiaoXiaoZhi');
-                await document.fonts.load('bold 56px BiaoXiaoZhi');
+                await document.fonts.load('bold 64px BiaoXiaoZhi');
                 await document.fonts.ready;
                 console.log('✅ 字体已就绪，开始录制');
             } catch (e) {
@@ -1883,6 +1890,7 @@
             const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
             ctx.fillText(artistLine || '', 300, H - 150);
 
+            // ===== 历史底图（位置不变） =====
             if (assets.historyBottom) {
                 safeDrawImage(ctx, assets.historyBottom, W - 520, H - 170, 460, 120);
             } else {
@@ -1890,13 +1898,16 @@
                 ctx.fillRect(W - 520, H - 170, 460, 120);
             }
             
+            // ===== 三个数据数字：放大到64px，往上移到H-115 =====
             ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold 56px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.font = 'bold 64px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'].forEach((v, i) => {
-                ctx.fillText(v, W - 430 + i * 140, H - 90);
+                ctx.fillText(v, W - 430 + i * 140, H - 115);
             });
 
+            // ===== 历史顶图（位置不变） =====
             if (assets.historyTop) {
                 safeDrawImage(ctx, assets.historyTop, W - 520, H - 55, 460, 35);
             } else {
@@ -1905,9 +1916,10 @@
                 ctx.fillStyle = '#fff';
                 ctx.font = '18px Microsoft YaHei';
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 const labels = ['上周排名', '在榜周数', '最高排名'];
                 labels.forEach((label, i) => {
-                    ctx.fillText(label, W - 430 + i * 140, H - 32);
+                    ctx.fillText(label, W - 430 + i * 140, H - 38);
                 });
             }
 
@@ -1966,10 +1978,9 @@
             const W = 1920, H = 1080;
             const FADE_DURATION = 0.5;
 
-            // 🔥 强制等待字体加载完成
             try {
                 await document.fonts.load('bold 130px BiaoXiaoZhi');
-                await document.fonts.load('bold 56px BiaoXiaoZhi');
+                await document.fonts.load('bold 64px BiaoXiaoZhi');
                 await document.fonts.ready;
                 console.log('✅ 字体已就绪，开始单个录制');
             } catch (e) {
