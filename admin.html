@@ -744,7 +744,7 @@
     </div>
 
     <!-- ==================== 版本信息 ==================== -->
-    <div id="version-info">版本 4.5 (2026-08-29) — 右下角数字放大到64px并上移</div>
+    <div id="version-info">版本 5.0 (2026-08-30) — 新增 RATE + 总分 显示（右上角底图）</div>
 
     <script>
         // ============================================================
@@ -892,6 +892,8 @@
             lastWeekRank: '',
             weeksOnChart: '',
             highestRank: '',
+            rate: '',        // 新增：RATE 值（如 ↑3、↓2、New）
+            totalScore: '',  // 新增：总分
             videoFile: null,
             startTime: 0,
             endTime: 0
@@ -906,7 +908,8 @@
             reText: './RE.png',
             rankCircle: './排名底图.png',
             historyTop: './历史顶图.png',
-            historyBottom: './历史底图.png'
+            historyBottom: './历史底图.png',
+            scoreBg: './分数以及上升尺度.png'  // 新增：右上角底图
         };
         const REQUIRED_ASSETS = Object.keys(ASSET_PATHS).length;
         let assetsLoaded = false;
@@ -927,7 +930,8 @@
                 reText: '#2196F3',
                 rankCircle: '#2c3e50',
                 historyTop: '#1a252f',
-                historyBottom: '#2c3e50'
+                historyBottom: '#2c3e50',
+                scoreBg: '#333333'
             };
             
             ctx.fillStyle = colors[type] || '#666';
@@ -945,7 +949,8 @@
                 reText: 'RE',
                 rankCircle: '#',
                 historyTop: 'TOP',
-                historyBottom: 'HISTORY'
+                historyBottom: 'HISTORY',
+                scoreBg: 'SCORE'
             };
             ctx.fillText(labels[type] || '?', size/2, size/2);
             
@@ -1007,6 +1012,8 @@
             try {
                 await document.fonts.load('bold 130px BiaoXiaoZhi');
                 await document.fonts.load('bold 64px BiaoXiaoZhi');
+                await document.fonts.load('bold 40px BiaoXiaoZhi');
+                await document.fonts.load('bold 50px BiaoXiaoZhi');
                 await document.fonts.ready;
                 console.log('✅ 字体已加载完成');
             } catch (e) {
@@ -1116,6 +1123,14 @@
                                 <label>最高排名：</label>
                                 <input type="number" placeholder="如：20" value="${d.highestRank}" oninput="updateField(${i}, 'highestRank', this.value)">
                             </div>
+                            <div class="form-group-sm">
+                                <label>RATE（如 ↑3、↓2、New）：</label>
+                                <input type="text" placeholder="如：↑3" value="${d.rate}" oninput="updateField(${i}, 'rate', this.value)">
+                            </div>
+                            <div class="form-group-sm">
+                                <label>总分（自动补零到8位）：</label>
+                                <input type="number" placeholder="如：95" value="${d.totalScore}" oninput="updateField(${i}, 'totalScore', this.value)" min="0">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1157,6 +1172,37 @@
         }
 
         // ==================== 绘制函数 ====================
+        function drawScoreBg(ctx, W, H, d) {
+            // 右上角绘制底图 + RATE + 总分
+            const bg = assets.scoreBg;
+            if (!bg) return;
+            
+            const imgW = bg.naturalWidth || 300;
+            const imgH = bg.naturalHeight || 100;
+            
+            // 紧贴右上角
+            const x = W - imgW;
+            const y = 0;
+            
+            // 绘制底图（原始比例）
+            safeDrawImage(ctx, bg, x, y, imgW, imgH);
+            
+            // 绘制 RATE（左侧）
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 40px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(d.rate || '', x + 30, y + imgH / 2 - 5);
+            
+            // 绘制总分（右侧，补零到8位）
+            var score = d.totalScore || '0';
+            var paddedScore = String(score).padStart(8, '0');
+            ctx.font = 'bold 50px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(paddedScore, x + imgW - 20, y + imgH / 2);
+        }
+
         function drawPreview(rankIndex) {
             const canvas = document.getElementById('preview-canvas');
             const ctx = canvas.getContext('2d');
@@ -1166,6 +1212,9 @@
 
             ctx.fillStyle = '#1a1a2e';
             ctx.fillRect(0, 0, W, H);
+
+            // 右上角底图 + RATE + 总分
+            drawScoreBg(ctx, W, H, d);
 
             if (d.videoFile) {
                 ctx.fillStyle = 'rgba(255,255,255,0.05)';
@@ -1294,6 +1343,9 @@
             }
 
             ctx.globalAlpha = uiAlpha;
+
+            // 右上角底图 + RATE + 总分（在视频上层）
+            drawScoreBg(ctx, W, H, d);
 
             if (assets.rankCircle) {
                 safeDrawImage(ctx, assets.rankCircle, 60, H - 280, 200, 200);
@@ -1452,6 +1504,8 @@
             try {
                 await document.fonts.load('bold 130px BiaoXiaoZhi');
                 await document.fonts.load('bold 64px BiaoXiaoZhi');
+                await document.fonts.load('bold 40px BiaoXiaoZhi');
+                await document.fonts.load('bold 50px BiaoXiaoZhi');
                 await document.fonts.ready;
                 console.log('✅ 字体已就绪，开始录制');
             } catch (e) {
@@ -1777,6 +1831,14 @@
                                     <label>最高排名：</label>
                                     <input type="number" placeholder="如：20" value="${d.highestRank}" oninput="updateSingleField(${actualRank - 1}, 'highestRank', this.value)">
                                 </div>
+                                <div class="form-group-sm">
+                                    <label>RATE（如 ↑3、↓2、New）：</label>
+                                    <input type="text" placeholder="如：↑3" value="${d.rate}" oninput="updateSingleField(${actualRank - 1}, 'rate', this.value)">
+                                </div>
+                                <div class="form-group-sm">
+                                    <label>总分（自动补零到8位）：</label>
+                                    <input type="number" placeholder="如：95" value="${d.totalScore}" oninput="updateSingleField(${actualRank - 1}, 'totalScore', this.value)" min="0">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1823,6 +1885,9 @@
 
             ctx.fillStyle = '#1a1a2e';
             ctx.fillRect(0, 0, W, H);
+
+            // 右上角底图 + RATE + 总分
+            drawScoreBg(ctx, W, H, d);
 
             if (d.videoFile) {
                 ctx.fillStyle = 'rgba(255,255,255,0.05)';
@@ -1981,6 +2046,8 @@
             try {
                 await document.fonts.load('bold 130px BiaoXiaoZhi');
                 await document.fonts.load('bold 64px BiaoXiaoZhi');
+                await document.fonts.load('bold 40px BiaoXiaoZhi');
+                await document.fonts.load('bold 50px BiaoXiaoZhi');
                 await document.fonts.ready;
                 console.log('✅ 字体已就绪，开始单个录制');
             } catch (e) {
