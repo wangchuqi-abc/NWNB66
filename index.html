@@ -1,35 +1,215 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BliBli_week副站排名</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(251, 114, 153, 0.14), transparent 60%), radial-gradient(ellipse 50% 40% at 90% 110%, rgba(0, 174, 236, 0.10), transparent 60%), #121212; color: #fff; font-family: 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 20px; }
-        .title-badge { display: inline-block; margin-bottom: 14px; padding: 5px 16px; font-size: 0.8rem; letter-spacing: 2px; color: #fb7299; border: 1px solid rgba(251, 114, 153, 0.45); border-radius: 999px; background: rgba(251, 114, 153, 0.08); }
-        h1 { font-size: 2.5rem; margin-bottom: 32px; text-align: center; background: linear-gradient(90deg, #fb7299, #ffffff 55%, #00aeec); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 24px rgba(251, 114, 153, 0.25); }
-        .video-container { position: relative; width: 100%; max-width: 900px; aspect-ratio: 16 / 9; background: #000; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 24px rgba(0, 0, 0, 0.55), 0 0 60px rgba(251, 114, 153, 0.08); animation: fadeUp 0.6s ease both; }
-        .video-container iframe { width: 100%; height: 100%; border: none; }
-        .admin-link { margin-top: 24px; padding: 8px 22px; color: #9aa0a6; text-decoration: none; font-size: 0.9rem; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 999px; transition: color 0.3s, border-color 0.3s, background 0.3s; }
-        .admin-link:hover { color: #fff; border-color: #fb7299; background: rgba(251, 114, 153, 0.12); }
-        .footer-credits { margin-top: 44px; text-align: center; font-size: 0.9rem; color: #888; line-height: 1.8; }
-        .footer-credits a { color: #00aeec; text-decoration: none; transition: color 0.3s; }
-        .footer-credits a:hover { color: #fff; text-decoration: underline; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 768px) { body { padding: 24px 16px; } h1 { font-size: 1.8rem; margin-bottom: 24px; } .footer-credits { margin-top: 32px; font-size: 0.8rem; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视频链接抓取测试</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: 'Microsoft YaHei', sans-serif;
+        background: #1a1a2e;
+        color: #eee;
+        min-height: 100vh;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .wrap { width: 100%; max-width: 720px; }
+    h1 { font-size: 1.4rem; margin-bottom: 8px; }
+    .sub { color: #888; font-size: .85rem; margin-bottom: 24px; }
+    .row { display: flex; gap: 10px; margin-bottom: 16px; }
+    input[type=text] {
+        flex: 1;
+        padding: 12px 14px;
+        border: 1px solid #444;
+        border-radius: 8px;
+        background: #12121f;
+        color: #eee;
+        font-size: .9rem;
+        outline: none;
+        transition: border-color .2s;
+    }
+    input[type=text]:focus { border-color: #3498db; }
+    button {
+        padding: 12px 22px;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: #fff;
+        font-size: .9rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform .15s, opacity .2s;
+    }
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .status {
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: .85rem;
+        margin-bottom: 16px;
+        display: none;
+        line-height: 1.6;
+    }
+    .status.show { display: block; }
+    .status.info { background: #2c3e50; color: #a8d8ff; }
+    .status.ok { background: #1e3a29; color: #7be0a0; }
+    .status.err { background: #3a1e1e; color: #ff9b9b; }
+    .video-box {
+        background: #000;
+        border-radius: 12px;
+        overflow: hidden;
+        aspect-ratio: 16/9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #555;
+        font-size: .9rem;
+        margin-bottom: 16px;
+    }
+    .video-box video { width: 100%; height: 100%; display: block; }
+    .meta {
+        font-size: .8rem;
+        color: #888;
+        line-height: 1.8;
+        padding: 12px 16px;
+        background: #12121f;
+        border-radius: 8px;
+        display: none;
+    }
+    .meta.show { display: block; }
+    .meta b { color: #56ab2f; }
+    .tips {
+        margin-top: 20px;
+        padding: 14px 16px;
+        background: #12121f;
+        border-left: 3px solid #56ab2f;
+        border-radius: 6px;
+        font-size: .8rem;
+        color: #999;
+        line-height: 1.9;
+    }
+</style>
 </head>
 <body>
-    <span class="title-badge">WEEKLY RANKING · 周榜</span>
-    <h1>BliBli_week副站排名</h1>
-    <div class="video-container">
-        <iframe src="//player.bilibili.com/player.html?bvid=BV1Em8b6ZEtu&page=1&high_quality=1&danmaku=0" allowfullscreen="allowfullscreen"></iframe>
+<div class="wrap">
+    <h1>🔗 视频链接抓取测试</h1>
+    <div class="sub">粘贴视频直链（.mp4 / .webm），测试能否抓取并播放</div>
+
+    <div class="row">
+        <input type="text" id="url" placeholder="https://example.com/video.mp4">
+        <button id="btn" onclick="fetchVideo()">抓取</button>
     </div>
-    <a href="login.html" class="admin-link">管理员界面</a>
-    <div class="footer-credits">
-        <p>视频数据来源：<a href="https://vocabili.top/" target="_blank">https://vocabili.top/</a></p>
-        <p>感谢 biliboard 工作室所有人员对此网站的支持</p>
+
+    <div class="status" id="status"></div>
+
+    <div class="video-box" id="videobox">
+        <span>🖼️ 视频将在这里播放</span>
     </div>
+
+    <div class="meta" id="meta"></div>
+
+    <div class="tips">
+        <b>测试建议：</b><br>
+        • 优先测试自己服务器或图床上的 mp4 直链，成功率最高<br>
+        • 如果提示"跨域受限"，说明对方服务器不允许网页直接下载<br>
+        • 可试试公开测试视频：<br>
+        &nbsp;&nbsp;<code>https://www.w3schools.com/html/mov_bbb.mp4</code>
+    </div>
+</div>
+
+<script>
+const statusEl = document.getElementById('status');
+const metaEl = document.getElementById('meta');
+const boxEl = document.getElementById('videobox');
+const btn = document.getElementById('btn');
+const urlInput = document.getElementById('url');
+
+function setStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status show ' + (type || 'info');
+}
+
+async function fetchVideo() {
+    const url = urlInput.value.trim();
+    if (!url) { setStatus('请先粘贴视频链接！', 'err'); return; }
+    if (!/^https?:\/\//i.test(url)) { setStatus('链接需要以 http:// 或 https:// 开头', 'err'); return; }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ 抓取中...';
+    setStatus('正在下载视频...', 'info');
+    metaEl.classList.remove('show');
+    boxEl.innerHTML = '<span>⏳ 下载中...</span>';
+
+    const t0 = performance.now();
+
+    try {
+        const resp = await fetch(url, { mode: 'cors', credentials: 'omit' });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+
+        const blob = await resp.blob();
+        if (blob.size === 0) throw new Error('下载到的内容为空');
+
+        const ct = (resp.headers.get('content-type') || '').toLowerCase();
+        const looksVideo = ct.startsWith('video/') || ct.includes('octet-stream')
+                        || /\.(mp4|webm|mov|mkv|m4v|ogv)(\?|#|$)/i.test(url);
+        if (!looksVideo) throw new Error('返回的不是视频文件（Content-Type: ' + ct + '）');
+
+        // 生成文件名
+        let filename = 'video.mp4';
+        try {
+            const u = new URL(url);
+            const last = u.pathname.split('/').filter(Boolean).pop();
+            if (last) filename = decodeURIComponent(last);
+        } catch(e) {}
+
+        // 包装成 File 对象（这一步是关键，后续能直接塞进 rankData）
+        const file = new File([blob], filename, { type: blob.type || 'video/mp4' });
+
+        // 播放测试
+        const url2 = URL.createObjectURL(blob);
+        boxEl.innerHTML = '';
+        const video = document.createElement('video');
+        video.src = url2;
+        video.controls = true;
+        video.playsInline = true;
+        video.onloadedmetadata = () => {
+            const ms = (performance.now() - t0).toFixed(0);
+            setStatus('✅ 抓取成功！视频可正常播放。', 'ok');
+            metaEl.innerHTML = `
+                文件名：<b>${file.name}</b><br>
+                大小：<b>${(file.size/1024/1024).toFixed(2)} MB</b><br>
+                类型：<b>${file.type}</b><br>
+                时长：<b>${video.duration.toFixed(2)} 秒</b><br>
+                分辨率：<b>${video.videoWidth} × ${video.videoHeight}</b><br>
+                耗时：<b>${ms} ms</b>
+            `;
+            metaEl.classList.add('show');
+        };
+        video.onerror = () => setStatus('⚠️ 视频已下载，但浏览器无法解码播放（可能是编码格式不支持）', 'err');
+        boxEl.appendChild(video);
+
+        console.log('File 对象已生成，可以直接赋给 rankData[i].videoFile:', file);
+
+    } catch (err) {
+        console.error('抓取失败:', err);
+        let msg = err.message || String(err);
+        if (/failed to fetch|networkerror|cors/i.test(msg)) {
+            msg = '跨域受限（CORS），该链接不允许网页直接下载。\n请手动下载视频后用本地文件上传。';
+        }
+        setStatus('❌ 抓取失败：' + msg, 'err');
+        boxEl.innerHTML = '<span>🖼️ 视频将在这里播放</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '抓取';
+    }
+}
+
+// 回车快捷触发
+urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') fetchVideo(); });
+</script>
 </body>
 </html>
