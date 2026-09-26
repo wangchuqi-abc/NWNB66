@@ -1,215 +1,677 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>视频链接抓取测试</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>念晚网页版 - 简洁高效的视频生成工具</title>
 <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-        font-family: 'Microsoft YaHei', sans-serif;
-        background: #1a1a2e;
-        color: #eee;
-        min-height: 100vh;
-        padding: 40px 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0b0716;
+    --bg-2: #120a24;
+    --purple: #7c3aed;
+    --purple-2: #a855f7;
+    --pink: #ec4899;
+    --text: #e9e7ff;
+    --muted: #9b96c7;
+    --card: rgba(255, 255, 255, 0.04);
+    --border: rgba(168, 85, 247, 0.22);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* 背景光效 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(600px circle at 15% 20%, rgba(124, 58, 237, 0.25), transparent 60%),
+      radial-gradient(700px circle at 85% 70%, rgba(236, 72, 153, 0.18), transparent 60%),
+      radial-gradient(500px circle at 50% 100%, rgba(168, 85, 247, 0.15), transparent 60%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* 顶部导航 */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 18px 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(0px);
+  }
+
+  header.scrolled {
+    background: rgba(11, 7, 22, 0.75);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 8%;
+  }
+
+  .logo {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--purple-2), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+  }
+
+  nav ul { display: flex; gap: 36px; list-style: none; }
+
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 15px;
+    transition: color 0.3s;
+  }
+
+  nav a:hover { color: var(--purple-2); }
+
+  /* 首屏 */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 120px 8% 80px;
+    position: relative;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff, var(--purple-2) 60%, var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 720px;
+    margin-bottom: 40px;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.5);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--purple-2);
+    color: var(--purple-2);
+  }
+
+  /* 通用板块 */
+  section {
+    padding: 100px 8%;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 3.5vw, 42px);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 16px;
+    background: linear-gradient(90deg, #fff, var(--purple-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 60px;
+    font-size: 16px;
+  }
+
+  /* 介绍 */
+  .about-text {
+    text-align: center;
+    color: var(--muted);
+    font-size: 17px;
+    max-width: 850px;
+    margin: 0 auto;
+    line-height: 1.8;
+  }
+
+  /* 功能卡片 */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+  }
+
+  .feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 32px;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--purple), var(--pink));
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--purple-2);
+    box-shadow: 0 20px 40px rgba(124, 58, 237, 0.2);
+  }
+
+  .feature-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .feature-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin-bottom: 20px;
+  }
+
+  .feature-card h3 {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+
+  .feature-card p {
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  /* 工作流程 */
+  .workflow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .step:hover {
+    border-color: var(--purple-2);
+    transform: translateY(-4px);
+  }
+
+  .step-number {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    margin: 0 auto 16px;
+  }
+
+  .step h4 {
+    font-size: 17px;
+    margin-bottom: 8px;
+  }
+
+  .step p {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* 版本历程 */
+  .timeline {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 0;
+  }
+
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--purple), var(--pink));
+    transform: translateX(-50%);
+  }
+
+  .timeline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .timeline-item:nth-child(odd) {
+    flex-direction: row-reverse;
+  }
+
+  .timeline-content {
+    width: 45%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    transition: all 0.3s ease;
+  }
+
+  .timeline-content:hover {
+    border-color: var(--purple-2);
+    transform: scale(1.02);
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+  }
+
+  .timeline-content h4 {
+    font-size: 17px;
+    margin-bottom: 6px;
+    color: var(--purple-2);
+  }
+
+  .timeline-content p {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* 底部 CTA */
+  .cta {
+    text-align: center;
+    padding: 100px 8%;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(236, 72, 153, 0.08));
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cta h2 {
+    font-size: clamp(26px, 3vw, 38px);
+    margin-bottom: 16px;
+  }
+
+  .cta p {
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  /* 页脚 */
+  footer {
+    padding: 40px 8%;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  footer a {
+    color: var(--purple-2);
+    text-decoration: none;
+  }
+
+  /* 滚动动画 */
+  .slide-up {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.7s ease;
+  }
+
+  .slide-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .slide-left {
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: all 0.7s ease;
+  }
+
+  .slide-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .slide-right {
+    opacity: 0;
+    transform: translateX(50px);
+    transition: all 0.7s ease;
+  }
+
+  .slide-right.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    nav ul { display: none; }
+
+    .timeline::before { left: 20px; }
+
+    .timeline-item,
+    .timeline-item:nth-child(odd) {
+      flex-direction: row;
+      padding-left: 50px;
     }
-    .wrap { width: 100%; max-width: 720px; }
-    h1 { font-size: 1.4rem; margin-bottom: 8px; }
-    .sub { color: #888; font-size: .85rem; margin-bottom: 24px; }
-    .row { display: flex; gap: 10px; margin-bottom: 16px; }
-    input[type=text] {
-        flex: 1;
-        padding: 12px 14px;
-        border: 1px solid #444;
-        border-radius: 8px;
-        background: #12121f;
-        color: #eee;
-        font-size: .9rem;
-        outline: none;
-        transition: border-color .2s;
-    }
-    input[type=text]:focus { border-color: #3498db; }
-    button {
-        padding: 12px 22px;
-        border: none;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #3498db, #2980b9);
-        color: #fff;
-        font-size: .9rem;
-        font-weight: 600;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: transform .15s, opacity .2s;
-    }
-    button:hover:not(:disabled) { transform: translateY(-1px); }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-    .status {
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: .85rem;
-        margin-bottom: 16px;
-        display: none;
-        line-height: 1.6;
-    }
-    .status.show { display: block; }
-    .status.info { background: #2c3e50; color: #a8d8ff; }
-    .status.ok { background: #1e3a29; color: #7be0a0; }
-    .status.err { background: #3a1e1e; color: #ff9b9b; }
-    .video-box {
-        background: #000;
-        border-radius: 12px;
-        overflow: hidden;
-        aspect-ratio: 16/9;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #555;
-        font-size: .9rem;
-        margin-bottom: 16px;
-    }
-    .video-box video { width: 100%; height: 100%; display: block; }
-    .meta {
-        font-size: .8rem;
-        color: #888;
-        line-height: 1.8;
-        padding: 12px 16px;
-        background: #12121f;
-        border-radius: 8px;
-        display: none;
-    }
-    .meta.show { display: block; }
-    .meta b { color: #56ab2f; }
-    .tips {
-        margin-top: 20px;
-        padding: 14px 16px;
-        background: #12121f;
-        border-left: 3px solid #56ab2f;
-        border-radius: 6px;
-        font-size: .8rem;
-        color: #999;
-        line-height: 1.9;
-    }
+
+    .timeline-content { width: 100%; }
+
+    .timeline-dot { left: 20px; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-    <h1>🔗 视频链接抓取测试</h1>
-    <div class="sub">粘贴视频直链（.mp4 / .webm），测试能否抓取并播放</div>
 
-    <div class="row">
-        <input type="text" id="url" placeholder="https://example.com/video.mp4">
-        <button id="btn" onclick="fetchVideo()">抓取</button>
+<!-- 顶部导航 -->
+<header id="header">
+  <div class="logo">念晚网页版</div>
+  <nav>
+    <ul>
+      <li><a href="#home">首页</a></li>
+      <li><a href="#about">介绍</a></li>
+      <li><a href="#features">功能</a></li>
+      <li><a href="#workflow">使用流程</a></li>
+      <li><a href="#timeline">版本历程</a></li>
+      <li><a href="#start">开始使用</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- 首屏 -->
+<section class="hero" id="home">
+  <h1 class="slide-up">念晚网页版<br>让视频生成更简单</h1>
+  <p class="slide-up">
+    念晚是一款专注于视频生成的工具。网页版适配电脑端，功能与手机端保持一致。
+    你只需要填写数据、上传本地素材，系统会自动生成视频，并支持下载保存。
+  </p>
+  <div class="hero-buttons slide-up">
+    <a href="#features" class="btn btn-primary">查看功能</a>
+    <a href="#start" class="btn btn-secondary">开始使用</a>
+  </div>
+</section>
+
+<!-- 介绍 -->
+<section id="about">
+  <h2 class="section-title slide-up">关于念晚</h2>
+  <p class="about-text slide-up">
+    念晚是一款简洁实用的视频生成工具，提供手机端应用和网页版。它不是短视频平台，也没有复杂的推荐机制，核心只做一件事：帮你把数据和素材快速生成视频。<br><br>
+    网页版针对电脑端进行适配，页面布局更宽、操作更清晰，适合在大屏幕上使用。功能与手机端保持一致，从 2026 年 6 月项目启动，到如今 6.0 版本，念晚一直在围绕「视频生成」这一件事持续打磨，未来也将继续更新。
+  </p>
+</section>
+
+<!-- 功能介绍 -->
+<section id="features">
+  <h2 class="section-title slide-up">核心功能</h2>
+  <p class="section-subtitle slide-up">只做视频生成，简单、直接、高效</p>
+
+  <div class="features">
+    <div class="feature-card slide-up">
+      <div class="feature-icon">&#9654;</div>
+      <h3>单个生成视频</h3>
+      <p>填写对应数据，上传本地视频素材，系统会自动生成视频文件，并支持直接下载保存。适合日常快速出片。</p>
     </div>
 
-    <div class="status" id="status"></div>
-
-    <div class="video-box" id="videobox">
-        <span>🖼️ 视频将在这里播放</span>
+    <div class="feature-card slide-up">
+      <div class="feature-icon">&#9725;</div>
+      <h3>批量生成</h3>
+      <p>支持多组数据和多个素材批量处理，自动生成多个视频文件，批量下载。适合需要连续生成视频的场景，效率拉满。</p>
     </div>
 
-    <div class="meta" id="meta"></div>
-
-    <div class="tips">
-        <b>测试建议：</b><br>
-        • 优先测试自己服务器或图床上的 mp4 直链，成功率最高<br>
-        • 如果提示"跨域受限"，说明对方服务器不允许网页直接下载<br>
-        • 可试试公开测试视频：<br>
-        &nbsp;&nbsp;<code>https://www.w3schools.com/html/mov_bbb.mp4</code>
+    <div class="feature-card slide-up">
+      <div class="feature-icon">&#9737;</div>
+      <h3>电脑端适配</h3>
+      <p>网页版针对电脑端进行适配，页面布局更宽、操作更清晰，适合在大屏幕上使用。</p>
     </div>
-</div>
+
+    <div class="feature-card slide-up">
+      <div class="feature-icon">&#9729;</div>
+      <h3>本地上传处理</h3>
+      <p>用户通过本地上传素材，按照填写的数据自动生成视频文件，流程清晰，不复杂。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 使用流程 -->
+<section id="workflow">
+  <h2 class="section-title slide-up">使用流程</h2>
+  <p class="section-subtitle slide-up">四步完成视频生成</p>
+
+  <div class="workflow">
+    <div class="step slide-up">
+      <div class="step-number">1</div>
+      <h4>填写数据</h4>
+      <p>根据页面提示填写视频生成所需的数据内容。</p>
+    </div>
+
+    <div class="step slide-up">
+      <div class="step-number">2</div>
+      <h4>上传素材</h4>
+      <p>从本地电脑中选择需要使用的视频素材。</p>
+    </div>
+
+    <div class="step slide-up">
+      <div class="step-number">3</div>
+      <h4>自动生成</h4>
+      <p>系统根据数据和素材自动完成视频生成。</p>
+    </div>
+
+    <div class="step slide-up">
+      <div class="step-number">4</div>
+      <h4>下载文件</h4>
+      <p>生成完成后，可直接下载视频文件到本地。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 版本历程 -->
+<section id="timeline">
+  <h2 class="section-title slide-up">版本历程</h2>
+  <p class="section-subtitle slide-up">从第一行代码到 6.0，念晚的成长之路</p>
+
+  <div class="timeline">
+    <div class="timeline-item slide-left">
+      <div class="timeline-content">
+        <h4>2026年6月</h4>
+        <p>念晚项目正式开工，开始进行视频生成功能开发。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+
+    <div class="timeline-item slide-right">
+      <div class="timeline-content">
+        <h4>2026年6月29日</h4>
+        <p>第一个内部测试版本发布，开始进行内部功能验证。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+
+    <div class="timeline-item slide-left">
+      <div class="timeline-content">
+        <h4>2026年7月5日</h4>
+        <p>第一个公开版本发布，正式面向用户开放体验。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+
+    <div class="timeline-item slide-right">
+      <div class="timeline-content">
+        <h4>1.0 版本</h4>
+        <p>正式开始公测，基础视频生成功能上线。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+
+    <div class="timeline-item slide-left">
+      <div class="timeline-content">
+        <h4>2.0 版本</h4>
+        <p>修复了动画问题，提升生成过程的稳定性。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+
+    <div class="timeline-item slide-right">
+      <div class="timeline-content">
+        <h4>3.0 版本</h4>
+        <p>增加了视频顶部标题备注功能。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+
+    <div class="timeline-item slide-left">
+      <div class="timeline-content">
+        <h4>4.0 版本</h4>
+        <p>大幅更新了 UI 界面，视觉体验全面提升。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+
+    <div class="timeline-item slide-right">
+      <div class="timeline-content">
+        <h4>4.5 版本</h4>
+        <p>加入了三种弹出转场方式，交互更加丰富。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+
+    <div class="timeline-item slide-left">
+      <div class="timeline-content">
+        <h4>5.0 版本</h4>
+        <p>大幅更新转场效果，动画更加流畅自然。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+
+    <div class="timeline-item slide-right">
+      <div class="timeline-content">
+        <h4>6.0 版本（当前）</h4>
+        <p>功能基本完善，体验趋于成熟，后续将持续更新优化。</p>
+      </div>
+      <div class="timeline-dot"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 底部 CTA -->
+<section class="cta" id="start">
+  <h2 class="slide-up">准备好开始使用了吗？</h2>
+  <p class="slide-up">访问念晚网页版，体验简洁高效的视频生成</p>
+  <a href="http://nianwan.cn.mt/admin.html" class="btn btn-primary slide-up" target="_blank">前往 nianwan.cn.mt</a>
+</section>
+
+<!-- 页脚 -->
+<footer>
+  <p>念晚网页版 &middot; <a href="http://nianwan.cn.mt" target="_blank">nianwan.cn.mt</a></p>
+  <p>&copy; 2026 念晚 &middot; 持续更新中</p>
+</footer>
 
 <script>
-const statusEl = document.getElementById('status');
-const metaEl = document.getElementById('meta');
-const boxEl = document.getElementById('videobox');
-const btn = document.getElementById('btn');
-const urlInput = document.getElementById('url');
-
-function setStatus(msg, type) {
-    statusEl.textContent = msg;
-    statusEl.className = 'status show ' + (type || 'info');
-}
-
-async function fetchVideo() {
-    const url = urlInput.value.trim();
-    if (!url) { setStatus('请先粘贴视频链接！', 'err'); return; }
-    if (!/^https?:\/\//i.test(url)) { setStatus('链接需要以 http:// 或 https:// 开头', 'err'); return; }
-
-    btn.disabled = true;
-    btn.textContent = '⏳ 抓取中...';
-    setStatus('正在下载视频...', 'info');
-    metaEl.classList.remove('show');
-    boxEl.innerHTML = '<span>⏳ 下载中...</span>';
-
-    const t0 = performance.now();
-
-    try {
-        const resp = await fetch(url, { mode: 'cors', credentials: 'omit' });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
-
-        const blob = await resp.blob();
-        if (blob.size === 0) throw new Error('下载到的内容为空');
-
-        const ct = (resp.headers.get('content-type') || '').toLowerCase();
-        const looksVideo = ct.startsWith('video/') || ct.includes('octet-stream')
-                        || /\.(mp4|webm|mov|mkv|m4v|ogv)(\?|#|$)/i.test(url);
-        if (!looksVideo) throw new Error('返回的不是视频文件（Content-Type: ' + ct + '）');
-
-        // 生成文件名
-        let filename = 'video.mp4';
-        try {
-            const u = new URL(url);
-            const last = u.pathname.split('/').filter(Boolean).pop();
-            if (last) filename = decodeURIComponent(last);
-        } catch(e) {}
-
-        // 包装成 File 对象（这一步是关键，后续能直接塞进 rankData）
-        const file = new File([blob], filename, { type: blob.type || 'video/mp4' });
-
-        // 播放测试
-        const url2 = URL.createObjectURL(blob);
-        boxEl.innerHTML = '';
-        const video = document.createElement('video');
-        video.src = url2;
-        video.controls = true;
-        video.playsInline = true;
-        video.onloadedmetadata = () => {
-            const ms = (performance.now() - t0).toFixed(0);
-            setStatus('✅ 抓取成功！视频可正常播放。', 'ok');
-            metaEl.innerHTML = `
-                文件名：<b>${file.name}</b><br>
-                大小：<b>${(file.size/1024/1024).toFixed(2)} MB</b><br>
-                类型：<b>${file.type}</b><br>
-                时长：<b>${video.duration.toFixed(2)} 秒</b><br>
-                分辨率：<b>${video.videoWidth} × ${video.videoHeight}</b><br>
-                耗时：<b>${ms} ms</b>
-            `;
-            metaEl.classList.add('show');
-        };
-        video.onerror = () => setStatus('⚠️ 视频已下载，但浏览器无法解码播放（可能是编码格式不支持）', 'err');
-        boxEl.appendChild(video);
-
-        console.log('File 对象已生成，可以直接赋给 rankData[i].videoFile:', file);
-
-    } catch (err) {
-        console.error('抓取失败:', err);
-        let msg = err.message || String(err);
-        if (/failed to fetch|networkerror|cors/i.test(msg)) {
-            msg = '跨域受限（CORS），该链接不允许网页直接下载。\n请手动下载视频后用本地文件上传。';
-        }
-        setStatus('❌ 抓取失败：' + msg, 'err');
-        boxEl.innerHTML = '<span>🖼️ 视频将在这里播放</span>';
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '抓取';
+  // 导航滚动效果
+  const header = document.getElementById("header");
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 50) {
+      header.classList.add("scrolled");
+    } else {
+      header.classList.remove("scrolled");
     }
-}
+  });
 
-// 回车快捷触发
-urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') fetchVideo(); });
+  // 滚动触发动画
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll(".slide-up, .slide-left, .slide-right").forEach(el => {
+    observer.observe(el);
+  });
 </script>
+
 </body>
 </html>
