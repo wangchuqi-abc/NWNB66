@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 版本 6.3 - 修复音频叠加导致的炸麦问题 -->
+<!-- 版本 6.4 - 整合新版紫色UI设计 -->
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -21,6 +21,7 @@
             --dark-deep: #1a252f;
             --text-main: #333;
             --text-sub: #7f8c8d;
+            --accent-purple: #a855f7; /* 新增：紫色强调色 */
         }
         body {
             font-family: 'Microsoft YaHei', sans-serif;
@@ -779,7 +780,7 @@
         </div>
     </div>
 
-    <div id="version-info">版本 6.3 (2026-09-05) — 修复音频叠加炸麦问题</div>
+    <div id="version-info">版本 6.4 (2026-09-05) — 整合新版紫色UI</div>
     <div id="asset-status" class="loading">📦 素材加载中...</div>
 
     <script>
@@ -1303,168 +1304,194 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 绘制函数（含入场动画）
+    // 绘制函数（含入场动画 - 新版UI）
     // ============================================================
     function drawUI(ctx, d, W, H, elapsed) {
-        const UI_FADE = 0.3;
-        const RANK_FADE = 0.3;
-        const SYMBOL_ROTATE = 0.3;
-        const INFO_SLIDE = 0.2;
-        const NUM_FADE = 0.1;
+        // 动画参数定义
+        const UI_FADE = 0.3;      // UI整体淡入时间
+        const RANK_FADE = 0.3;    // 排名数字缩放时间
+        const INFO_SLIDE = 0.25;  // 信息滑动时间
+        const NUM_FADE = 0.15;    // 历史数据淡入时间
 
         const t = Math.min(elapsed, UI_FADE);
         const uiAlpha = t / UI_FADE;
 
-        if (!safeDrawImage(ctx, assets.rankCircle, 60, H - 280, 200, 200)) {
+        // -----------------------------------------------------------
+        // 1. 绘制右侧排名大圆圈 (Rank Circle)
+        // -----------------------------------------------------------
+        const rankX = W - 200;
+        const rankY = 180;
+        
+        if (!safeDrawImage(ctx, assets.rankCircle, rankX - 100, rankY - 100, 200, 200)) {
+            // Fallback: 如果图片没加载出来，画一个深色圆
             ctx.beginPath();
-            ctx.arc(160, H - 180, 100, 0, Math.PI * 2);
+            ctx.arc(rankX, rankY, 100, 0, Math.PI * 2);
             ctx.fillStyle = '#2c3e50';
             ctx.fill();
-            ctx.strokeStyle = '#56ab2f';
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#a855f7'; // 紫色描边
+            ctx.lineWidth = 6;
             ctx.stroke();
         }
 
+        // 排名数字动画
         const rank = parseInt(d.rank);
-        const baseSize = rank <= 10 ? 130 : 100;
+        const baseSize = rank <= 10 ? 110 : 90;
         let rankScale = 0.5 + 0.5 * Math.min(elapsed / RANK_FADE, 1);
-        ctx.fillStyle = '#56ab2f';
-        ctx.font = 'bold ' + (baseSize * rankScale) + 'px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+        
+        ctx.save();
+        ctx.translate(rankX, rankY);
+        ctx.scale(rankScale, rankScale);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold ' + baseSize + 'px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(String(d.rank), 160, H - 180);
+        ctx.fillText(String(d.rank), 0, 0);
+        ctx.restore();
 
+        // -----------------------------------------------------------
+        // 2. 绘制变化标识 (Change Icon: NEW/UP/DOWN)
+        // -----------------------------------------------------------
         const changeImg = getChangeImage(d.changeType);
         const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
+        
+        // 简单的旋转入场动画
         let rotation = 0;
-        if (elapsed < SYMBOL_ROTATE) {
-            const p = elapsed / SYMBOL_ROTATE;
-            if (p < 0.5) {
-                rotation = Math.PI - 20 * Math.PI / 180 * (1 - p / 0.5);
-            } else {
-                rotation = -20 * Math.PI / 180 * (1 - (p - 0.5) / 0.5);
-            }
+        if (elapsed < 0.3) {
+            const p = elapsed / 0.3;
+            rotation = Math.PI * (1 - p); 
         }
+
         ctx.save();
-        ctx.translate(260, H - 50);
+        ctx.translate(rankX + 120, rankY - 20);
         ctx.rotate(rotation);
         if (changeImg) {
-            ctx.drawImage(changeImg, -60, -60, 120, 120);
+            ctx.drawImage(changeImg, -50, -50, 100, 100);
         } else {
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 40px Microsoft YaHei';
+            ctx.fillStyle = '#a855f7'; // 紫色文字
+            ctx.font = 'bold 36px Microsoft YaHei';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(changeLabels[d.changeType] || '', 0, 0);
         }
         ctx.restore();
 
+        // -----------------------------------------------------------
+        // 3. 绘制右侧歌名与作者信息 (Info Slide)
+        // -----------------------------------------------------------
         let infoOffsetX = 0;
         let infoScale = 1;
         if (elapsed < INFO_SLIDE) {
             const p = elapsed / INFO_SLIDE;
-            infoOffsetX = -50 * (1 - p);
-            infoScale = 0.4 + 0.6 * p;
+            infoOffsetX = 40 * (1 - p); // 从右向左滑入
+            infoScale = 0.8 + 0.2 * p;
         }
 
         ctx.save();
         ctx.globalAlpha = uiAlpha;
         ctx.translate(infoOffsetX, 0);
         ctx.scale(infoScale, infoScale);
+
         const displayName = d.chineseName || d.songName || '';
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 52px Microsoft YaHei';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.fillText(displayName, 300, H - 210);
         const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
-        ctx.fillStyle = '#ccc';
+
+        // 歌名
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 56px Microsoft YaHei';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 10;
+        ctx.fillText(displayName, W - 80, 320);
+
+        // 作者/P主
+        ctx.fillStyle = '#d1d5db';
         ctx.font = '32px Microsoft YaHei';
-        ctx.fillText(artistLine || '', 300, H - 160);
+        ctx.shadowBlur = 0;
+        ctx.fillText(artistLine || '', W - 80, 390);
         ctx.restore();
 
-        const bg = assets.scoreBg;
-        if (bg) {
-            const bgW = bg.naturalWidth || 300;
-            const bgH = bg.naturalHeight || 100;
-            const bgX = W - bgW;
-            const bgY = 0;
-            ctx.save();
-            ctx.globalAlpha = uiAlpha;
-            ctx.translate(infoOffsetX, 0);
-            ctx.scale(infoScale, infoScale);
-            safeDrawImage(ctx, bg, bgX, bgY, bgW, bgH);
-            ctx.restore();
-        }
+        // -----------------------------------------------------------
+        // 4. 绘制底部数据胶囊栏 (Bottom Data Capsules)
+        // -----------------------------------------------------------
+        const capsuleY = H - 140;
+        const capsuleWidth = 140;
+        const capsuleHeight = 80;
+        const gap = 20;
+        const totalCapsuleWidth = (capsuleWidth * 3) + (gap * 2);
+        const startX = W - totalCapsuleWidth - 40;
 
-        const bgW2 = assets.scoreBg?.naturalWidth || 300;
-        const bgH2 = assets.scoreBg?.naturalHeight || 100;
-        const bgX2 = W - bgW2;
-        ctx.globalAlpha = uiAlpha;
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 30px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('Rate: ' + (d.rate || ''), bgX2 + 20, bgH2 / 2);
-        const score2 = String(d.totalScore || '0').padStart(8, '0');
-        ctx.font = 'bold 60px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(score2, bgX2 + bgW2 - 20, bgH2 / 2);
+        const historyData = [
+            { label: '上周排名', value: d.lastWeekRank || '-' },
+            { label: '在榜周数', value: d.weeksOnChart || '-' },
+            { label: '最高排名', value: d.highestRank || '-' }
+        ];
 
-        if (!safeDrawImage(ctx, assets.historyBottom, W - 520, H - 170, 460, 120)) {
-            ctx.fillStyle = 'rgba(26,37,47,0.8)';
-            ctx.fillRect(W - 520, H - 170, 460, 120);
-        }
-
-        const historyData = [d.lastWeekRank || '-', d.weeksOnChart || '-', d.highestRank || '-'];
-        const historyX = [W - 430, W - 290, W - 150];
-        const historyLabels = ['上周排名', '在榜周数', '最高排名'];
         const numAlpha = Math.min(elapsed / NUM_FADE, 1);
-        const numScale = 0.8 + 0.2 * Math.min(elapsed / NUM_FADE, 1);
 
-        historyData.forEach((v, i) => {
+        historyData.forEach((item, i) => {
+            const x = startX + i * (capsuleWidth + gap);
+            
+            // 绘制胶囊背景 (模拟你的紫色渐变胶囊)
             ctx.save();
             ctx.globalAlpha = uiAlpha * numAlpha;
-            ctx.shadowColor = 'rgba(0,0,0,0.9)';
-            ctx.shadowBlur = 8;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 2;
-            ctx.fillStyle = '#56ab2f';
-            ctx.font = 'bold ' + (64 * numScale) + 'px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(v, historyX[i], H - 115);
-            ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+            
+            // 如果没有素材，用代码画一个圆角矩形
+            ctx.fillStyle = 'rgba(168, 85, 247, 0.2)'; // 半透明紫色
+            ctx.strokeStyle = '#a855f7';
             ctx.lineWidth = 2;
-            ctx.strokeText(v, historyX[i], H - 115);
-            ctx.restore();
+            
+            // 圆角矩形路径
+            ctx.beginPath();
+            ctx.roundRect(x, capsuleY, capsuleWidth, capsuleHeight, 15);
+            ctx.fill();
+            ctx.stroke();
 
-            ctx.save();
-            ctx.globalAlpha = uiAlpha * numAlpha;
-            ctx.fillStyle = '#fff';
-            ctx.font = '18px Microsoft YaHei';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(historyLabels[i], historyX[i], H - 38);
-            ctx.restore();
-        });
-
-        if (!safeDrawImage(ctx, assets.historyTop, W - 520, H - 55, 460, 35)) {
-            ctx.fillStyle = 'rgba(26,37,47,0.6)';
-            ctx.fillRect(W - 520, H - 55, 460, 35);
-        }
-
-        if (d.overlayText) {
-            ctx.save();
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 48px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            // 数值
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 42px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.shadowColor = 'rgba(0,0,0,0.8)';
-            ctx.shadowBlur = 10;
-            ctx.shadowOffsetY = 4;
-            ctx.fillText(d.overlayText, W / 2, 120);
+            ctx.shadowBlur = 8;
+            ctx.fillText(item.value, x + capsuleWidth / 2, capsuleY + 35);
+
+            // 标签
+            ctx.fillStyle = '#e5e7eb';
+            ctx.font = '16px Microsoft YaHei';
+            ctx.shadowBlur = 0;
+            ctx.fillText(item.label, x + capsuleWidth / 2, capsuleY + 65);
+            ctx.restore();
+        });
+
+        // -----------------------------------------------------------
+        // 5. 绘制 Rate 和 总分 (右上角或右下角点缀)
+        // -----------------------------------------------------------
+        ctx.save();
+        ctx.globalAlpha = uiAlpha;
+        ctx.fillStyle = '#a855f7';
+        ctx.font = 'bold 28px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('Rate: ' + (d.rate || ''), W - 40, 60);
+        
+        const scoreStr = String(d.totalScore || '0').padStart(8, '0');
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 48px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+        ctx.fillText(scoreStr, W - 40, 110);
+        ctx.restore();
+
+        // -----------------------------------------------------------
+        // 6. 叠加文字 (Overlay Text)
+        // -----------------------------------------------------------
+        if (d.overlayText) {
+            ctx.save();
+            ctx.globalAlpha = 0.6;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 42px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = 12;
+            ctx.fillText(d.overlayText, W / 2, 100);
             ctx.restore();
         }
 
