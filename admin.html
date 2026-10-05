@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <!-- 版本 6.4 - 整合新版紫色UI设计 -->
 <html lang="zh-CN">
@@ -627,7 +628,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">Bili-Voca-Board<br>工作人员后台</div>
         <ul class="nav-links">
-            <li class="active" onclick="switchTab('bv-replace', this)">🔄 周榜 BV 号替换</li>
+            <li class="active" onclick="switchTab('bv-replace', this)">🔄 月榜 BV 号替换</li>
             <li onclick="switchTab('video-gen', this)">🎬 批量视频生成</li>
             <li onclick="switchTab('single-video-gen', this)">🎯 单个视频生成</li>
         </ul>
@@ -639,7 +640,7 @@
     <div class="main-content">
         <div class="top-bar">
             <button class="menu-toggle" onclick="toggleMenu()">☰</button>
-            <div class="page-title" id="page-title">周榜BV号替换</div>
+            <div class="page-title" id="page-title">月榜BV号替换</div>
             <div class="user-info"><span class="user-avatar">站</span><span id="currentUser">站长</span></div>
         </div>
 
@@ -666,7 +667,7 @@
                 <div class="vg-layout">
                     <div class="vg-form-section">
                         <div class="vg-header">
-                            <h2>周榜视频生成 · Top 50</h2>
+                            <h2>月榜视频生成 · Top 50</h2>
                             <button class="btn-generate" id="btn-generate" onclick="startVideoGeneration()">🎬 开始生成视频</button>
                         </div>
                         <div id="rank-entries"></div>
@@ -755,7 +756,7 @@
     <div id="trim-modal">
         <div>
             <h2>🎬 裁剪视频片段</h2>
-            <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:20px;">选择视频的高潮片段作为周榜使用</p>
+            <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:20px;">选择视频的高潮片段作为月榜使用</p>
             <div class="trim-video-wrap">
                 <video id="trim-video" controls></video>
             </div>
@@ -823,7 +824,7 @@
         document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         el.classList.add('active');
-        const map = { 'bv-replace': '周榜 BV 号替换', 'video-gen': '批量视频生成', 'single-video-gen': '单个视频生成' };
+        const map = { 'bv-replace': '月榜 BV 号替换', 'video-gen': '批量视频生成', 'single-video-gen': '单个视频生成' };
         document.getElementById('page-title').textContent = map[tabId];
         closeSidebarOnMobile();
         if (tabId === 'video-gen' && !window._vgInit) {
@@ -860,7 +861,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
 </style>
 </head>
 <body>
-<span class="title-badge">WEEKLY RANKING · 周榜</span>
+<span class="title-badge">WEEKLY RANKING · 月榜</span>
 <h1>BliBli_week副站排名</h1>
 <div class="video-container"><iframe src="//player.bilibili.com/player.html?bvid=${newBv}&page=1&high_quality=1&danmaku=0" allowfullscreen></iframe></div>
 <a href="login.html" class="admin-link">管理员界面</a>
@@ -912,8 +913,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         overlayText: '',
         videoFile: null,
         startTime: 0,
-        endTime: 0,
-        preAudioEnabled: false   // 新增：未见其人先见其声
+        endTime: 0
     }));
 
     const assets = {};
@@ -1191,20 +1191,12 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         </div>
                         <div class="form-group-sm full-width">
                             <label>🏷️ 标题上方文字（可选，半透明，不跟随转场）：</label>
-                            <input type="text" placeholder="如：本周特别推荐..." value="${d.overlayText||''}" oninput="updateField(${i},'overlayText',this.value)">
+                            <input type="text" placeholder="如：本月特别推荐..." value="${d.overlayText||''}" oninput="updateField(${i},'overlayText',this.value)">
                         </div>
                         <div class="form-group-sm full-width">
                             <label>🎬 视频淡出转场类型：</label>
                             <select onchange="updateField(${i},'fadeOutType',this.value)">
                                 ${FADE_OUT_TYPES.map(t => `<option value="${t.value}"${d.fadeOutType===t.value?' selected':''}>${t.label}</option>`).join('')}
-                            </select>
-                        </div>
-                        <!-- 新增：未见其人先见其声 -->
-                        <div class="form-group-sm full-width">
-                            <label>🎧 未见其人先见其声（可选）：</label>
-                            <select onchange="updateField(${i},'preAudioEnabled',this.value==='true')">
-                                <option value="false"${!d.preAudioEnabled?' selected':''}>关闭</option>
-                                <option value="true"${d.preAudioEnabled?' selected':''}>开启（前1秒预听下一排名MV音频）</option>
                             </select>
                         </div>
                         <div class="form-group-sm">
@@ -1217,8 +1209,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         <div class="form-group-sm"><label>中文名：</label><input type="text" placeholder="如：急性恋爱中毒" value="${d.chineseName}" oninput="updateField(${i},'chineseName',this.value)"></div>
                         <div class="form-group-sm"><label>P主：</label><input type="text" placeholder="如：ぴーなた" value="${d.producer}" oninput="updateField(${i},'producer',this.value)"></div>
                         <div class="form-group-sm"><label>演唱歌姬：</label><input type="text" placeholder="如：重音テト" value="${d.vocalist}" oninput="updateField(${i},'vocalist',this.value)"></div>
-                        <div class="form-group-sm"><label>上周排名：</label><input type="number" placeholder="如：20" value="${d.lastWeekRank}" oninput="updateField(${i},'lastWeekRank',this.value)"></div>
-                        <div class="form-group-sm"><label>在榜周数：</label><input type="number" placeholder="如：1" value="${d.weeksOnChart}" oninput="updateField(${i},'weeksOnChart',this.value)"></div>
+                        <div class="form-group-sm"><label>上月排名：</label><input type="number" placeholder="如：20" value="${d.lastWeekRank}" oninput="updateField(${i},'lastWeekRank',this.value)"></div>
+                        <div class="form-group-sm"><label>在榜月数：</label><input type="number" placeholder="如：1" value="${d.weeksOnChart}" oninput="updateField(${i},'weeksOnChart',this.value)"></div>
                         <div class="form-group-sm"><label>最高排名：</label><input type="number" placeholder="如：20" value="${d.highestRank}" oninput="updateField(${i},'highestRank',this.value)"></div>
                         <div class="form-group-sm"><label>RATE（如 ↑10%、↓5%、New）：</label><input type="text" placeholder="如：↑10%" value="${d.rate}" oninput="updateField(${i},'rate',this.value)"></div>
                         <div class="form-group-sm"><label>总分（自动补零到8位）：</label><input type="number" placeholder="如：95" value="${d.totalScore}" oninput="updateField(${i},'totalScore',this.value)" min="0"></div>
@@ -1358,7 +1350,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.restore();
 
         // -----------------------------------------------------------
-        // 2. 绘制变化标识 (Change Icon: NEW/UP/DOWN) —— 修复拉伸变形
+        // 2. 绘制变化标识 (Change Icon: NEW/UP/DOWN)
         // -----------------------------------------------------------
         const changeImg = getChangeImage(d.changeType);
         const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
@@ -1370,18 +1362,11 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             rotation = Math.PI * (1 - p); 
         }
 
-        // 修复：保持图片原始宽高比，限制最大尺寸为 100x100 且不拉伸
         ctx.save();
         ctx.translate(rankX + 120, rankY - 20);
         ctx.rotate(rotation);
         if (changeImg) {
-            const maxW = 100, maxH = 100;
-            const iw = changeImg.naturalWidth;
-            const ih = changeImg.naturalHeight;
-            const scale = Math.min(maxW / iw, maxH / ih, 1); // 不放大，只缩小
-            const drawW = iw * scale;
-            const drawH = ih * scale;
-            ctx.drawImage(changeImg, -drawW/2, -drawH/2, drawW, drawH);
+            ctx.drawImage(changeImg, -50, -50, 100, 100);
         } else {
             ctx.fillStyle = '#a855f7'; // 紫色文字
             ctx.font = 'bold 36px Microsoft YaHei';
@@ -1437,8 +1422,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const startX = W - totalCapsuleWidth - 40;
 
         const historyData = [
-            { label: '上周排名', value: d.lastWeekRank || '-' },
-            { label: '在榜周数', value: d.weeksOnChart || '-' },
+            { label: '上月排名', value: d.lastWeekRank || '-' },
+            { label: '在榜月数', value: d.weeksOnChart || '-' },
             { label: '最高排名', value: d.highestRank || '-' }
         ];
 
@@ -1562,25 +1547,25 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 音频混音器 - 修复炸麦问题
+    // [修复] 音频混音器 - 修复炸麦问题
     // ============================================================
     let audioContext = null;
     let currentAudioNode = null;
     let audioDestination = null;
-    let masterGain = null;      // 全局主音量控制
-    let limiter = null;         // 压限器，防止削波
-    const MASTER_VOLUME = 0.7;  // 预留3dB余量
+    let masterGain = null;      // [新增] 全局主音量控制
+    let limiter = null;         // [新增] 压限器，防止削波
+    const MASTER_VOLUME = 0.7;  // [新增] 预留3dB余量
 
     function initAudioMixer() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             audioDestination = audioContext.createMediaStreamDestination();
             
-            // 创建全局主增益节点
+            // [修复] 创建全局主增益节点
             masterGain = audioContext.createGain();
             masterGain.gain.value = MASTER_VOLUME;
             
-            // 创建压限器，防止音频削波
+            // [修复] 创建压限器，防止音频削波
             limiter = audioContext.createDynamicsCompressor();
             limiter.threshold.value = -6;      // 超过-6dB开始压缩
             limiter.knee.value = 6;            // 压缩曲线过渡
@@ -1588,7 +1573,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             limiter.attack.value = 0.003;      // 启动时间
             limiter.release.value = 0.1;       // 释放时间
             
-            // 正确的音频路由：source → masterGain → limiter → destination
+            // [修复] 正确的音频路由：source → masterGain → limiter → destination
             masterGain.connect(limiter);
             limiter.connect(audioDestination);
         }
@@ -1603,7 +1588,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         }
         try {
             const source = audioContext.createMediaElementSource(video);
-            // 只连接 masterGain，不再直连 destination
+            // [修复] 只连接 masterGain，不再直连 destination
             source.connect(masterGain);
             currentAudioNode = source;
             return source;
@@ -1618,7 +1603,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 批量生成 - 添加素材验证
+    // [修复] 批量生成 - 添加素材验证
     // ============================================================
     async function startVideoGeneration() {
         if (!assetsLoaded) {
@@ -1674,7 +1659,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const W = 1920, H = 1080;
         const FADE_DURATION = 0.5;
         const UI_FADE_DURATION = 0.3;
-        const PRE_AUDIO_LEAD = 1.0; // 提前1秒预听
 
         const audioDest = initAudioMixer();
 
@@ -1763,7 +1747,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const totalDuration = duration * 1000;
             const fadeMs = FADE_DURATION * 1000;
             const uiFadeMs = UI_FADE_DURATION * 1000;
-            const preAudioLeadMs = PRE_AUDIO_LEAD * 1000;
 
             const vw = video.videoWidth || 1920;
             const vh = video.videoHeight || 1080;
@@ -1773,24 +1756,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const ox = (W - sw) / 2;
             const oy = (H - sh) / 2;
 
+            // [修复] 不再创建临时 gainNode，直接使用 masterGain
             const nextVideo = (vIdx < videos.length - 1) ? videos[vIdx + 1] : null;
-
-            // --- 新增：未见其人先见其声 ---
-            let preAudioVideo = null;
-            let preAudioSource = null;
-            let preAudioGain = null;
-            const nextRankData = (vIdx < videos.length - 1) ? videos[vIdx + 1].data : null;
-            const shouldPreAudio = nextRankData && nextRankData.preAudioEnabled && nextVideo;
-
-            if (shouldPreAudio) {
-                // 提前1秒触发预听：计算当前视频还剩下多少时间，当剩余时间 <= 1000ms 时开始
-                // 但我们不能在循环外等待，所以记录一个标志，在循环内触发
-                preAudioVideo = nextVideo.video;
-                // 预听音频使用下一排名的 startTime 位置（通常是 0）
-                // 我们将在循环内当 elapsed >= totalDuration - preAudioLeadMs 时启动
-            }
-
-            let preAudioStarted = false;
 
             while (performance.now() - playStart < totalDuration) {
                 const elapsed = performance.now() - playStart;
@@ -1803,39 +1770,11 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                     videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
                 }
 
-                // 主视频音量衰减（淡出时）
-                let mainVolume = MASTER_VOLUME;
+                // [修复] 淡出控制 masterGain.gain 而不是临时 gainNode
                 if (isFadingOut && fadeOutType === '1') {
-                    mainVolume = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
-                }
-                masterGain.gain.value = mainVolume;
-
-                // --- 处理未见其人先见其声 ---
-                if (shouldPreAudio && !preAudioStarted && elapsed >= totalDuration - preAudioLeadMs) {
-                    // 启动下一排名的音频预听
-                    preAudioStarted = true;
-                    try {
-                        const paSource = audioContext.createMediaElementSource(preAudioVideo);
-                        const paGain = audioContext.createGain();
-                        paGain.gain.value = 0;
-                        paSource.connect(paGain);
-                        paGain.connect(masterGain); // 经过主增益，最终进入 limiter
-                        // 设置下一视频播放位置到 startTime（默认0）
-                        const nextStart = nextRankData.startTime || 0;
-                        preAudioVideo.currentTime = nextStart;
-                        preAudioVideo.play().catch(e => console.warn('预听播放失败', e));
-                        
-                        preAudioSource = paSource;
-                        preAudioGain = paGain;
-                    } catch(e) {
-                        console.warn('预听音频连接失败:', e);
-                    }
-                }
-
-                // 预听音频音量渐入（从启动到当前视频结束，音量从0到MASTER_VOLUME）
-                if (preAudioStarted && preAudioGain) {
-                    const preProgress = Math.min((elapsed - (totalDuration - preAudioLeadMs)) / preAudioLeadMs, 1);
-                    preAudioGain.gain.value = preProgress * MASTER_VOLUME;
+                    masterGain.gain.value = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
+                } else {
+                    masterGain.gain.value = MASTER_VOLUME;
                 }
 
                 let uiAlpha = 1;
@@ -1879,17 +1818,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 await sleepFrame();
             }
 
-            // 主视频结束
             video.pause();
-
-            // 清理预听资源（如果已启动）
-            if (preAudioStarted && preAudioSource) {
-                try { preAudioSource.disconnect(); } catch(e) {}
-                try { preAudioGain.disconnect(); } catch(e) {}
-                // 注意：不要停止 preAudioVideo，因为它将作为下一个视频继续播放
-                // 但我们需确保它不要重复播放。这里我们不调用 pause，因为下一个循环会接管它。
-                // 但是为了防止它超出，我们在下一个循环开始时重新设置 currentTime 并 play
-            }
         }
 
         videos.forEach(({ video }) => {
@@ -1902,7 +1831,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 单个视频生成（同步添加未见其人先见其声支持）
+    // 单个视频生成
     // ============================================================
     function updateSingleRankPreview() {
         const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
@@ -1960,20 +1889,12 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         </div>
                         <div class="form-group-sm full-width">
                             <label>🏷️ 标题上方文字（可选，半透明，不跟随转场）：</label>
-                            <input type="text" placeholder="如：本周特别推荐..." value="${d.overlayText||''}" oninput="updateSingleField(${actualRank-1},'overlayText',this.value)">
+                            <input type="text" placeholder="如：本月特别推荐..." value="${d.overlayText||''}" oninput="updateSingleField(${actualRank-1},'overlayText',this.value)">
                         </div>
                         <div class="form-group-sm full-width">
                             <label>🎬 视频淡出转场类型：</label>
                             <select onchange="updateSingleField(${actualRank-1},'fadeOutType',this.value)">
                                 ${FADE_OUT_TYPES.map(t => `<option value="${t.value}"${d.fadeOutType===t.value?' selected':''}>${t.label}</option>`).join('')}
-                            </select>
-                        </div>
-                        <!-- 新增：未见其人先见其声 -->
-                        <div class="form-group-sm full-width">
-                            <label>🎧 未见其人先见其声（可选）：</label>
-                            <select onchange="updateSingleField(${actualRank-1},'preAudioEnabled',this.value==='true')">
-                                <option value="false"${!d.preAudioEnabled?' selected':''}>关闭</option>
-                                <option value="true"${d.preAudioEnabled?' selected':''}>开启（前1秒预听下一排名MV音频）</option>
                             </select>
                         </div>
                         <div class="form-group-sm">
@@ -1986,8 +1907,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         <div class="form-group-sm"><label>中文名：</label><input type="text" placeholder="如：急性恋爱中毒" value="${d.chineseName}" oninput="updateSingleField(${actualRank-1},'chineseName',this.value)"></div>
                         <div class="form-group-sm"><label>P 主：</label><input type="text" placeholder="如：ぴーなた" value="${d.producer}" oninput="updateSingleField(${actualRank-1},'producer',this.value)"></div>
                         <div class="form-group-sm"><label>演唱歌姬：</label><input type="text" placeholder="如：重音テト" value="${d.vocalist}" oninput="updateSingleField(${actualRank-1},'vocalist',this.value)"></div>
-                        <div class="form-group-sm"><label>上周排名：</label><input type="number" placeholder="如：20" value="${d.lastWeekRank}" oninput="updateSingleField(${actualRank-1},'lastWeekRank',this.value)"></div>
-                        <div class="form-group-sm"><label>在榜周数：</label><input type="number" placeholder="如：1" value="${d.weeksOnChart}" oninput="updateSingleField(${actualRank-1},'weeksOnChart',this.value)"></div>
+                        <div class="form-group-sm"><label>上月排名：</label><input type="number" placeholder="如：20" value="${d.lastWeekRank}" oninput="updateSingleField(${actualRank-1},'lastWeekRank',this.value)"></div>
+                        <div class="form-group-sm"><label>在榜月数：</label><input type="number" placeholder="如：1" value="${d.weeksOnChart}" oninput="updateSingleField(${actualRank-1},'weeksOnChart',this.value)"></div>
                         <div class="form-group-sm"><label>最高排名：</label><input type="number" placeholder="如：20" value="${d.highestRank}" oninput="updateSingleField(${actualRank-1},'highestRank',this.value)"></div>
                         <div class="form-group-sm"><label>RATE（如 ↑10%、↓5%、New）：</label><input type="text" placeholder="如：↑10%" value="${d.rate}" oninput="updateSingleField(${actualRank-1},'rate',this.value)"></div>
                         <div class="form-group-sm"><label>总分（自动补零到8位）：</label><input type="number" placeholder="如：95" value="${d.totalScore}" oninput="updateSingleField(${actualRank-1},'totalScore',this.value)" min="0"></div>
@@ -2074,7 +1995,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const W = 1920, H = 1080;
         const FADE_DURATION = 0.5;
         const UI_FADE_DURATION = 0.3;
-        const PRE_AUDIO_LEAD = 1.0;
 
         const audioDest = initAudioMixer();
 
@@ -2165,7 +2085,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const totalDuration = duration * 1000;
             const fadeMs = FADE_DURATION * 1000;
             const uiFadeMs = UI_FADE_DURATION * 1000;
-            const preAudioLeadMs = PRE_AUDIO_LEAD * 1000;
 
             const vw = video.videoWidth || 1920;
             const vh = video.videoHeight || 1080;
@@ -2175,20 +2094,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const ox = (W - sw) / 2;
             const oy = (H - sh) / 2;
 
+            // [修复] 不再创建临时 gainNode，直接使用 masterGain
             const nextVideo = (vIdx < videos.length - 1) ? videos[vIdx + 1] : null;
-
-            // 未见其人先见其声
-            let preAudioVideo = null;
-            let preAudioSource = null;
-            let preAudioGain = null;
-            const nextRankData = (vIdx < videos.length - 1) ? videos[vIdx + 1].data : null;
-            const shouldPreAudio = nextRankData && nextRankData.preAudioEnabled && nextVideo;
-
-            if (shouldPreAudio) {
-                preAudioVideo = nextVideo.video;
-            }
-
-            let preAudioStarted = false;
 
             while (performance.now() - playStart < totalDuration) {
                 const elapsed = performance.now() - playStart;
@@ -2201,36 +2108,11 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                     videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
                 }
 
-                // 主视频音量衰减
-                let mainVolume = MASTER_VOLUME;
+                // [修复] 淡出控制 masterGain.gain 而不是临时 gainNode
                 if (isFadingOut && fadeOutType === '1') {
-                    mainVolume = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
-                }
-                masterGain.gain.value = mainVolume;
-
-                // 预听启动
-                if (shouldPreAudio && !preAudioStarted && elapsed >= totalDuration - preAudioLeadMs) {
-                    preAudioStarted = true;
-                    try {
-                        const paSource = audioContext.createMediaElementSource(preAudioVideo);
-                        const paGain = audioContext.createGain();
-                        paGain.gain.value = 0;
-                        paSource.connect(paGain);
-                        paGain.connect(masterGain);
-                        const nextStart = nextRankData.startTime || 0;
-                        preAudioVideo.currentTime = nextStart;
-                        preAudioVideo.play().catch(e => console.warn('预听播放失败', e));
-                        preAudioSource = paSource;
-                        preAudioGain = paGain;
-                    } catch(e) {
-                        console.warn('预听音频连接失败:', e);
-                    }
-                }
-
-                // 预听音量渐入
-                if (preAudioStarted && preAudioGain) {
-                    const preProgress = Math.min((elapsed - (totalDuration - preAudioLeadMs)) / preAudioLeadMs, 1);
-                    preAudioGain.gain.value = preProgress * MASTER_VOLUME;
+                    masterGain.gain.value = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
+                } else {
+                    masterGain.gain.value = MASTER_VOLUME;
                 }
 
                 let uiAlpha = 1;
