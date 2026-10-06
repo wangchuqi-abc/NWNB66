@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 版本 6.6 - 修复未见其人先见其声 + NEW/RE拉伸 -->
+<!-- 版本 6.7 - 修复音画不同步（码率保持8Mbps） -->
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -769,7 +769,7 @@
         </div>
     </div>
 
-    <div id="version-info">版本 6.6 (2026-10-06) — 修复预听 + NEW/RE拉伸</div>
+    <div id="version-info">版本 6.7 (2026-10-06) — 修复音画不同步（码率保持8Mbps）</div>
     <div id="asset-status" class="loading">📦 素材加载中...</div>
 
     <script>
@@ -1543,7 +1543,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, W, H);
 
-        const canvasStream = canvas.captureStream(30);
+        // 关键：不指定帧率，让浏览器自适应
+        const canvasStream = canvas.captureStream();
         const audioTracks = audioDest.stream.getAudioTracks();
         const combinedStream = new MediaStream();
         canvasStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
@@ -1555,6 +1556,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
         }
 
+        // 码率保持 8Mbps 不变
         const recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 8000000 });
         const chunks = [];
         let recorderError = null;
@@ -1625,7 +1627,9 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 await audioContext.resume();
             }
 
-            const playStart = performance.now();
+            // 等一帧，让视频时钟稳定
+            await sleepFrame();
+
             const totalDuration = duration * 1000;
             const fadeMs = FADE_DURATION * 1000;
             const uiFadeMs = UI_FADE_DURATION * 1000;
@@ -1647,9 +1651,10 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             let preAudioGain = null;
             let preAudioSource = null;
 
-            while (performance.now() - playStart < totalDuration) {
-                const elapsed = performance.now() - playStart;
-                const progress = elapsed / totalDuration;
+            // 关键：用 video.currentTime 驱动画面，音频走到哪，画面就画到哪
+            while (!video.ended && video.currentTime < endTime - 0.03) {
+                const elapsed = (video.currentTime - startTime) * 1000;
+                const progress = Math.min(elapsed / totalDuration, 1);
                 const isFadingOut = elapsed > totalDuration - fadeMs;
                 const fadeOutType = d.fadeOutType || '1';
                 const timeLeft = totalDuration - elapsed;
@@ -1663,7 +1668,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 if (shouldPreAudio && !preAudioStarted && timeLeft <= PRE_AUDIO_LEAD) {
                     preAudioStarted = true;
                     try {
-                        // 复用或创建下一视频的 source
                         let nextSource;
                         if (videoSourceCache.has(nextVideo.video)) {
                             nextSource = videoSourceCache.get(nextVideo.video);
@@ -1692,14 +1696,10 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
 
                 // ---- 音量控制 ----
                 if (preAudioStarted && preAudioGain) {
-                    // 预听进度 0→1
                     const preProgress = Math.min((elapsed - (totalDuration - PRE_AUDIO_LEAD)) / PRE_AUDIO_LEAD, 1);
-                    // 下一视频音量 0→MASTER_VOLUME
                     preAudioGain.gain.value = MASTER_VOLUME * preProgress;
-                    // 当前视频音量 MASTER_VOLUME→0
                     masterGain.gain.value = MASTER_VOLUME * (1 - preProgress);
                 } else {
-                    // 没有预听，正常音量控制
                     if (isFadingOut && fadeOutType === '1') {
                         masterGain.gain.value = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
                     } else {
@@ -1751,11 +1751,10 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             // 当前视频结束
             video.pause();
 
-            // 清理预听：断开增益连接，但不停止 nextVideo（它要继续当主角）
+            // 清理预听
             if (preAudioStarted && preAudioGain) {
                 try { preAudioGain.disconnect(); } catch(e) {}
                 preAudioGain = null;
-                // 恢复 masterGain 满音量，给下一个视频使用
                 masterGain.gain.value = MASTER_VOLUME;
             }
         }
@@ -1770,7 +1769,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 单个视频生成（同样支持预听）
+    // 单个视频生成
     // ============================================================
     function updateSingleRankPreview() {
         const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
@@ -1948,7 +1947,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, W, H);
 
-        const canvasStream = canvas.captureStream(30);
+        // 关键：不指定帧率
+        const canvasStream = canvas.captureStream();
         const audioTracks = audioDest.stream.getAudioTracks();
         const combinedStream = new MediaStream();
         canvasStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
@@ -1960,6 +1960,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
         }
 
+        // 码率保持 8Mbps 不变
         const recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 8000000 });
         const chunks = [];
         let recorderError = null;
@@ -2028,7 +2029,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 await audioContext.resume();
             }
 
-            const playStart = performance.now();
+            await sleepFrame();
+
             const totalDuration = duration * 1000;
             const fadeMs = FADE_DURATION * 1000;
             const uiFadeMs = UI_FADE_DURATION * 1000;
@@ -2049,9 +2051,10 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             let preAudioGain = null;
             let preAudioSource = null;
 
-            while (performance.now() - playStart < totalDuration) {
-                const elapsed = performance.now() - playStart;
-                const progress = elapsed / totalDuration;
+            // 关键：用 video.currentTime 驱动画面
+            while (!video.ended && video.currentTime < endTime - 0.03) {
+                const elapsed = (video.currentTime - startTime) * 1000;
+                const progress = Math.min(elapsed / totalDuration, 1);
                 const isFadingOut = elapsed > totalDuration - fadeMs;
                 const fadeOutType = d.fadeOutType || '1';
                 const timeLeft = totalDuration - elapsed;
