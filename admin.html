@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<!-- 版本 6.4 - 整合新版紫色UI设计 -->
+<!-- 版本 6.6 - 修复未见其人先见其声 + NEW/RE拉伸 -->
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BliBli_week 副站管理后台</title>
+    <link rel="icon" href="data:,">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         @font-face {
@@ -21,7 +22,7 @@
             --dark-deep: #1a252f;
             --text-main: #333;
             --text-sub: #7f8c8d;
-            --accent-purple: #a855f7; /* 新增：紫色强调色 */
+            --accent-purple: #a855f7;
         }
         body {
             font-family: 'Microsoft YaHei', sans-serif;
@@ -198,11 +199,6 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes shake {
-            0%,100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            75% { transform: translateX(6px); }
         }
         .sidebar, .main-content { opacity: 0; }
         body.entered .sidebar {
@@ -574,8 +570,6 @@
         .trim-actions .btn-preview { background: #3498db; color: #fff; }
         .trim-actions .btn-cancel { background: #95a5a6; color: #fff; }
         .trim-actions .btn-save { background: var(--primary); color: #fff; }
-        
-        /* 新增：BV号输入样式 */
         .bv-fetch-wrap {
             display: flex;
             gap: 8px;
@@ -599,8 +593,6 @@
             white-space: nowrap;
         }
         .btn-bv:hover { background: #d35400; }
-
-        /* 新增：素材加载状态指示器 */
         #asset-status {
             position: fixed;
             bottom: 40px;
@@ -644,7 +636,6 @@
         </div>
 
         <div class="content-area">
-            <!-- 面板1：BV号替换 -->
             <div id="bv-replace" class="panel active">
                 <div class="card">
                     <h2>当前播放配置</h2>
@@ -661,7 +652,6 @@
                 </div>
             </div>
 
-            <!-- 面板2：批量视频生成 -->
             <div id="video-gen" class="panel">
                 <div class="vg-layout">
                     <div class="vg-form-section">
@@ -695,7 +685,6 @@
                 </div>
             </div>
 
-            <!-- 面板3：单个视频生成 -->
             <div id="single-video-gen" class="panel">
                 <div class="vg-layout">
                     <div class="vg-form-section">
@@ -780,13 +769,10 @@
         </div>
     </div>
 
-    <div id="version-info">版本 6.5 (2026-10-04) — 我不多说了，自己看</div>
+    <div id="version-info">版本 6.6 (2026-10-06) — 修复预听 + NEW/RE拉伸</div>
     <div id="asset-status" class="loading">📦 素材加载中...</div>
 
     <script>
-    // ============================================================
-    // 登录检查
-    // ============================================================
     (function checkAuth() {
         if (localStorage.getItem('bili_admin_logged_in') !== 'true') {
             window.location.href = 'login.html';
@@ -913,7 +899,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         videoFile: null,
         startTime: 0,
         endTime: 0,
-        preAudioEnabled: false   // 新增：未见其人先见其声
+        preAudioEnabled: false
     }));
 
     const assets = {};
@@ -932,9 +918,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     let assetsLoadPromise = null;
     let currentPreviewRank = 0;
 
-    // ============================================================
-    // [修复] 改进的 fallback 素材创建
-    // ============================================================
     function createFallbackAsset(type) {
         return new Promise((resolve) => {
             const c = document.createElement('canvas');
@@ -957,11 +940,9 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 historyTop: 'TOP', historyBottom: 'HISTORY', scoreBg: 'SCORE'
             };
             ctx.fillText(labels[type] || '?', 64, 64);
-            
             const img = new Image();
             img.onload = () => resolve(img);
             img.onerror = () => {
-                console.error('❌ Fallback image creation failed for:', type);
                 const fallbackImg = new Image();
                 fallbackImg.width = 128;
                 fallbackImg.height = 128;
@@ -971,85 +952,33 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         });
     }
 
-    // ============================================================
-    // [修复] 重写素材加载函数
-    // ============================================================
-    function loadAssetWithRetry(key, path, maxRetries = 3, delay = 800) {
+    // 简版素材加载：直接加载，成功就用，失败就用兜底
+    function loadAssetWithRetry(key, path) {
         return new Promise((resolve) => {
-            let retries = 0;
-            let resolved = false;
-            
-            function tryLoad() {
-                if (resolved) return;
-                
-                const img = new Image();
-                
-                const timeoutId = setTimeout(() => {
-                    if (resolved) return;
-                    retries++;
-                    if (retries < maxRetries) {
-                        console.warn('⚠️ 素材 [' + key + '] 加载超时，第 ' + retries + ' 次重试...');
-                        updateAssetStatus('loading', '📦 素材 ' + key + ' 超时，重试中(' + retries + '/' + maxRetries + ')...');
-                        setTimeout(tryLoad, delay);
-                    } else {
-                        resolved = true;
-                        console.warn('⚠️ 素材 [' + key + '] 加载彻底失败，使用降级方案');
-                        updateAssetStatus('error', '⚠️ 素材 ' + key + ' 加载失败，使用降级');
-                        createFallbackAsset(key).then(resolve);
-                    }
-                }, 10000);
-                
-                img.onload = () => {
-                    if (resolved) return;
-                    resolved = true;
-                    clearTimeout(timeoutId);
-                    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-                        console.log('✅ 素材 [' + key + '] 加载成功 (' + img.naturalWidth + 'x' + img.naturalHeight + ')');
-                        resolve(img);
-                    } else {
-                        console.warn('⚠️ 素材 [' + key + '] 加载异常(尺寸为0)，重试...');
-                        retries++;
-                        if (retries < maxRetries) {
-                            setTimeout(tryLoad, delay);
-                        } else {
-                            resolved = true;
-                            createFallbackAsset(key).then(resolve);
-                        }
-                    }
-                };
-                
-                img.onerror = () => {
-                    if (resolved) return;
-                    clearTimeout(timeoutId);
-                    retries++;
-                    if (retries < maxRetries) {
-                        console.warn('⚠️ 素材 [' + key + '] 加载失败(error)，第 ' + retries + ' 次重试...');
-                        updateAssetStatus('loading', '📦 素材 ' + key + ' 失败，重试中(' + retries + '/' + maxRetries + ')...');
-                        setTimeout(tryLoad, delay);
-                    } else {
-                        resolved = true;
-                        console.warn('⚠️ 素材 [' + key + '] 加载彻底失败，使用降级方案');
-                        updateAssetStatus('error', '⚠️ 素材 ' + key + ' 加载失败，使用降级');
-                        createFallbackAsset(key).then(resolve);
-                    }
-                };
-                
-                const cacheBuster = '_v=' + Date.now();
-                img.src = path + (path.indexOf('?') > -1 ? '&' : '?') + cacheBuster;
-            }
-            
-            tryLoad();
+            const img = new Image();
+            img.onload = () => {
+                if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                    console.log('✅ 素材 [' + key + '] 加载成功 (' + img.naturalWidth + 'x' + img.naturalHeight + ')');
+                    resolve(img);
+                } else {
+                    console.warn('⚠️ 素材 [' + key + '] 尺寸为0，使用降级');
+                    createFallbackAsset(key).then(resolve);
+                }
+            };
+            img.onerror = () => {
+                console.warn('⚠️ 素材 [' + key + '] 加载失败，使用降级');
+                createFallbackAsset(key).then(resolve);
+            };
+            img.src = path;
         });
     }
 
     function loadFontWithTimeout(fontString, timeout = 8000) {
-        console.log('🔤 尝试加载字体:', fontString);
         return Promise.race([
             document.fonts.load(fontString).then(() => {
                 console.log('✅ 字体加载成功:', fontString);
             }),
             new Promise((_, reject) => setTimeout(() => {
-                console.warn('⚠️ 字体加载超时 (' + fontString + ')');
                 reject(new Error('字体加载超时'));
             }, timeout))
         ]).catch(e => {
@@ -1057,9 +986,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         });
     }
 
-    // ============================================================
-    // [修复] 改进的素材加载主函数
-    // ============================================================
     async function loadAssets() {
         if (assetsLoadPromise) return assetsLoadPromise;
         if (assetsLoaded) return;
@@ -1067,8 +993,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         updateAssetStatus('loading', '📦 正在加载素材...');
         
         assetsLoadPromise = (async () => {
-            console.log('📦 开始加载素材...');
-            
             try {
                 await Promise.all([
                     loadFontWithTimeout('bold 130px BiaoXiaoZhi'),
@@ -1076,7 +1000,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                     loadFontWithTimeout('bold 42px BiaoXiaoZhi'),
                     loadFontWithTimeout('bold 84px BiaoXiaoZhi')
                 ]);
-                console.log('✅ 字体处理完成');
             } catch(e) { 
                 console.warn('⚠️ 字体处理异常:', e); 
             }
@@ -1096,23 +1019,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 assets[keys[i]] = img;
             });
             
-            let failedAssets = [];
-            keys.forEach(k => {
-                const img = assets[k];
-                if (!img || !img.complete || img.naturalWidth === 0) {
-                    failedAssets.push(k);
-                }
-            });
-            
-            if (failedAssets.length > 0) {
-                console.warn('⚠️ 以下素材验证失败:', failedAssets);
-                updateAssetStatus('error', '⚠️ ' + failedAssets.length + '个素材加载异常');
-            } else {
-                console.log('✅ 全部 ' + totalAssets + ' 个素材加载并验证成功');
-                updateAssetStatus('ready', '✅ 全部素材就绪 (' + totalAssets + '个)');
-            }
-            
             assetsLoaded = true;
+            updateAssetStatus('ready', '✅ 全部素材就绪 (' + totalAssets + '个)');
             
             if (currentPreviewRank !== undefined) {
                 drawPreview(currentPreviewRank);
@@ -1124,7 +1032,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 const statusEl = document.getElementById('asset-status');
                 if (statusEl) statusEl.style.opacity = '0';
             }, 3000);
-            
         })();
         
         return assetsLoadPromise;
@@ -1138,9 +1045,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         el.style.opacity = '1';
     }
 
-    // ============================================================
-    // [修复] 改进的安全绘制函数
-    // ============================================================
     function safeDrawImage(ctx, img, x, y, w, h) {
         if (!img) return false;
         if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
@@ -1148,7 +1052,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 ctx.drawImage(img, x, y, w, h); 
                 return true; 
             } catch(e) { 
-                console.warn('⚠️ drawImage 失败:', e.message);
                 return false; 
             }
         }
@@ -1162,9 +1065,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         return null;
     }
 
-    // ============================================================
-    // 渲染排名条目
-    // ============================================================
     function renderRankEntries() {
         const container = document.getElementById('rank-entries');
         container.innerHTML = rankData.map((d, i) => `
@@ -1199,7 +1099,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                                 ${FADE_OUT_TYPES.map(t => `<option value="${t.value}"${d.fadeOutType===t.value?' selected':''}>${t.label}</option>`).join('')}
                             </select>
                         </div>
-                        <!-- 新增：未见其人先见其声 -->
                         <div class="form-group-sm full-width">
                             <label>🎧 未见其人先见其声（可选）：</label>
                             <select onchange="updateField(${i},'preAudioEnabled',this.value==='true')">
@@ -1260,9 +1159,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         setTimeout(() => openVideoTrimModal(index), 300);
     }
 
-    // ============================================================
-    // BV号抓取功能
-    // ============================================================
     async function fetchBilibiliVideo(index) {
         const bvInput = document.getElementById(`bv-input-${index}`);
         const bvid = bvInput.value.trim();
@@ -1270,33 +1166,27 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             showToast('请输入有效的 BV 号！', 'error');
             return;
         }
-
         const btn = document.querySelector(`#entry-${index} .btn-bv`);
         const originalText = btn.textContent;
         btn.textContent = '⏳ 解析中...';
         btn.disabled = true;
-
         try {
             const apiUrl = `https://api.mir6.com/api/bzjiexi?url=https://www.bilibili.com/video/${bvid}&type=json`;
             const response = await fetch(apiUrl);
             const data = await response.json();
-
             if (data.code === 200 && data.data && data.data.url) {
                 const videoUrl = data.data.url;
                 showToast('正在下载视频流...', 'success');
                 const videoResponse = await fetch(videoUrl);
                 const blob = await videoResponse.blob();
                 const file = new File([blob], `${bvid}_grabbed.mp4`, { type: 'video/mp4' });
-
                 rankData[index].videoFile = file;
                 document.getElementById(`fname-${index}`).textContent = file.name;
                 const status = document.querySelector(`#entry-${index} .rank-status`);
                 status.textContent = '✅ 已选视频';
                 status.classList.remove('pending');
-                
                 const trimBtn = document.querySelector(`#entry-${index} button[onclick*="openVideoTrimModal"]`);
                 if (trimBtn) trimBtn.disabled = false;
-                
                 showToast(`第${index+1}名视频抓取成功！`, 'success');
                 if (index === currentPreviewRank) drawPreview(index);
                 setTimeout(() => openVideoTrimModal(index), 300);
@@ -1316,33 +1206,28 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     // 绘制函数（含入场动画 - 新版UI）
     // ============================================================
     function drawUI(ctx, d, W, H, elapsed) {
-        // 动画参数定义
-        const UI_FADE = 0.3;      // UI整体淡入时间
-        const RANK_FADE = 0.3;    // 排名数字缩放时间
-        const INFO_SLIDE = 0.25;  // 信息滑动时间
-        const NUM_FADE = 0.15;    // 历史数据淡入时间
+        const UI_FADE = 0.3;
+        const RANK_FADE = 0.3;
+        const INFO_SLIDE = 0.25;
+        const NUM_FADE = 0.15;
 
         const t = Math.min(elapsed, UI_FADE);
         const uiAlpha = t / UI_FADE;
 
-        // -----------------------------------------------------------
-        // 1. 绘制右侧排名大圆圈 (Rank Circle)
-        // -----------------------------------------------------------
+        // 1. 排名大圆圈
         const rankX = W - 200;
         const rankY = 180;
         
         if (!safeDrawImage(ctx, assets.rankCircle, rankX - 100, rankY - 100, 200, 200)) {
-            // Fallback: 如果图片没加载出来，画一个深色圆
             ctx.beginPath();
             ctx.arc(rankX, rankY, 100, 0, Math.PI * 2);
             ctx.fillStyle = '#2c3e50';
             ctx.fill();
-            ctx.strokeStyle = '#a855f7'; // 紫色描边
+            ctx.strokeStyle = '#a855f7';
             ctx.lineWidth = 6;
             ctx.stroke();
         }
 
-        // 排名数字动画
         const rank = parseInt(d.rank);
         const baseSize = rank <= 10 ? 110 : 90;
         let rankScale = 0.5 + 0.5 * Math.min(elapsed / RANK_FADE, 1);
@@ -1357,33 +1242,30 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.fillText(String(d.rank), 0, 0);
         ctx.restore();
 
-        // -----------------------------------------------------------
-        // 2. 绘制变化标识 (Change Icon: NEW/UP/DOWN) —— 修复拉伸变形
-        // -----------------------------------------------------------
+        // 2. 变化标识 —— 修复拉伸
         const changeImg = getChangeImage(d.changeType);
         const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
         
-        // 简单的旋转入场动画
         let rotation = 0;
         if (elapsed < 0.3) {
             const p = elapsed / 0.3;
             rotation = Math.PI * (1 - p); 
         }
 
-        // 修复：保持图片原始宽高比，限制最大尺寸为 100x100 且不拉伸
         ctx.save();
         ctx.translate(rankX + 120, rankY - 20);
         ctx.rotate(rotation);
         if (changeImg) {
+            // 关键：保持原始宽高比
             const maxW = 100, maxH = 100;
             const iw = changeImg.naturalWidth;
             const ih = changeImg.naturalHeight;
-            const scale = Math.min(maxW / iw, maxH / ih, 1); // 不放大，只缩小
+            const scale = Math.min(maxW / iw, maxH / ih, 1);
             const drawW = iw * scale;
             const drawH = ih * scale;
             ctx.drawImage(changeImg, -drawW/2, -drawH/2, drawW, drawH);
         } else {
-            ctx.fillStyle = '#a855f7'; // 紫色文字
+            ctx.fillStyle = '#a855f7';
             ctx.font = 'bold 36px Microsoft YaHei';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -1391,14 +1273,12 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         }
         ctx.restore();
 
-        // -----------------------------------------------------------
-        // 3. 绘制右侧歌名与作者信息 (Info Slide)
-        // -----------------------------------------------------------
+        // 3. 歌名与作者信息
         let infoOffsetX = 0;
         let infoScale = 1;
         if (elapsed < INFO_SLIDE) {
             const p = elapsed / INFO_SLIDE;
-            infoOffsetX = 40 * (1 - p); // 从右向左滑入
+            infoOffsetX = 40 * (1 - p);
             infoScale = 0.8 + 0.2 * p;
         }
 
@@ -1410,7 +1290,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const displayName = d.chineseName || d.songName || '';
         const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
 
-        // 歌名
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 56px Microsoft YaHei';
         ctx.textAlign = 'right';
@@ -1419,16 +1298,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.shadowBlur = 10;
         ctx.fillText(displayName, W - 80, 320);
 
-        // 作者/P主
         ctx.fillStyle = '#d1d5db';
         ctx.font = '32px Microsoft YaHei';
         ctx.shadowBlur = 0;
         ctx.fillText(artistLine || '', W - 80, 390);
         ctx.restore();
 
-        // -----------------------------------------------------------
-        // 4. 绘制底部数据胶囊栏 (Bottom Data Capsules)
-        // -----------------------------------------------------------
+        // 4. 底部数据胶囊栏
         const capsuleY = H - 140;
         const capsuleWidth = 140;
         const capsuleHeight = 80;
@@ -1447,22 +1323,18 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         historyData.forEach((item, i) => {
             const x = startX + i * (capsuleWidth + gap);
             
-            // 绘制胶囊背景 (模拟你的紫色渐变胶囊)
             ctx.save();
             ctx.globalAlpha = uiAlpha * numAlpha;
             
-            // 如果没有素材，用代码画一个圆角矩形
-            ctx.fillStyle = 'rgba(168, 85, 247, 0.2)'; // 半透明紫色
+            ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
             ctx.strokeStyle = '#a855f7';
             ctx.lineWidth = 2;
             
-            // 圆角矩形路径
             ctx.beginPath();
             ctx.roundRect(x, capsuleY, capsuleWidth, capsuleHeight, 15);
             ctx.fill();
             ctx.stroke();
 
-            // 数值
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 42px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
@@ -1471,7 +1343,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             ctx.shadowBlur = 8;
             ctx.fillText(item.value, x + capsuleWidth / 2, capsuleY + 35);
 
-            // 标签
             ctx.fillStyle = '#e5e7eb';
             ctx.font = '16px Microsoft YaHei';
             ctx.shadowBlur = 0;
@@ -1479,9 +1350,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             ctx.restore();
         });
 
-        // -----------------------------------------------------------
-        // 5. 绘制 Rate 和 总分 (右上角或右下角点缀)
-        // -----------------------------------------------------------
+        // 5. Rate 和 总分
         ctx.save();
         ctx.globalAlpha = uiAlpha;
         ctx.fillStyle = '#a855f7';
@@ -1495,9 +1364,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.fillText(scoreStr, W - 40, 110);
         ctx.restore();
 
-        // -----------------------------------------------------------
-        // 6. 叠加文字 (Overlay Text)
-        // -----------------------------------------------------------
+        // 6. 叠加文字
         if (d.overlayText) {
             ctx.save();
             ctx.globalAlpha = 0.6;
@@ -1562,33 +1429,33 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 音频混音器 - 修复炸麦问题
+    // 音频混音器
     // ============================================================
     let audioContext = null;
     let currentAudioNode = null;
     let audioDestination = null;
-    let masterGain = null;      // 全局主音量控制
-    let limiter = null;         // 压限器，防止削波
-    const MASTER_VOLUME = 0.7;  // 预留3dB余量
+    let masterGain = null;
+    let limiter = null;
+    const MASTER_VOLUME = 0.7;
+
+    // 关键：缓存每个 video 元素的 MediaElementSource，避免重复创建报错
+    const videoSourceCache = new WeakMap();
 
     function initAudioMixer() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             audioDestination = audioContext.createMediaStreamDestination();
             
-            // 创建全局主增益节点
             masterGain = audioContext.createGain();
             masterGain.gain.value = MASTER_VOLUME;
             
-            // 创建压限器，防止音频削波
             limiter = audioContext.createDynamicsCompressor();
-            limiter.threshold.value = -6;      // 超过-6dB开始压缩
-            limiter.knee.value = 6;            // 压缩曲线过渡
-            limiter.ratio.value = 20;          // 压缩比
-            limiter.attack.value = 0.003;      // 启动时间
-            limiter.release.value = 0.1;       // 释放时间
+            limiter.threshold.value = -6;
+            limiter.knee.value = 6;
+            limiter.ratio.value = 20;
+            limiter.attack.value = 0.003;
+            limiter.release.value = 0.1;
             
-            // 正确的音频路由：source → masterGain → limiter → destination
             masterGain.connect(limiter);
             limiter.connect(audioDestination);
         }
@@ -1602,8 +1469,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             currentAudioNode = null;
         }
         try {
-            const source = audioContext.createMediaElementSource(video);
-            // 只连接 masterGain，不再直连 destination
+            let source;
+            if (videoSourceCache.has(video)) {
+                source = videoSourceCache.get(video);
+            } else {
+                source = audioContext.createMediaElementSource(video);
+                videoSourceCache.set(video, source);
+            }
             source.connect(masterGain);
             currentAudioNode = source;
             return source;
@@ -1618,7 +1490,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 批量生成 - 添加素材验证
+    // 批量生成
     // ============================================================
     async function startVideoGeneration() {
         if (!assetsLoaded) {
@@ -1628,16 +1500,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             } catch(e) {
                 showToast('❌ 素材加载失败: ' + e.message, 'error');
                 return;
-            }
-        }
-
-        const requiredAssets = ['rankCircle', 'scoreBg', 'historyTop', 'historyBottom'];
-        const missingAssets = requiredAssets.filter(k => !assets[k] || !assets[k].complete || assets[k].naturalWidth === 0);
-        if (missingAssets.length > 0) {
-            console.warn('⚠️ 关键素材缺失，尝试重新加载:', missingAssets);
-            showToast('⏳ 部分素材缺失，正在重新加载...', 'error');
-            for (const k of missingAssets) {
-                assets[k] = await loadAssetWithRetry(k, ASSET_PATHS[k], 2, 1000);
             }
         }
 
@@ -1674,7 +1536,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const W = 1920, H = 1080;
         const FADE_DURATION = 0.5;
         const UI_FADE_DURATION = 0.3;
-        const PRE_AUDIO_LEAD = 1.0; // 提前1秒预听
+        const PRE_AUDIO_LEAD = 1000; // 1秒
 
         const audioDest = initAudioMixer();
 
@@ -1717,6 +1579,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
 
         recorder.start(1000);
 
+        // 预加载视频元素
         const videos = [];
         for (let i = TOTAL_RANKS - 1; i >= 0; i--) {
             const d = rankData[i];
@@ -1728,6 +1591,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             await new Promise(r => { v.onloadedmetadata = r; });
             v.currentTime = 0;
             await new Promise(r => { v.onseeked = r; });
+            // 预生成首帧
             const frameCanvas = document.createElement('canvas');
             frameCanvas.width = W;
             frameCanvas.height = H;
@@ -1749,7 +1613,9 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const endTime = d.endTime > 0 ? d.endTime : video.duration;
             const duration = Math.max(endTime - startTime, 0.5);
 
+            // 把主视频连到 masterGain
             connectVideoAudio(video);
+
             if (startTime > 0) {
                 video.currentTime = startTime;
                 await new Promise(r => { video.onseeked = r; });
@@ -1763,7 +1629,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const totalDuration = duration * 1000;
             const fadeMs = FADE_DURATION * 1000;
             const uiFadeMs = UI_FADE_DURATION * 1000;
-            const preAudioLeadMs = PRE_AUDIO_LEAD * 1000;
 
             const vw = video.videoWidth || 1920;
             const vh = video.videoHeight || 1080;
@@ -1774,68 +1639,72 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const oy = (H - sh) / 2;
 
             const nextVideo = (vIdx < videos.length - 1) ? videos[vIdx + 1] : null;
-
-            // --- 新增：未见其人先见其声 ---
-            let preAudioVideo = null;
-            let preAudioSource = null;
-            let preAudioGain = null;
-            const nextRankData = (vIdx < videos.length - 1) ? videos[vIdx + 1].data : null;
+            const nextRankData = nextVideo ? nextVideo.data : null;
             const shouldPreAudio = nextRankData && nextRankData.preAudioEnabled && nextVideo;
 
-            if (shouldPreAudio) {
-                // 提前1秒触发预听：计算当前视频还剩下多少时间，当剩余时间 <= 1000ms 时开始
-                // 但我们不能在循环外等待，所以记录一个标志，在循环内触发
-                preAudioVideo = nextVideo.video;
-                // 预听音频使用下一排名的 startTime 位置（通常是 0）
-                // 我们将在循环内当 elapsed >= totalDuration - preAudioLeadMs 时启动
-            }
-
+            // 预听状态
             let preAudioStarted = false;
+            let preAudioGain = null;
+            let preAudioSource = null;
 
             while (performance.now() - playStart < totalDuration) {
                 const elapsed = performance.now() - playStart;
                 const progress = elapsed / totalDuration;
                 const isFadingOut = elapsed > totalDuration - fadeMs;
                 const fadeOutType = d.fadeOutType || '1';
+                const timeLeft = totalDuration - elapsed;
 
                 let videoAlpha = 1;
                 if (isFadingOut && fadeOutType === '1') {
                     videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
                 }
 
-                // 主视频音量衰减（淡出时）
-                let mainVolume = MASTER_VOLUME;
-                if (isFadingOut && fadeOutType === '1') {
-                    mainVolume = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
-                }
-                masterGain.gain.value = mainVolume;
-
-                // --- 处理未见其人先见其声 ---
-                if (shouldPreAudio && !preAudioStarted && elapsed >= totalDuration - preAudioLeadMs) {
-                    // 启动下一排名的音频预听
+                // ---- 未见其人先见其声：启动 ----
+                if (shouldPreAudio && !preAudioStarted && timeLeft <= PRE_AUDIO_LEAD) {
                     preAudioStarted = true;
                     try {
-                        const paSource = audioContext.createMediaElementSource(preAudioVideo);
-                        const paGain = audioContext.createGain();
-                        paGain.gain.value = 0;
-                        paSource.connect(paGain);
-                        paGain.connect(masterGain); // 经过主增益，最终进入 limiter
-                        // 设置下一视频播放位置到 startTime（默认0）
+                        // 复用或创建下一视频的 source
+                        let nextSource;
+                        if (videoSourceCache.has(nextVideo.video)) {
+                            nextSource = videoSourceCache.get(nextVideo.video);
+                        } else {
+                            nextSource = audioContext.createMediaElementSource(nextVideo.video);
+                            videoSourceCache.set(nextVideo.video, nextSource);
+                        }
+                        preAudioSource = nextSource;
+
+                        // 独立增益节点，绕过 masterGain，直接接 limiter
+                        preAudioGain = audioContext.createGain();
+                        preAudioGain.gain.value = 0;
+                        preAudioSource.connect(preAudioGain);
+                        preAudioGain.connect(limiter);
+
+                        // 关键：从下一排名的 startTime 开始播
                         const nextStart = nextRankData.startTime || 0;
-                        preAudioVideo.currentTime = nextStart;
-                        preAudioVideo.play().catch(e => console.warn('预听播放失败', e));
-                        
-                        preAudioSource = paSource;
-                        preAudioGain = paGain;
+                        nextVideo.video.currentTime = nextStart;
+                        await nextVideo.video.play();
+                        console.log('🎧 预听启动：第' + nextRankData.rank + '名，从 ' + nextStart.toFixed(2) + 's 开始');
                     } catch(e) {
-                        console.warn('预听音频连接失败:', e);
+                        console.warn('预听启动失败:', e);
+                        preAudioStarted = false;
                     }
                 }
 
-                // 预听音频音量渐入（从启动到当前视频结束，音量从0到MASTER_VOLUME）
+                // ---- 音量控制 ----
                 if (preAudioStarted && preAudioGain) {
-                    const preProgress = Math.min((elapsed - (totalDuration - preAudioLeadMs)) / preAudioLeadMs, 1);
-                    preAudioGain.gain.value = preProgress * MASTER_VOLUME;
+                    // 预听进度 0→1
+                    const preProgress = Math.min((elapsed - (totalDuration - PRE_AUDIO_LEAD)) / PRE_AUDIO_LEAD, 1);
+                    // 下一视频音量 0→MASTER_VOLUME
+                    preAudioGain.gain.value = MASTER_VOLUME * preProgress;
+                    // 当前视频音量 MASTER_VOLUME→0
+                    masterGain.gain.value = MASTER_VOLUME * (1 - preProgress);
+                } else {
+                    // 没有预听，正常音量控制
+                    if (isFadingOut && fadeOutType === '1') {
+                        masterGain.gain.value = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
+                    } else {
+                        masterGain.gain.value = MASTER_VOLUME;
+                    }
                 }
 
                 let uiAlpha = 1;
@@ -1879,16 +1748,15 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 await sleepFrame();
             }
 
-            // 主视频结束
+            // 当前视频结束
             video.pause();
 
-            // 清理预听资源（如果已启动）
-            if (preAudioStarted && preAudioSource) {
-                try { preAudioSource.disconnect(); } catch(e) {}
+            // 清理预听：断开增益连接，但不停止 nextVideo（它要继续当主角）
+            if (preAudioStarted && preAudioGain) {
                 try { preAudioGain.disconnect(); } catch(e) {}
-                // 注意：不要停止 preAudioVideo，因为它将作为下一个视频继续播放
-                // 但我们需确保它不要重复播放。这里我们不调用 pause，因为下一个循环会接管它。
-                // 但是为了防止它超出，我们在下一个循环开始时重新设置 currentTime 并 play
+                preAudioGain = null;
+                // 恢复 masterGain 满音量，给下一个视频使用
+                masterGain.gain.value = MASTER_VOLUME;
             }
         }
 
@@ -1902,7 +1770,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 单个视频生成（同步添加未见其人先见其声支持）
+    // 单个视频生成（同样支持预听）
     // ============================================================
     function updateSingleRankPreview() {
         const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
@@ -1968,7 +1836,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                                 ${FADE_OUT_TYPES.map(t => `<option value="${t.value}"${d.fadeOutType===t.value?' selected':''}>${t.label}</option>`).join('')}
                             </select>
                         </div>
-                        <!-- 新增：未见其人先见其声 -->
                         <div class="form-group-sm full-width">
                             <label>🎧 未见其人先见其声（可选）：</label>
                             <select onchange="updateSingleField(${actualRank-1},'preAudioEnabled',this.value==='true')">
@@ -2074,7 +1941,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const W = 1920, H = 1080;
         const FADE_DURATION = 0.5;
         const UI_FADE_DURATION = 0.3;
-        const PRE_AUDIO_LEAD = 1.0;
+        const PRE_AUDIO_LEAD = 1000;
 
         const audioDest = initAudioMixer();
 
@@ -2165,7 +2032,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const totalDuration = duration * 1000;
             const fadeMs = FADE_DURATION * 1000;
             const uiFadeMs = UI_FADE_DURATION * 1000;
-            const preAudioLeadMs = PRE_AUDIO_LEAD * 1000;
 
             const vw = video.videoWidth || 1920;
             const vh = video.videoHeight || 1080;
@@ -2176,61 +2042,60 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const oy = (H - sh) / 2;
 
             const nextVideo = (vIdx < videos.length - 1) ? videos[vIdx + 1] : null;
-
-            // 未见其人先见其声
-            let preAudioVideo = null;
-            let preAudioSource = null;
-            let preAudioGain = null;
-            const nextRankData = (vIdx < videos.length - 1) ? videos[vIdx + 1].data : null;
+            const nextRankData = nextVideo ? nextVideo.data : null;
             const shouldPreAudio = nextRankData && nextRankData.preAudioEnabled && nextVideo;
 
-            if (shouldPreAudio) {
-                preAudioVideo = nextVideo.video;
-            }
-
             let preAudioStarted = false;
+            let preAudioGain = null;
+            let preAudioSource = null;
 
             while (performance.now() - playStart < totalDuration) {
                 const elapsed = performance.now() - playStart;
                 const progress = elapsed / totalDuration;
                 const isFadingOut = elapsed > totalDuration - fadeMs;
                 const fadeOutType = d.fadeOutType || '1';
+                const timeLeft = totalDuration - elapsed;
 
                 let videoAlpha = 1;
                 if (isFadingOut && fadeOutType === '1') {
                     videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
                 }
 
-                // 主视频音量衰减
-                let mainVolume = MASTER_VOLUME;
-                if (isFadingOut && fadeOutType === '1') {
-                    mainVolume = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
-                }
-                masterGain.gain.value = mainVolume;
-
-                // 预听启动
-                if (shouldPreAudio && !preAudioStarted && elapsed >= totalDuration - preAudioLeadMs) {
+                if (shouldPreAudio && !preAudioStarted && timeLeft <= PRE_AUDIO_LEAD) {
                     preAudioStarted = true;
                     try {
-                        const paSource = audioContext.createMediaElementSource(preAudioVideo);
-                        const paGain = audioContext.createGain();
-                        paGain.gain.value = 0;
-                        paSource.connect(paGain);
-                        paGain.connect(masterGain);
+                        let nextSource;
+                        if (videoSourceCache.has(nextVideo.video)) {
+                            nextSource = videoSourceCache.get(nextVideo.video);
+                        } else {
+                            nextSource = audioContext.createMediaElementSource(nextVideo.video);
+                            videoSourceCache.set(nextVideo.video, nextSource);
+                        }
+                        preAudioSource = nextSource;
+                        preAudioGain = audioContext.createGain();
+                        preAudioGain.gain.value = 0;
+                        preAudioSource.connect(preAudioGain);
+                        preAudioGain.connect(limiter);
                         const nextStart = nextRankData.startTime || 0;
-                        preAudioVideo.currentTime = nextStart;
-                        preAudioVideo.play().catch(e => console.warn('预听播放失败', e));
-                        preAudioSource = paSource;
-                        preAudioGain = paGain;
+                        nextVideo.video.currentTime = nextStart;
+                        await nextVideo.video.play();
+                        console.log('🎧 预听启动：第' + nextRankData.rank + '名，从 ' + nextStart.toFixed(2) + 's 开始');
                     } catch(e) {
-                        console.warn('预听音频连接失败:', e);
+                        console.warn('预听启动失败:', e);
+                        preAudioStarted = false;
                     }
                 }
 
-                // 预听音量渐入
                 if (preAudioStarted && preAudioGain) {
-                    const preProgress = Math.min((elapsed - (totalDuration - preAudioLeadMs)) / preAudioLeadMs, 1);
-                    preAudioGain.gain.value = preProgress * MASTER_VOLUME;
+                    const preProgress = Math.min((elapsed - (totalDuration - PRE_AUDIO_LEAD)) / PRE_AUDIO_LEAD, 1);
+                    preAudioGain.gain.value = MASTER_VOLUME * preProgress;
+                    masterGain.gain.value = MASTER_VOLUME * (1 - preProgress);
+                } else {
+                    if (isFadingOut && fadeOutType === '1') {
+                        masterGain.gain.value = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
+                    } else {
+                        masterGain.gain.value = MASTER_VOLUME;
+                    }
                 }
 
                 let uiAlpha = 1;
@@ -2275,6 +2140,12 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             }
 
             video.pause();
+
+            if (preAudioStarted && preAudioGain) {
+                try { preAudioGain.disconnect(); } catch(e) {}
+                preAudioGain = null;
+                masterGain.gain.value = MASTER_VOLUME;
+            }
         }
 
         videos.forEach(({ video }) => {
@@ -2378,6 +2249,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             updateSingleRankPreview();
         }
     });
-</script>
+    </script>
 </body>
 </html>
