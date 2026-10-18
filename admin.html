@@ -1427,7 +1427,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const t = Math.min(elapsed, UI_FADE);
         const uiAlpha = t / UI_FADE;
 
-        // 0. 左上角数据指标行（播放/收藏/投币/点赞/弹幕/评论/分享，原样数字不做格式化）
+        // 0. 左上角数据指标列（竖排：播放/收藏/投币/点赞/弹幕/评论/分享，原样数字不做格式化）
         ctx.save();
         ctx.globalAlpha = 0.75;
         ctx.fillStyle = '#FFFFFF';
@@ -1436,7 +1436,19 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.textBaseline = 'top';
         ctx.shadowColor = 'rgba(0,0,0,0.8)';
         ctx.shadowBlur = 4;
-        ctx.fillText(`播放：${d.view} ｜ 收藏：${d.favorite} ｜ 投币：${d.coin} ｜ 点赞：${d.like} ｜ 弹幕：${d.danmaku} ｜ 评论：${d.reply} ｜ 分享：${d.share}`, 40, 60);
+        const statLines = [
+            `播放：${d.view}`,
+            `收藏：${d.favorite}`,
+            `投币：${d.coin}`,
+            `点赞：${d.like}`,
+            `弹幕：${d.danmaku}`,
+            `评论：${d.reply}`,
+            `分享：${d.share}`
+        ];
+        const statLineHeight = 42;
+        statLines.forEach((line, i) => {
+            ctx.fillText(line, 40, 60 + i * statLineHeight);
+        });
         ctx.restore();
 
         // 1. 排名大圆圈
