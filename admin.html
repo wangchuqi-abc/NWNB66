@@ -1377,6 +1377,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             rankData[i].producer = '';
             rankData[i].vocalist = '';
             rankData[i].totalScore = '';
+            rankData[i].rate = '--';
             rankData[i].view = 0;
             rankData[i].favorite = 0;
             rankData[i].coin = 0;
@@ -1404,6 +1405,17 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             rankData[idx].reply = item.reply || 0;
             rankData[idx].share = item.share || 0;
             rankData[idx].changeType = item.last ? (item.last.rank > item.rank ? 'up' : 'down') : 'new';
+            // 动态计算 RATE 涨跌幅：与上月总分对比
+            if (item.last && item.last.point) {
+                const rateVal = ((item.point - item.last.point) / item.last.point) * 100;
+                if (!isNaN(rateVal) && rateVal !== 0) {
+                    rankData[idx].rate = (rateVal > 0 ? '+' : '-') + Math.abs(rateVal).toFixed(2) + '%';
+                } else {
+                    rankData[idx].rate = '--';
+                }
+            } else {
+                rankData[idx].rate = '--';
+            }
         });
         closeInjectModal();
         // 同步刷新当前激活面板的表单与预览
@@ -1595,7 +1607,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.fillStyle = '#a855f7';
         ctx.font = 'bold 28px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
         ctx.textAlign = 'right';
-        ctx.fillText('Rate: ' + (d.rate || ''), W - 40, 60);
+        ctx.fillText('Rate: ' + (d.rate || '--'), W - 40, 60);
         
         const scoreStr = String(d.totalScore || '0').padStart(8, '0');
         ctx.fillStyle = '#ffffff';
