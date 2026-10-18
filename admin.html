@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 版本 6.7 - 修复音画不同步（码率保持8Mbps） -->
+<!-- 版本 6.8 - 整合版：原控制台注入脚本已内置（导入JSON/总分校验/预听默认开启） -->
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -769,7 +769,7 @@
         </div>
     </div>
 
-    <div id="version-info">版本 6.7 (2026-10-06) — 修复音画不同步（码率保持8Mbps）</div>
+    <div id="version-info">版本 6.8 — 整合版（内置导入JSON/总分校验/预听默认开启）</div>
     <div id="asset-status" class="loading">📦 素材加载中...</div>
 
     <script>
@@ -2252,6 +2252,220 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             updateSingleRankPreview();
         }
     });
+    </script>
+
+    <!-- ============================================================
+         原控制台注入脚本已内置（自动执行，无需手动注入）
+         ============================================================ -->
+    <script>
+(function() {
+    console.log(" 正在注入完整功能...");
+
+    // 1. 注入弹窗 DOM
+    if (!document.getElementById('inject-modal')) {
+        const modal = document.createElement('div');
+        modal.id = 'inject-modal';
+        modal.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center;';
+        modal.innerHTML = `
+            <div style="background:#fff; width:800px; max-height:85vh; border-radius:10px; display:flex; flex-direction:column;">
+                <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+                    <h3 style="margin:0;">选择收录作品（排名自动重排）</h3>
+                    <div><button onclick="document.querySelectorAll('.inj-chk').forEach(c=>c.checked=true)">全选</button><button onclick="document.querySelectorAll('.inj-chk').forEach(c=>c.checked=false)">全不选</button></div>
+                </div>
+                <div class="modal-body" id="inj-list" style="padding:20px; overflow-y:auto;"></div>
+                <div style="padding:15px; border-top:1px solid #eee; text-align:right;">
+                    <button style="padding:8px 15px;" onclick="document.getElementById('inject-modal').style.display='none'">取消</button>
+                    <button style="padding:8px 15px; background:#2ecc71; color:#fff; border:none; border-radius:6px; cursor:pointer;" onclick="window.injectApplyImport()">确认填入</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    }
+
+    // 2. 界面修改：批量面板 + 单面板 加导入按钮
+    function addImportBtn(headerSelector, btnId, inputId) {
+        const header = document.querySelector(headerSelector);
+        if (header && !document.getElementById(btnId)) {
+            const btn = document.createElement('button');
+            btn.id = btnId;
+            btn.style.cssText = 'padding:12px 20px; background:linear-gradient(135deg,#9b59b6,#8e44ad); color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-right:10px;';
+            btn.textContent = '📂 导入 JSON';
+            
+            const input = document.createElement('input');
+            input.type = 'file'; input.id = inputId; input.accept = '.json'; input.style.display = 'none';
+            input.onchange = window.handleInjectFile;
+            
+            btn.onclick = () => input.click();
+            
+            // 插入到原按钮前面
+            const oldBtn = header.querySelector('.btn-generate');
+            if(oldBtn) header.insertBefore(btn, oldBtn); else header.appendChild(btn);
+            header.appendChild(input);
+        }
+    }
+    addImportBtn('#video-gen .vg-header', 'btn-json-batch', 'json-file-batch');
+    addImportBtn('#single-video-gen .vg-header', 'btn-json-single', 'json-file-single');
+
+    // 3. 强制所有预听下拉框改为“开启”
+    document.querySelectorAll('select[onchange*="preAudioEnabled"]').forEach(sel => { sel.value = "true"; });
+
+    // 4. 导入处理逻辑
+    window.tempInjectData = [];
+    window.handleInjectFile = async function(e) {
+        if (!e.target.files[0]) return;
+        try {
+            window.tempInjectData = JSON.parse(await e.target.files[0].text());
+            const list = document.getElementById('inj-list');
+            list.innerHTML = window.tempInjectData.map((item, i) => {
+                const song = item.song || {}; const isOrig = song.type === '原创';
+                const tag = isOrig ? '<span style="background:#2ecc71; color:#fff; padding:2px 6px; border-radius:4px;">原创</span>' : `<span style="background:#e74c3c; color:#fff; padding:2px 6px; border-radius:4px;">${song.type||'二创'}</span>`;
+                return `<div style="display:flex; align-items:center; gap:10px; padding:8px; border-bottom:1px solid #eee;">
+                    <input type="checkbox" class="inj-chk" data-idx="${i}" ${isOrig?'checked':''}>
+                    <label><strong>原#${item.rank}</strong> ${tag} ${song.display_name||song.name||''}</label>
+                </div>`;
+            }).join('');
+            document.getElementById('inject-modal').style.display = 'flex';
+        } catch(err) { showToast('JSON解析失败: ' + err.message, 'error'); }
+        e.target.value = '';
+    };
+
+    // 5. 应用重排逻辑
+    window.injectApplyImport = function() {
+        const chks = document.querySelectorAll('.inj-chk:checked');
+        if(!chks.length) return showToast('请至少选一个', 'error');
+        
+        for(let i=0; i<TOTAL_RANKS; i++) { 
+            rankData[i].songName=''; rankData[i].chineseName=''; rankData[i].producer=''; 
+            rankData[i].vocalist=''; rankData[i].totalScore=''; 
+        }
+        Array.from(chks).forEach((chk, idx) => {
+            if(idx >= TOTAL_RANKS) return;
+            const item = window.tempInjectData[parseInt(chk.dataset.idx)]; const song = item.song || {};
+            rankData[idx].songName = (song.display_name || song.name || '').split('(')[0].trim();
+            rankData[idx].chineseName = rankData[idx].songName;
+            rankData[idx].producer = (song.producers||[]).map(p=>p.producer?.name).filter(Boolean).join(' / ');
+            rankData[idx].vocalist = (song.vocalists||[]).map(v=>v.vocalist?.name).filter(Boolean).join(' / ');
+            rankData[idx].totalScore = item.point || '';
+            rankData[idx].changeType = item.last ? (item.last.rank > item.rank ? 'up' : 'down') : 'new';
+        });
+        document.getElementById('inject-modal').style.display='none'; 
+        if(typeof renderRankEntries === 'function') renderRankEntries(); 
+        showToast('填入成功，排名已重置', 'success');
+    };
+
+    // 6. 劫持批量生成（总分强制校验）
+    window.startVideoGeneration = async function(e) {
+        for (let i = 0; i < TOTAL_RANKS; i++) {
+            if (rankData[i].videoFile && !rankData[i].totalScore) {
+                return showToast(`第 ${i + 1} 名没有填写【总分】，无法生成！`, 'error');
+            }
+        }
+        const validData = rankData.filter(d => d.videoFile);
+        if (validData.length === 0) return showToast('没有添加任何视频', 'error');
+
+        const btn = e.target; btn.disabled = true; btn.textContent = '生成中...';
+        const progWrap = document.getElementById('progress-wrap');
+        if(progWrap) progWrap.classList.add('visible');
+
+        try {
+            await window.injectGenerateCore(validData, 'preview-canvas', 'progress');
+            showToast('生成完毕！', 'success');
+        } catch(err) { showToast('失败: ' + err.message, 'error'); }
+        finally { 
+            btn.disabled = false; btn.textContent = ' 开始生成视频'; 
+            setTimeout(() => { if(progWrap) progWrap.classList.remove('visible'); }, 2000); 
+        }
+    };
+
+    // 7. 核心渲染（含预听前1秒修复）
+    window.injectGenerateCore = async function(validData, canvasId, progId) {
+        const canvas = document.getElementById(canvasId); const ctx = canvas.getContext('2d');
+        const W = 1920, H = 1080;
+        if (typeof initAudioMixer === 'function') initAudioMixer();
+        
+        const stream = canvas.captureStream(); 
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 8000000 });
+        const chunks = []; recorder.ondataavailable = e => { if(e.data.size>0) chunks.push(e.data); };
+        const recDone = new Promise(r => { recorder.onstop = () => { const b = new Blob(chunks,{type:'video/webm'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`rank_${Date.now()}.webm`; a.click(); r(); }; });
+        recorder.start();
+
+        const videos = [];
+        for (let i = 0; i < validData.length; i++) {
+            const d = validData[i]; const v = document.createElement('video'); v.src = URL.createObjectURL(d.videoFile); v.playsInline = true; v.crossOrigin = 'anonymous';
+            await new Promise(r => v.onloadedmetadata = r); v.currentTime = 0; await new Promise(r => v.onseeked = r);
+            videos.push({ video: v, data: d, preAudioStarted: false });
+        }
+
+        for (let i = 0; i < videos.length; i++) {
+            const { video, data: d } = videos[i];
+            const sT = d.startTime || 0; const eT = d.endTime > 0 ? d.endTime : video.duration;
+            const durMs = Math.max((eT - sT) * 1000, 500);
+            
+            if (video.preAudioStarted) {
+                if (window.preAudioGain && window.preAudioSource) {
+                    window.preAudioSource.disconnect(); window.preAudioSource.connect(masterGain); window.preAudioGain.disconnect(); window.preAudioGain = null;
+                }
+                if(window.masterGain) window.masterGain.gain.value = 0.7;
+            } else {
+                if (typeof connectVideoAudio === 'function') connectVideoAudio(video);
+                if (sT > 0) { video.currentTime = sT; await new Promise(r => video.onseeked = r); }
+                await video.play(); 
+                if (window.audioContext && window.audioContext.state === 'suspended') await window.audioContext.resume();
+            }
+
+            const nextV = videos[i+1]; const nextD = nextV ? nextV.data : null;
+            const shouldPre = nextD && nextD.preAudioEnabled && nextV;
+            let preAudioStarted = video.preAudioStarted, localPreGain = null, localPreSrc = null;
+
+            while (!video.ended && video.currentTime < eT - 0.03) {
+                const elapsed = (video.currentTime - sT) * 1000; 
+                const isFade = elapsed > durMs - 500;
+                
+                if (shouldPre && !preAudioStarted && elapsed > durMs - 1000) {
+                    preAudioStarted = true;
+                    let src = (typeof videoSourceCache !== 'undefined') ? videoSourceCache.get(nextV.video) : null; 
+                    if (!src && window.audioContext) { src = window.audioContext.createMediaElementSource(nextV.video); if(typeof videoSourceCache !== 'undefined') videoSourceCache.set(nextV.video, src); }
+                    localPreSrc = src; localPreGain = window.audioContext.createGain(); localPreGain.gain.value = 0;
+                    localPreSrc.connect(localPreGain); localPreGain.connect(window.limiter);
+                    
+                    const nS = Math.max(0, (nextD.startTime || 0) - 1);
+                    nextV.video.pause(); nextV.video.currentTime = nS;
+                    await new Promise(r => nextV.video.onseeked = r); await nextV.video.play(); 
+                    nextV.preAudioStarted = true;
+                    window.preAudioGain = localPreGain; window.preAudioSource = localPreSrc;
+                }
+                
+                if (preAudioStarted && localPreGain) {
+                    const p = Math.min((elapsed - (durMs - 1000)) / 1000, 1);
+                    localPreGain.gain.value = 0.7 * p; 
+                    if(window.masterGain) window.masterGain.gain.value = 0.7 * (1 - p);
+                } else {
+                    if(window.masterGain) window.masterGain.gain.value = isFade ? 0.7 * (1 - (elapsed - (durMs-500))/500) : 0.7;
+                }
+
+                ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+                ctx.globalAlpha = isFade && !preAudioStarted ? (1 - (elapsed-(durMs-500))/500) : 1;
+                ctx.drawImage(video, 0, 0, W, H);
+                
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 120px Microsoft YaHei'; ctx.textAlign='center'; ctx.fillText(d.rank, 1700, 180);
+                ctx.fillStyle = '#a855f7'; ctx.font = 'bold 48px Microsoft YaHei'; ctx.textAlign='right'; ctx.fillText(String(d.totalScore||'0').padStart(8,'0'), 1840, 110);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 56px Microsoft YaHei'; ctx.fillText(d.chineseName||d.songName||'', 1840, 320);
+                ctx.fillStyle = '#ccc'; ctx.font = '32px Microsoft YaHei'; ctx.fillText(`${d.producer||''} - ${d.vocalist||''}`, 1840, 390);
+
+                const pct = ((i + elapsed/durMs) / videos.length) * 100;
+                const txt = document.getElementById(progId+'-text'), pc = document.getElementById(progId+'-percent'), fl = document.getElementById(progId+'-fill');
+                if(txt) txt.textContent = `第 ${d.rank} 名...`; if(pc) pc.textContent = Math.round(pct)+'%'; if(fl) fl.style.width = pct+'%';
+                
+                await new Promise(r => requestAnimationFrame(r));
+            }
+            if (!nextV || !nextV.preAudioStarted) video.pause();
+        }
+        videos.forEach(v => URL.revokeObjectURL(v.video.src));
+        recorder.stop(); await recDone;
+    };
+
+    console.log(" 注入完毕！双面板均已支持导入，预听已默认开启，总分已强制校验。");
+})();
     </script>
 </body>
 </html>
