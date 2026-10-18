@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bli-Voca-Monthly 管理后台</title>
+    <title>BliBli_week 副站管理后台</title>
     <link rel="icon" href="data:,">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -860,6 +860,7 @@
                 <video id="trim-video" controls></video>
             </div>
             <div class="trim-duration" id="trim-duration">视频总时长: 0.00 秒</div>
+            <button id="ai-trim-btn" style="background:linear-gradient(135deg, #a8e063, #56ab2f); color:#fff; border:none; padding:10px 15px; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:10px; width:100%;">🤖 智能分析音画卡点</button>
             <div class="trim-grid">
                 <div>
                     <label>开始时间（秒）</label>
@@ -2491,6 +2492,74 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         }
         closeTrimModal();
     }
+
+    // ============================================================
+    // 智能音画卡点：自动分析高潮片段，填入裁剪起止时间
+    // ============================================================
+    document.getElementById('ai-trim-btn').onclick = async function() {
+        const video = document.getElementById('trim-video');
+        if (!video || !video.src) return alert('请先选择视频文件');
+
+        const btn = this;
+        btn.disabled = true; btn.textContent = '⏳ 正在分析...';
+
+        try {
+            const res = await fetch(video.src);
+            const arrayBuffer = await res.arrayBuffer();
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+
+            const duration = audioBuffer.duration, sampleRate = audioBuffer.sampleRate;
+            const channelData = audioBuffer.getChannelData(0), step = 0.5, stepsCount = Math.floor(duration / step);
+            const scoreArray = [];
+
+            for (let i = 0; i < stepsCount; i++) {
+                const start = Math.floor(i * step * sampleRate), end = Math.floor((i + 1) * step * sampleRate);
+                let sumSq = 0, zc = 0;
+                for (let j = start; j < end; j++) {
+                    sumSq += channelData[j] * channelData[j];
+                    if (j > start && channelData[j] * channelData[j-1] < 0) zc++;
+                }
+                scoreArray.push(Math.sqrt(sumSq / (end - start)) * (1 + (zc / (end - start) * 1000) * 0.5));
+            }
+
+            const safeStart = Math.floor((duration * 0.15) / step), safeEnd = Math.floor((duration * 0.85) / step);
+            let maxScore = 0, peakIndex = safeStart;
+            for (let i = safeStart; i < safeEnd; i++) { if (scoreArray[i] > maxScore) { maxScore = scoreArray[i]; peakIndex = i; } }
+
+            let startIndex = peakIndex;
+            while (startIndex > safeStart) { if (scoreArray[startIndex - 1] < maxScore * 0.3) break; startIndex--; }
+            let startTime = startIndex * step;
+
+            let bestCutTime = startTime + 20, lowestEnergy = maxScore, whiteCount = 0;
+            const minDuration = 15, maxDuration = 30;
+
+            let cvs = document.createElement('canvas'); cvs.width = 160; cvs.height = 90;
+            const ctx = cvs.getContext('2d'); video.muted = true;
+
+            for (let currentT = startTime + minDuration; currentT < Math.min(startTime + maxDuration, duration); currentT += 0.5) {
+                let idx = Math.floor(currentT / step);
+                if (scoreArray[idx] < lowestEnergy) { lowestEnergy = scoreArray[idx]; bestCutTime = currentT; }
+
+                video.currentTime = currentT;
+                await new Promise(r => { video.onseeked = r; setTimeout(r, 50); });
+
+                ctx.drawImage(video, 0, 0, cvs.width, cvs.height);
+                const imgData = ctx.getImageData(0, 0, cvs.width, cvs.height).data;
+                let isWhite = true;
+                for (let k = 0; k < imgData.length; k += 4) { if (imgData[k] < 235 || imgData[k+1] < 235 || imgData[k+2] < 235) { isWhite = false; break; } }
+
+                if (isWhite) { whiteCount++; if (whiteCount >= 2) { bestCutTime = currentT; break; } } else { whiteCount = 0; }
+            }
+
+            video.muted = false;
+            document.getElementById('trim-start').value = startTime.toFixed(2);
+            document.getElementById('trim-end').value = bestCutTime.toFixed(2);
+            video.currentTime = startTime;
+
+        } catch (err) { alert('分析失败: ' + err.message); }
+        finally { btn.disabled = false; btn.textContent = '🤖 重新分析音画卡点'; }
+    };
 
     // ============================================================
     // 初始化
