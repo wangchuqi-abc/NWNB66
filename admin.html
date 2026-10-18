@@ -1239,6 +1239,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         <div class="form-group-sm"><label>最高排名：</label><input type="number" placeholder="如：20" value="${d.highestRank}" oninput="updateField(${i},'highestRank',this.value)"></div>
                         <div class="form-group-sm"><label>RATE（如 ↑10%、↓5%、New）：</label><input type="text" placeholder="如：↑10%" value="${d.rate}" oninput="updateField(${i},'rate',this.value)"></div>
                         <div class="form-group-sm"><label>总分（自动补零到8位）：</label><input type="number" placeholder="如：95" value="${d.totalScore}" oninput="updateField(${i},'totalScore',this.value)" min="0"></div>
+                        <div class="full-width" style="background:#f4f6f8; border-radius:6px; padding:10px; font-size:0.85rem; color:#666;">播放：${d.view} ｜ 收藏：${d.favorite} ｜ 投币：${d.coin} ｜ 点赞：${d.like} ｜ 弹幕：${d.danmaku} ｜ 评论：${d.reply} ｜ 分享：${d.share}</div>
                     </div>
                 </div>
             </div>
@@ -2102,6 +2103,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         <div class="form-group-sm"><label>最高排名：</label><input type="number" placeholder="如：20" value="${d.highestRank}" oninput="updateSingleField(${actualRank-1},'highestRank',this.value)"></div>
                         <div class="form-group-sm"><label>RATE（如 ↑10%、↓5%、New）：</label><input type="text" placeholder="如：↑10%" value="${d.rate}" oninput="updateSingleField(${actualRank-1},'rate',this.value)"></div>
                         <div class="form-group-sm"><label>总分（自动补零到8位）：</label><input type="number" placeholder="如：95" value="${d.totalScore}" oninput="updateSingleField(${actualRank-1},'totalScore',this.value)" min="0"></div>
+                        <div class="full-width" style="background:#f4f6f8; border-radius:6px; padding:10px; font-size:0.85rem; color:#666;">播放：${d.view} ｜ 收藏：${d.favorite} ｜ 投币：${d.coin} ｜ 点赞：${d.like} ｜ 弹幕：${d.danmaku} ｜ 评论：${d.reply} ｜ 分享：${d.share}</div>
                     </div>
                 </div>
             </div>`;
