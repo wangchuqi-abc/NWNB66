@@ -880,7 +880,7 @@
         </div>
     </div>
 
-    <div id="version-info">版本 7.0 — 重构版（JSON导入·总分校验·预听默认开启，保留原版UI与黑边适配）</div>
+    <div id="version-info">版本 7.1 — 左上角数据指标行（播放/收藏/投币/点赞/弹幕/评论/分享）</div>
     <div id="asset-status" class="loading">📦 素材加载中...</div>
 
     <script>
@@ -1006,6 +1006,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         highestRank: '',
         rate: '',
         totalScore: '',
+        view: 0,
+        favorite: 0,
+        coin: 0,
+        like: 0,
+        danmaku: 0,
+        reply: 0,
+        share: 0,
         overlayText: '',
         videoFile: null,
         startTime: 0,
@@ -1368,6 +1375,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             rankData[i].producer = '';
             rankData[i].vocalist = '';
             rankData[i].totalScore = '';
+            rankData[i].view = 0;
+            rankData[i].favorite = 0;
+            rankData[i].coin = 0;
+            rankData[i].like = 0;
+            rankData[i].danmaku = 0;
+            rankData[i].reply = 0;
+            rankData[i].share = 0;
         }
         // 按勾选顺序从第1名开始重排
         Array.from(chks).forEach((chk, idx) => {
@@ -1380,6 +1394,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             rankData[idx].producer = (song.producers || []).map(p => p.producer && p.producer.name).filter(Boolean).join(' / ');
             rankData[idx].vocalist = (song.vocalists || []).map(v => v.vocalist && v.vocalist.name).filter(Boolean).join(' / ');
             rankData[idx].totalScore = item.point || '';
+            rankData[idx].view = item.view || 0;
+            rankData[idx].favorite = item.favorite || 0;
+            rankData[idx].coin = item.coin || 0;
+            rankData[idx].like = item.like || 0;
+            rankData[idx].danmaku = item.danmaku || 0;
+            rankData[idx].reply = item.reply || 0;
+            rankData[idx].share = item.share || 0;
             rankData[idx].changeType = item.last ? (item.last.rank > item.rank ? 'up' : 'down') : 'new';
         });
         closeInjectModal();
@@ -1405,6 +1426,18 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
 
         const t = Math.min(elapsed, UI_FADE);
         const uiAlpha = t / UI_FADE;
+
+        // 0. 左上角数据指标行（播放/收藏/投币/点赞/弹幕/评论/分享，原样数字不做格式化）
+        ctx.save();
+        ctx.globalAlpha = 0.75;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '28px Microsoft YaHei';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(`播放：${d.view} ｜ 收藏：${d.favorite} ｜ 投币：${d.coin} ｜ 点赞：${d.like} ｜ 弹幕：${d.danmaku} ｜ 评论：${d.reply} ｜ 分享：${d.share}`, 40, 60);
+        ctx.restore();
 
         // 1. 排名大圆圈
         const rankX = W - 200;
