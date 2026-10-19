@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 版本 7.0 - 源码级重构：JSON导入/总分校验/预听默认开启 直接整合进原始逻辑（保留原版 drawUI 画布UI 与 16:9 黑边适配） -->
+<!-- 版本 8.0 - 双轨重构：废除批量/单个概念，原创月榜与总月榜面板分离（currentBoardPrefix 双轨隔离），上期TXT导入对比，history_data.txt 自动导出（保留 drawUI 画布UI、16:9 黑边适配与智能卡点） -->
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -706,8 +706,8 @@
         <div class="sidebar-header">Bili-Voca-Board<br>工作人员后台</div>
         <ul class="nav-links">
             <li class="active" onclick="switchTab('bv-replace', this)">🔄 月榜 BV 号替换</li>
-            <li onclick="switchTab('video-gen', this)">🎬 批量视频生成</li>
-            <li onclick="switchTab('single-video-gen', this)">🎯 单个视频生成</li>
+            <li onclick="switchTab('video-gen', this)">🌟 原创月榜视频生成</li>
+            <li onclick="switchTab('single-video-gen', this)">🏆 总月榜视频生成</li>
         </ul>
         <div class="logout-btn" onclick="logout()">🚪 退出登录</div>
     </div>
@@ -742,12 +742,14 @@
                 <div class="vg-layout">
                     <div class="vg-form-section">
                         <div class="vg-header">
-                            <h2>月榜视频生成 · Top 50</h2>
+                            <h2>原创月榜视频生成 · Top 50</h2>
                             <div style="display:flex; gap:10px; align-items:center;">
+                                <button class="btn-import" onclick="document.getElementById('history-file-batch').click()">📂 导入上期数据</button>
                                 <button class="btn-import" onclick="document.getElementById('json-file-batch').click()">📂 导入 JSON</button>
                                 <button class="btn-generate" id="btn-generate" onclick="startVideoGeneration()">🎬 开始生成视频</button>
                             </div>
                         </div>
+                        <input type="file" id="history-file-batch" accept=".txt" style="display:none" onchange="handleHistoryFile(this)">
                         <input type="file" id="json-file-batch" accept=".json" style="display:none" onchange="handleInjectFile(this)">
                         <div id="rank-entries"></div>
                     </div>
@@ -779,30 +781,17 @@
                 <div class="vg-layout">
                     <div class="vg-form-section">
                         <div class="vg-header">
-                            <h2>单个排名视频生成</h2>
+                            <h2>总月榜视频生成 · Top 50</h2>
                             <div style="display:flex; gap:10px; align-items:center;">
+                                <button class="btn-import" onclick="document.getElementById('history-file-single').click()">📂 导入上期数据</button>
                                 <button class="btn-import" onclick="document.getElementById('json-file-single').click()">📂 导入 JSON</button>
-                                <button class="btn-generate" id="btn-single-generate" onclick="startSingleVideoGeneration()">🎯 生成选定排名</button>
+                                <button class="btn-generate" id="btn-single-generate" onclick="startSingleVideoGeneration()">🏆 开始生成视频</button>
                             </div>
                         </div>
+                        <input type="file" id="history-file-single" accept=".txt" style="display:none" onchange="handleHistoryFile(this)">
                         <input type="file" id="json-file-single" accept=".json" style="display:none" onchange="handleInjectFile(this)">
-                        <div class="card" style="max-width:500px; margin-bottom:20px;">
-                            <h2>选择排名范围</h2>
-                            <div class="form-group">
-                                <label>起始排名：</label>
-                                <input type="number" id="single-start-rank" min="1" max="50" value="1" onchange="updateSingleRankPreview()">
-                            </div>
-                            <div class="form-group">
-                                <label>结束排名：</label>
-                                <input type="number" id="single-end-rank" min="1" max="50" value="5" onchange="updateSingleRankPreview()">
-                            </div>
-                            <div class="form-group">
-                                <label>生成数量：</label>
-                                <input type="text" id="single-rank-count" value="5 个排名" readonly style="background:#f9f9f9; color:#7f8c8d;">
-                            </div>
-                        </div>
                         <div class="card">
-                            <h2>待生成排名预览</h2>
+                            <h2>🏆 总榜排名列表</h2>
                             <div id="single-rank-preview" style="max-height:300px; overflow-y:auto;"></div>
                         </div>
                         <div id="single-rank-forms"></div>
@@ -813,8 +802,8 @@
                             <div class="canvas-wrap">
                                 <canvas id="single-preview-canvas" width="1920" height="1080"></canvas>
                                 <div class="canvas-placeholder" id="single-canvas-placeholder">
-                                    <span>🎯</span>
-                                    <div>选择排名后自动预览</div>
+                                    <span>🏆</span>
+                                    <div>导入数据后自动预览</div>
                                 </div>
                             </div>
                             <div class="progress-bar-wrap" id="single-progress-wrap">
@@ -881,7 +870,7 @@
         </div>
     </div>
 
-    <div id="version-info">版本 7.1 — 左上角数据指标行（播放/收藏/投币/点赞/弹幕/评论/分享）</div>
+    <div id="version-info">版本 8.0 — 原创月榜/总月榜双轨隔离 · 上期数据导入对比 · 自动导出 history_data.txt</div>
     <div id="asset-status" class="loading">📦 素材加载中...</div>
 
     <script>
@@ -897,6 +886,12 @@
             document.body.classList.add('entered');
         });
     })();
+
+    // ============================================================
+    // 双轨隔离：当前榜单前缀（原创_ / 总榜_）与上期历史数据仓库
+    // ============================================================
+    let currentBoardPrefix = '原创_';
+    let historyData = {};
 
     let toastTimer = null;
     function showToast(msg, type) {
@@ -921,7 +916,13 @@
         document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         el.classList.add('active');
-        const map = { 'bv-replace': '月榜 BV 号替换', 'video-gen': '批量视频生成', 'single-video-gen': '单个视频生成' };
+        // 双轨联动：切换面板即切换当前榜单前缀
+        if (tabId === 'video-gen') {
+            currentBoardPrefix = '原创_';
+        } else if (tabId === 'single-video-gen') {
+            currentBoardPrefix = '总榜_';
+        }
+        const map = { 'bv-replace': '月榜 BV 号替换', 'video-gen': '原创月榜视频生成', 'single-video-gen': '总月榜视频生成' };
         document.getElementById('page-title').textContent = map[tabId];
         closeSidebarOnMobile();
         if (tabId === 'video-gen' && !window._vgInit) {
@@ -1144,8 +1145,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             if (currentPreviewRank !== undefined) {
                 drawPreview(currentPreviewRank);
             }
-            const startRank = parseInt(document.getElementById('single-start-rank')?.value) || 1;
-            drawSinglePreview(startRank - 1);
+            drawSinglePreview(0);
             
             setTimeout(() => {
                 const statusEl = document.getElementById('asset-status');
@@ -1430,6 +1430,100 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
+    // 上期历史数据：TXT 导入 / 生成前强制比对 / 自动导出
+    // TXT 行格式：fullKey<TAB>上期排名<TAB>最高排名<TAB>在榜周数
+    // fullKey = currentBoardPrefix + 歌名（如：原创_歌名 / 总榜_歌名）
+    // ============================================================
+    async function handleHistoryFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const lines = text.replace(/^\ufeff/, '').split(/\r?\n/);
+            const parsed = {};
+            let count = 0;
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                const parts = trimmed.split('\t');
+                if (parts.length < 4) continue;
+                const key = parts[0].trim();
+                const lastRank = parseInt(parts[1], 10);
+                const highest = parseInt(parts[2], 10);
+                const weeks = parseInt(parts[3], 10);
+                if (!key || isNaN(lastRank)) continue;
+                parsed[key] = {
+                    lastRank: lastRank,
+                    highestRank: isNaN(highest) ? lastRank : highest,
+                    weeksOnChart: isNaN(weeks) ? 1 : weeks
+                };
+                count++;
+            }
+            historyData = parsed;
+            showToast(`✅ 上期数据导入成功（${count} 条记录，当前前缀：${currentBoardPrefix}）`, 'success');
+        } catch (err) {
+            showToast('上期数据解析失败: ' + err.message, 'error');
+        }
+        input.value = '';
+    }
+
+    // 生成视频开头强制调用：用 currentBoardPrefix + 歌名 组成 fullKey 与 historyData 比对
+    function applyHistoryComparison() {
+        for (let i = 0; i < TOTAL_RANKS; i++) {
+            const d = rankData[i];
+            const name = d.songName || d.chineseName;
+            if (!name) continue; // 无歌名无法构成 fullKey，跳过
+            const fullKey = currentBoardPrefix + name;
+            const history = historyData[fullKey];
+            const currentRank = i + 1;
+            if (history) {
+                // 有历史数据：算 ↑/↓/—，highestRank 取较小值，weeksOnChart 累加 1
+                d.lastWeekRank = history.lastRank;
+                if (currentRank < history.lastRank) {
+                    d.rate = '↑';
+                    d.changeType = 'up';
+                } else if (currentRank > history.lastRank) {
+                    d.rate = '↓';
+                    d.changeType = 'down';
+                } else {
+                    d.rate = '—';
+                    d.changeType = 'flat';
+                }
+                d.highestRank = Math.min(currentRank, history.highestRank || currentRank);
+                d.weeksOnChart = (history.weeksOnChart || 0) + 1;
+            } else {
+                // 无历史数据：rate = NEW，highestRank 为当前排名，weeksOnChart = 1
+                d.rate = 'NEW';
+                d.changeType = 'new';
+                d.highestRank = currentRank;
+                d.weeksOnChart = 1;
+            }
+        }
+    }
+
+    // 视频生成完毕自动调用：用 fullKey 打包最新历史记录，触发下载 history_data.txt
+    function exportHistoryData() {
+        const lines = [];
+        for (let i = 0; i < TOTAL_RANKS; i++) {
+            const d = rankData[i];
+            const name = d.songName || d.chineseName;
+            if (!name) continue;
+            const fullKey = currentBoardPrefix + name;
+            const currentRank = parseInt(d.rank, 10) || (i + 1);
+            const highest = parseInt(d.highestRank, 10) || currentRank;
+            const weeks = parseInt(d.weeksOnChart, 10) || 1;
+            lines.push(fullKey + '\t' + currentRank + '\t' + highest + '\t' + weeks);
+        }
+        const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'history_data.txt';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    // ============================================================
     // 绘制函数（含入场动画 - 新版UI）
     // ============================================================
     function drawUI(ctx, d, W, H, elapsed) {
@@ -1563,7 +1657,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const totalCapsuleWidth = (capsuleWidth * 3) + (gap * 2);
         const startX = W - totalCapsuleWidth - 40;
 
-        const historyData = [
+        const capsuleItems = [
             { label: '上月排名', value: d.lastWeekRank || '-' },
             { label: '在榜月数', value: d.weeksOnChart || '-' },
             { label: '最高排名', value: d.highestRank || '-' }
@@ -1571,7 +1665,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
 
         const numAlpha = Math.min(elapsed / NUM_FADE, 1);
 
-        historyData.forEach((item, i) => {
+        capsuleItems.forEach((item, i) => {
             const x = startX + i * (capsuleWidth + gap);
             
             ctx.save();
@@ -1741,9 +1835,12 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 批量生成
+    // 原创月榜视频生成（黑边适配 + 预听卡点保留）
     // ============================================================
     async function startVideoGeneration() {
+        // 生成开头：强制遍历 rankData，用 currentBoardPrefix + 歌名 与上期数据比对
+        applyHistoryComparison();
+
         if (!assetsLoaded) {
             showToast('⏳ 素材正在加载中，请稍候...', 'error');
             try {
@@ -1774,7 +1871,10 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         progressWrap.classList.add('visible');
         try {
             await generateVideo(progressWrap);
-            showToast('✅ 视频生成完成！', 'success');
+            // 生成完毕：自动导出本期历史记录 history_data.txt
+            exportHistoryData();
+            renderRankEntries();
+            showToast('✅ 原创月榜视频生成完成！已自动导出 history_data.txt', 'success');
         } catch(err) {
             console.error(err);
             showToast('❌ 生成失败：' + err.message, 'error');
@@ -1829,7 +1929,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `ranking_${new Date().toISOString().slice(0,10)}.webm`;
+                    a.download = `原创月榜_${new Date().toISOString().slice(0,10)}.webm`;
                     a.click();
                     setTimeout(() => URL.revokeObjectURL(url), 5000);
                     resolve();
@@ -2028,42 +2128,30 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     // ============================================================
-    // 单个视频生成
+    // 总月榜视频生成（黑边适配 + 预听卡点保留）
     // ============================================================
     function updateSingleRankPreview() {
-        const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
-        const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
-        const validStart = Math.max(1, Math.min(TOTAL_RANKS, startRank));
-        const validEnd = Math.max(1, Math.min(TOTAL_RANKS, endRank));
-        if (validStart > validEnd) {
-            document.getElementById('single-rank-count').value = '范围无效';
-            return;
-        }
-        const count = validEnd - validStart + 1;
-        document.getElementById('single-rank-count').value = `${count} 个排名`;
-
         const previewContainer = document.getElementById('single-rank-preview');
-        const ranks = rankData.slice(validStart - 1, validEnd);
-        previewContainer.innerHTML = ranks.map((d, i) => {
-            const actualRank = validStart + i;
+        if (!previewContainer) return;
+        // 无排名范围选择：直接展示全部总榜列表
+        previewContainer.innerHTML = rankData.map((d, i) => {
             const name = d.chineseName || d.songName || '未填写';
-            return `<div style="display:flex;align-items:center;padding:10px;border-bottom:1px solid #eee;cursor:pointer;" onclick="drawSinglePreview(${actualRank-1})">
-                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a8e063,#56ab2f);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:12px;">${actualRank}</div>
+            return `<div style="display:flex;align-items:center;padding:10px;border-bottom:1px solid #eee;cursor:pointer;" onclick="drawSinglePreview(${i})">
+                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a8e063,#56ab2f);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:12px;">${d.rank}</div>
                 <div style="flex:1;"><div style="font-size:.9rem;color:var(--dark);">${name}</div>
                 <div style="font-size:.75rem;color:var(--text-sub);">${d.producer||''}${d.vocalist?' - '+d.vocalist:''}</div></div>
                 <div style="font-size:.8rem;color:${d.videoFile?'#27ae60':'#e67e22'};">${d.videoFile?'✅ 已选视频':'⏳ 待选视频'}</div>
             </div>`;
         }).join('');
-        if (ranks.length > 0) drawSinglePreview(validStart - 1);
-        renderSingleRankForms(validStart, validEnd);
+        drawSinglePreview(0);
+        renderSingleRankForms();
     }
 
-    function renderSingleRankForms(startRank, endRank) {
+    function renderSingleRankForms() {
         const container = document.getElementById('single-rank-forms');
-        const ranks = rankData.slice(startRank - 1, endRank);
-        container.innerHTML = ranks.map((d, i) => {
-            const actualRank = startRank + i;
-            return `<div class="rank-entry expanded" id="single-entry-${actualRank-1}" style="margin-top:20px;">
+        container.innerHTML = rankData.map((d, i) => {
+            const actualRank = i + 1;
+            return `<div class="rank-entry${i===0?' expanded active':''}" id="single-entry-${i}" style="margin-top:20px;">
                 <div class="rank-entry-header" onclick="toggleSingleEntry(${actualRank-1})">
                     <span class="arrow">▶</span>
                     <div class="rank-num">${actualRank}</div>
@@ -2153,31 +2241,26 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     }
 
     async function startSingleVideoGeneration() {
+        // 生成开头：强制遍历 rankData，用 currentBoardPrefix + 歌名 与上期数据比对
+        applyHistoryComparison();
+
         if (!assetsLoaded) {
             showToast('⏳ 素材正在加载中，请稍候...', 'error');
             try { await loadAssets(); } catch(e) { showToast('❌ 素材加载失败', 'error'); return; }
         }
 
-        const startRank = parseInt(document.getElementById('single-start-rank').value) || 1;
-        const endRank = parseInt(document.getElementById('single-end-rank').value) || 5;
-        const validStart = Math.max(1, Math.min(TOTAL_RANKS, startRank));
-        const validEnd = Math.max(1, Math.min(TOTAL_RANKS, endRank));
-        if (validStart > validEnd) {
-            showToast('排名范围无效！', 'error');
-            return;
-        }
-        const selectedRanks = rankData.slice(validStart - 1, validEnd);
-        const missing = selectedRanks.filter(d => !d.videoFile);
-        if (missing.length > 0) {
-            showToast(`还有 ${missing.length} 个排名未选择视频！`, 'error');
-            return;
-        }
-        // 选了视频的排名必须填写【总分】
-        for (let i = validStart - 1; i < validEnd; i++) {
+        // 校验1：选了视频的排名必须填写【总分】
+        for (let i = 0; i < TOTAL_RANKS; i++) {
             if (rankData[i].videoFile && !rankData[i].totalScore) {
                 showToast(`第 ${i + 1} 名已选择视频但未填写【总分】，无法生成！`, 'error');
                 return;
             }
+        }
+        // 校验2：至少要有一个排名选择了视频
+        const validData = rankData.filter(d => d.videoFile);
+        if (validData.length === 0) {
+            showToast('总榜没有任何排名选择了视频！', 'error');
+            return;
         }
         const btn = document.getElementById('btn-single-generate');
         btn.disabled = true;
@@ -2185,14 +2268,17 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const progressWrap = document.getElementById('single-progress-wrap');
         progressWrap.classList.add('visible');
         try {
-            await generateSingleVideo(validStart, validEnd, progressWrap);
-            showToast(`✅ 第${validStart}-${validEnd}名视频生成完成！`, 'success');
+            await generateSingleVideo(1, TOTAL_RANKS, progressWrap);
+            // 生成完毕：自动导出本期历史记录 history_data.txt
+            exportHistoryData();
+            updateSingleRankPreview();
+            showToast('✅ 总月榜视频生成完成！已自动导出 history_data.txt', 'success');
         } catch(err) {
             console.error(err);
             showToast('❌ 生成失败：' + err.message, 'error');
         } finally {
             btn.disabled = false;
-            btn.textContent = '🎯 生成选定排名';
+            btn.textContent = '🏆 开始生成视频';
             setTimeout(() => {
                 progressWrap.classList.remove('visible');
                 document.getElementById('single-progress-fill').style.width = '0%';
@@ -2241,7 +2327,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `rank_${startRank}-${endRank}_${new Date().toISOString().slice(0,10)}.webm`;
+                    a.download = `总月榜_${new Date().toISOString().slice(0,10)}.webm`;
                     a.click();
                     setTimeout(() => URL.revokeObjectURL(url), 5000);
                     resolve();
