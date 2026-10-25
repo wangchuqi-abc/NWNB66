@@ -742,7 +742,7 @@
                 <div class="vg-layout">
                     <div class="vg-form-section">
                         <div class="vg-header">
-                            <h2>原创月榜视频生成 · Top 50</h2>
+                            <h2>原创月榜视频生成 · Top 30</h2>
                             <div style="display:flex; gap:10px; align-items:center;">
                                 <button class="btn-import" onclick="document.getElementById('history-file-batch').click()">📂 导入上期数据</button>
                                 <button class="btn-import" onclick="document.getElementById('json-file-batch').click()">📂 导入 JSON</button>
@@ -781,7 +781,7 @@
                 <div class="vg-layout">
                     <div class="vg-form-section">
                         <div class="vg-header">
-                            <h2>总月榜视频生成 · Top 50</h2>
+                            <h2>总月榜视频生成 · Top 30</h2>
                             <div style="display:flex; gap:10px; align-items:center;">
                                 <button class="btn-import" onclick="document.getElementById('history-file-single').click()">📂 导入上期数据</button>
                                 <button class="btn-import" onclick="document.getElementById('json-file-single').click()">📂 导入 JSON</button>
@@ -870,7 +870,7 @@
         </div>
     </div>
 
-    <div id="version-info">版本 8.0 — 原创月榜/总月榜双轨隔离 · 上期数据导入对比 · 自动导出 history_data.txt</div>
+    <div id="version-info">版本 8.1 — 双轨隔离 · 两榜容量统一 Top 30 · 上期数据导入对比 · 自动导出 history_data.txt</div>
     <div id="asset-status" class="loading">📦 素材加载中...</div>
 
     <script>
@@ -981,7 +981,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     // ============================================================
     // 视频生成核心数据
     // ============================================================
-    const TOTAL_RANKS = 50;
+    const TOTAL_RANKS = 30;
     const CHANGE_TYPES = [
         { value: 'new', label: 'New（新上榜）' },
         { value: 'up', label: '↑ 上升' },
