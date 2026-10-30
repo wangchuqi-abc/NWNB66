@@ -698,182 +698,182 @@
     </style>
 </head>
 <body>
-    <div id="loading-overlay" class="show">
-        <div class="spinner"><div class="icon">⏳</div><p>加载中<span class="dots"></span></p></div>
+<div id="loading-overlay" class="show">
+    <div class="spinner"><div class="icon">⏳</div><p>加载中<span class="dots"></span></p></div>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">Bili-Voca-Board<br>工作人员后台</div>
+    <ul class="nav-links">
+        <li class="active" onclick="switchTab('bv-replace', this)">🔄 月榜 BV 号替换</li>
+        <li onclick="switchTab('video-gen', this)">🌟 原创月榜视频生成</li>
+        <li onclick="switchTab('single-video-gen', this)">🏆 总月榜视频生成</li>
+    </ul>
+    <div class="logout-btn" onclick="logout()">🚪 退出登录</div>
+</div>
+
+<div id="sidebar-mask" onclick="toggleMenu()"></div>
+
+<div class="main-content">
+    <div class="top-bar">
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <div class="page-title" id="page-title">月榜BV号替换</div>
+        <div class="user-info"><span class="user-avatar">站</span><span id="currentUser">站长</span></div>
     </div>
 
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">Bili-Voca-Board<br>工作人员后台</div>
-        <ul class="nav-links">
-            <li class="active" onclick="switchTab('bv-replace', this)">🔄 月榜 BV 号替换</li>
-            <li onclick="switchTab('video-gen', this)">🌟 原创月榜视频生成</li>
-            <li onclick="switchTab('single-video-gen', this)">🏆 总月榜视频生成</li>
-        </ul>
-        <div class="logout-btn" onclick="logout()">🚪 退出登录</div>
-    </div>
-
-    <div id="sidebar-mask" onclick="toggleMenu()"></div>
-
-    <div class="main-content">
-        <div class="top-bar">
-            <button class="menu-toggle" onclick="toggleMenu()">☰</button>
-            <div class="page-title" id="page-title">月榜BV号替换</div>
-            <div class="user-info"><span class="user-avatar">站</span><span id="currentUser">站长</span></div>
+    <div class="content-area">
+        <div id="bv-replace" class="panel active">
+            <div class="card">
+                <h2>当前播放配置</h2>
+                <div class="form-group">
+                    <label>当前视频 BV号：</label>
+                    <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly>
+                </div>
+                <div class="form-group">
+                    <label>更新为新 BV号：</label>
+                    <input type="text" id="new-bv" placeholder="例如：BV1xx411c7mD">
+                </div>
+                <button class="btn" onclick="updateVideo()">确认替换并下载</button>
+                <p class="hint">* 点击下载后，请将生成的 index.html 上传至服务器覆盖原文件。</p>
+            </div>
         </div>
 
-        <div class="content-area">
-            <div id="bv-replace" class="panel active">
-                <div class="card">
-                    <h2>当前播放配置</h2>
-                    <div class="form-group">
-                        <label>当前视频 BV号：</label>
-                        <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly>
+        <div id="video-gen" class="panel">
+            <div class="vg-layout">
+                <div class="vg-form-section">
+                    <div class="vg-header">
+                        <h2>原创月榜视频生成 · Top 30</h2>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <button class="btn-import" onclick="document.getElementById('history-file-batch').click()">📂 导入上期数据</button>
+                            <button class="btn-import" onclick="document.getElementById('json-file-batch').click()">📂 导入 JSON</button>
+                            <button class="btn-generate" id="btn-generate" onclick="startVideoGeneration()">🎬 开始生成视频</button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>更新为新 BV号：</label>
-                        <input type="text" id="new-bv" placeholder="例如：BV1xx411c7mD">
-                    </div>
-                    <button class="btn" onclick="updateVideo()">确认替换并下载</button>
-                    <p class="hint">* 点击下载后，请将生成的 index.html 上传至服务器覆盖原文件。</p>
+                    <input type="file" id="history-file-batch" accept=".txt" style="display:none" onchange="handleHistoryFile(this)">
+                    <input type="file" id="json-file-batch" accept=".json" style="display:none" onchange="handleInjectFile(this)">
+                    <div id="rank-entries"></div>
                 </div>
-            </div>
-
-            <div id="video-gen" class="panel">
-                <div class="vg-layout">
-                    <div class="vg-form-section">
-                        <div class="vg-header">
-                            <h2>原创月榜视频生成 · Top 30</h2>
-                            <div style="display:flex; gap:10px; align-items:center;">
-                                <button class="btn-import" onclick="document.getElementById('history-file-batch').click()">📂 导入上期数据</button>
-                                <button class="btn-import" onclick="document.getElementById('json-file-batch').click()">📂 导入 JSON</button>
-                                <button class="btn-generate" id="btn-generate" onclick="startVideoGeneration()">🎬 开始生成视频</button>
+                <div class="vg-preview-section">
+                    <div class="preview-card">
+                        <h3>🖼️ 实时预览</h3>
+                        <div class="canvas-wrap">
+                            <canvas id="preview-canvas" width="1920" height="1080"></canvas>
+                            <div class="canvas-placeholder" id="canvas-placeholder">
+                                <span>🎬</span>
+                                <div>填写数据后自动预览</div>
                             </div>
                         </div>
-                        <input type="file" id="history-file-batch" accept=".txt" style="display:none" onchange="handleHistoryFile(this)">
-                        <input type="file" id="json-file-batch" accept=".json" style="display:none" onchange="handleInjectFile(this)">
-                        <div id="rank-entries"></div>
-                    </div>
-                    <div class="vg-preview-section">
-                        <div class="preview-card">
-                            <h3>🖼️ 实时预览</h3>
-                            <div class="canvas-wrap">
-                                <canvas id="preview-canvas" width="1920" height="1080"></canvas>
-                                <div class="canvas-placeholder" id="canvas-placeholder">
-                                    <span>🎬</span>
-                                    <div>填写数据后自动预览</div>
-                                </div>
+                        <div class="progress-bar-wrap" id="progress-wrap">
+                            <div class="progress-label">
+                                <span id="progress-text">准备中...</span>
+                                <span id="progress-percent">0%</span>
                             </div>
-                            <div class="progress-bar-wrap" id="progress-wrap">
-                                <div class="progress-label">
-                                    <span id="progress-text">准备中...</span>
-                                    <span id="progress-percent">0%</span>
-                                </div>
-                                <div class="progress-track">
-                                    <div class="progress-fill" id="progress-fill"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="single-video-gen" class="panel">
-                <div class="vg-layout">
-                    <div class="vg-form-section">
-                        <div class="vg-header">
-                            <h2>总月榜视频生成 · Top 30</h2>
-                            <div style="display:flex; gap:10px; align-items:center;">
-                                <button class="btn-import" onclick="document.getElementById('history-file-single').click()">📂 导入上期数据</button>
-                                <button class="btn-import" onclick="document.getElementById('json-file-single').click()">📂 导入 JSON</button>
-                                <button class="btn-generate" id="btn-single-generate" onclick="startSingleVideoGeneration()">🏆 开始生成视频</button>
-                            </div>
-                        </div>
-                        <input type="file" id="history-file-single" accept=".txt" style="display:none" onchange="handleHistoryFile(this)">
-                        <input type="file" id="json-file-single" accept=".json" style="display:none" onchange="handleInjectFile(this)">
-                        <div class="card">
-                            <h2>🏆 总榜排名列表</h2>
-                            <div id="single-rank-preview" style="max-height:300px; overflow-y:auto;"></div>
-                        </div>
-                        <div id="single-rank-forms"></div>
-                    </div>
-                    <div class="vg-preview-section">
-                        <div class="preview-card">
-                            <h3>🖼️ 实时预览</h3>
-                            <div class="canvas-wrap">
-                                <canvas id="single-preview-canvas" width="1920" height="1080"></canvas>
-                                <div class="canvas-placeholder" id="single-canvas-placeholder">
-                                    <span>🏆</span>
-                                    <div>导入数据后自动预览</div>
-                                </div>
-                            </div>
-                            <div class="progress-bar-wrap" id="single-progress-wrap">
-                                <div class="progress-label">
-                                    <span id="single-progress-text">准备中...</span>
-                                    <span id="single-progress-percent">0%</span>
-                                </div>
-                                <div class="progress-track">
-                                    <div class="progress-fill" id="single-progress-fill"></div>
-                                </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" id="progress-fill"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="inject-modal">
-        <div class="inject-modal-box">
-            <div class="inject-modal-header">
-                <h3>选择收录作品（排名自动重排）</h3>
-                <div>
-                    <button type="button" onclick="toggleInjectAll(true)">全选</button>
-                    <button type="button" onclick="toggleInjectAll(false)">全不选</button>
+        <div id="single-video-gen" class="panel">
+            <div class="vg-layout">
+                <div class="vg-form-section">
+                    <div class="vg-header">
+                        <h2>总月榜视频生成 · Top 30</h2>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <button class="btn-import" onclick="document.getElementById('history-file-single').click()">📂 导入上期数据</button>
+                            <button class="btn-import" onclick="document.getElementById('json-file-single').click()">📂 导入 JSON</button>
+                            <button class="btn-generate" id="btn-single-generate" onclick="startSingleVideoGeneration()">🏆 开始生成视频</button>
+                        </div>
+                    </div>
+                    <input type="file" id="history-file-single" accept=".txt" style="display:none" onchange="handleHistoryFile(this)">
+                    <input type="file" id="json-file-single" accept=".json" style="display:none" onchange="handleInjectFile(this)">
+                    <div class="card">
+                        <h2>🏆 总榜排名列表</h2>
+                        <div id="single-rank-preview" style="max-height:300px; overflow-y:auto;"></div>
+                    </div>
+                    <div id="single-rank-forms"></div>
                 </div>
-            </div>
-            <div class="modal-body" id="inj-list"></div>
-            <div class="inject-modal-footer">
-                <button type="button" class="btn-cancel" onclick="closeInjectModal()">取消</button>
-                <button type="button" class="btn-save" onclick="injectApplyImport()">✅ 确认填入</button>
+                <div class="vg-preview-section">
+                    <div class="preview-card">
+                        <h3>🖼️ 实时预览</h3>
+                        <div class="canvas-wrap">
+                            <canvas id="single-preview-canvas" width="1920" height="1080"></canvas>
+                            <div class="canvas-placeholder" id="single-canvas-placeholder">
+                                <span>🏆</span>
+                                <div>导入数据后自动预览</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar-wrap" id="single-progress-wrap">
+                            <div class="progress-label">
+                                <span id="single-progress-text">准备中...</span>
+                                <span id="single-progress-percent">0%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" id="single-progress-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div id="toast"></div>
-
-    <div id="trim-modal">
-        <div>
-            <h2>🎬 裁剪视频片段</h2>
-            <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:20px;">选择视频的高潮片段作为月榜使用</p>
-            <div class="trim-video-wrap">
-                <video id="trim-video" controls></video>
-            </div>
-            <div class="trim-duration" id="trim-duration">视频总时长: 0.00 秒</div>
-            <button id="ai-trim-btn" style="background:linear-gradient(135deg, #a8e063, #56ab2f); color:#fff; border:none; padding:10px 15px; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:10px; width:100%;">🤖 智能分析音画卡点</button>
-            <div class="trim-grid">
-                <div>
-                    <label>开始时间（秒）</label>
-                    <input type="number" id="trim-start" step="0.01" min="0">
-                    <button onclick="setTrimStart()">📍 设为当前帧</button>
-                </div>
-                <div>
-                    <label>结束时间（秒）</label>
-                    <input type="number" id="trim-end" step="0.01" min="0">
-                    <button onclick="setTrimEnd()">📍 设为当前帧</button>
-                </div>
-            </div>
-            <div class="trim-actions">
-                <button class="btn-preview" onclick="previewTrim()">▶ 预览片段</button>
-                <button class="btn-cancel" onclick="closeTrimModal()">取消</button>
-                <button class="btn-save" onclick="saveTrimSettings()">✅ 保存</button>
+<div id="inject-modal">
+    <div class="inject-modal-box">
+        <div class="inject-modal-header">
+            <h3>选择收录作品（排名自动重排）</h3>
+            <div>
+                <button type="button" onclick="toggleInjectAll(true)">全选</button>
+                <button type="button" onclick="toggleInjectAll(false)">全不选</button>
             </div>
         </div>
+        <div class="modal-body" id="inj-list"></div>
+        <div class="inject-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeInjectModal()">取消</button>
+            <button type="button" class="btn-save" onclick="injectApplyImport()">✅ 确认填入</button>
+        </div>
     </div>
+</div>
 
-    <div id="version-info">版本 8.1 — 双轨隔离 · 两榜容量统一 Top 30 · 上期数据导入对比 · 自动导出 history_data.txt</div>
-    <div id="asset-status" class="loading">📦 素材加载中...</div>
+<div id="toast"></div>
 
-    <script>
+<div id="trim-modal">
+    <div>
+        <h2>🎬 裁剪视频片段</h2>
+        <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:20px;">选择视频的高潮片段作为月榜使用</p>
+        <div class="trim-video-wrap">
+            <video id="trim-video" controls></video>
+        </div>
+        <div class="trim-duration" id="trim-duration">视频总时长: 0.00 秒</div>
+        <button id="ai-trim-btn" style="background:linear-gradient(135deg, #a8e063, #56ab2f); color:#fff; border:none; padding:10px 15px; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:10px; width:100%;">🤖 智能分析音画卡点</button>
+        <div class="trim-grid">
+            <div>
+                <label>开始时间（秒）</label>
+                <input type="number" id="trim-start" step="0.01" min="0">
+                <button onclick="setTrimStart()">📍 设为当前帧</button>
+            </div>
+            <div>
+                <label>结束时间（秒）</label>
+                <input type="number" id="trim-end" step="0.01" min="0">
+                <button onclick="setTrimEnd()">📍 设为当前帧</button>
+            </div>
+        </div>
+        <div class="trim-actions">
+            <button class="btn-preview" onclick="previewTrim()">▶ 预览片段</button>
+            <button class="btn-cancel" onclick="closeTrimModal()">取消</button>
+            <button class="btn-save" onclick="saveTrimSettings()">✅ 保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="version-info">版本 8.2 — drawUI 布局重排（左上排名/左下作品/右上白底数据/右下白底胶囊）· 两榜 Top 30 · 双轨隔离 · 自动导出 history_data.txt</div>
+<div id="asset-status" class="loading">📦 素材加载中...</div>
+
+<script>
     (function checkAuth() {
         if (localStorage.getItem('bili_admin_logged_in') !== 'true') {
             window.location.href = 'login.html';
@@ -1109,9 +1109,9 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     async function loadAssets() {
         if (assetsLoadPromise) return assetsLoadPromise;
         if (assetsLoaded) return;
-        
+
         updateAssetStatus('loading', '📦 正在加载素材...');
-        
+
         assetsLoadPromise = (async () => {
             try {
                 await Promise.all([
@@ -1120,39 +1120,39 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                     loadFontWithTimeout('bold 42px BiaoXiaoZhi'),
                     loadFontWithTimeout('bold 84px BiaoXiaoZhi')
                 ]);
-            } catch(e) { 
-                console.warn('⚠️ 字体处理异常:', e); 
+            } catch(e) {
+                console.warn('⚠️ 字体处理异常:', e);
             }
-            
+
             const keys = Object.keys(ASSET_PATHS);
             const totalAssets = keys.length;
             let loadedCount = 0;
-            
+
             const results = await Promise.all(keys.map(async (k) => {
                 const img = await loadAssetWithRetry(k, ASSET_PATHS[k]);
                 loadedCount++;
                 updateAssetStatus('loading', '📦 素材加载中... (' + loadedCount + '/' + totalAssets + ')');
                 return img;
             }));
-            
+
             results.forEach((img, i) => {
                 assets[keys[i]] = img;
             });
-            
+
             assetsLoaded = true;
             updateAssetStatus('ready', '✅ 全部素材就绪 (' + totalAssets + '个)');
-            
+
             if (currentPreviewRank !== undefined) {
                 drawPreview(currentPreviewRank);
             }
             drawSinglePreview(0);
-            
+
             setTimeout(() => {
                 const statusEl = document.getElementById('asset-status');
                 if (statusEl) statusEl.style.opacity = '0';
             }, 3000);
         })();
-        
+
         return assetsLoadPromise;
     }
 
@@ -1167,11 +1167,11 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     function safeDrawImage(ctx, img, x, y, w, h) {
         if (!img) return false;
         if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
-            try { 
-                ctx.drawImage(img, x, y, w, h); 
-                return true; 
-            } catch(e) { 
-                return false; 
+            try {
+                ctx.drawImage(img, x, y, w, h);
+                return true;
+            } catch(e) {
+                return false;
             }
         }
         return false;
@@ -1535,15 +1535,26 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const t = Math.min(elapsed, UI_FADE);
         const uiAlpha = t / UI_FADE;
 
-        // 0. 左上角数据指标列（竖排：播放/收藏/投币/点赞/弹幕/评论/分享，原样数字不做格式化）
+        // 0. 右上角两块白底卡片（先画底板，后续数据都画在白底之上）
+        const cardX = W - 420;
+        const cardW = 360;
+        const cardH = 300;
+        const scoreCardY = 60;
+        const statCardY = 380;
+        ctx.save();
+        ctx.globalAlpha = uiAlpha;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(cardX, scoreCardY, cardW, cardH);
+        ctx.fillRect(cardX, statCardY, cardW, cardH);
+        ctx.restore();
+
+        // 0.1 白底卡内数据指标列（竖排：播放/收藏/投币/点赞/弹幕/评论/分享，原样数字不做格式化）
         ctx.save();
         ctx.globalAlpha = 0.75;
-        ctx.fillStyle = '#FFFFFF';
+        ctx.fillStyle = '#333333';
         ctx.font = '28px Microsoft YaHei';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.shadowColor = 'rgba(0,0,0,0.8)';
-        ctx.shadowBlur = 4;
         const statLines = [
             `播放：${d.view}`,
             `收藏：${d.favorite}`,
@@ -1553,19 +1564,19 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             `评论：${d.reply}`,
             `分享：${d.share}`
         ];
-        const statLineHeight = 42;
+        const statLineHeight = 38;
         statLines.forEach((line, i) => {
-            ctx.fillText(line, 40, 60 + i * statLineHeight);
+            ctx.fillText(line, cardX + 30, statCardY + 24 + i * statLineHeight);
         });
         ctx.restore();
 
-        // 1. 排名大圆圈
-        const rankX = W - 200;
-        const rankY = 180;
-        
-        if (!safeDrawImage(ctx, assets.rankCircle, rankX - 100, rankY - 100, 200, 200)) {
+        // 1. 排名（左上角；rankX / rankY 为排名区块的左上原点，200x200 底板整体留在画布内）
+        const rankX = 60;
+        const rankY = 60;
+
+        if (!safeDrawImage(ctx, assets.rankCircle, rankX, rankY, 200, 200)) {
             ctx.beginPath();
-            ctx.arc(rankX, rankY, 100, 0, Math.PI * 2);
+            ctx.arc(rankX + 100, rankY + 100, 100, 0, Math.PI * 2);
             ctx.fillStyle = '#2c3e50';
             ctx.fill();
             ctx.strokeStyle = '#a855f7';
@@ -1573,14 +1584,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             ctx.stroke();
         }
 
-        const rank = parseInt(d.rank);
-        const baseSize = rank <= 10 ? 110 : 90;
+        const baseSize = 130;
         let rankScale = 0.5 + 0.5 * Math.min(elapsed / RANK_FADE, 1);
-        
+
         ctx.save();
-        ctx.translate(rankX, rankY);
+        ctx.translate(rankX + 100, rankY + 100);
         ctx.scale(rankScale, rankScale);
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = '#00FF00';
         ctx.font = 'bold ' + baseSize + 'px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1590,15 +1600,16 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         // 2. 变化标识 —— 修复拉伸
         const changeImg = getChangeImage(d.changeType);
         const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
-        
+
         let rotation = 0;
         if (elapsed < 0.3) {
             const p = elapsed / 0.3;
-            rotation = Math.PI * (1 - p); 
+            rotation = Math.PI * (1 - p);
         }
 
         ctx.save();
-        ctx.translate(rankX + 120, rankY - 20);
+        // 排名区块改为左上原点后，标识跟随移到区块右侧（原 +120/-20 会顶出画布上边缘）
+        ctx.translate(rankX + 260, rankY + 100);
         ctx.rotate(rotation);
         if (changeImg) {
             // 关键：保持原始宽高比
@@ -1636,26 +1647,26 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 56px Microsoft YaHei';
-        ctx.textAlign = 'right';
+        ctx.font = 'bold 64px Microsoft YaHei';
+        ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.shadowColor = 'rgba(0,0,0,0.5)';
         ctx.shadowBlur = 10;
-        ctx.fillText(displayName, W - 80, 320);
+        ctx.fillText(displayName, 60, H - 100);
 
         ctx.fillStyle = '#d1d5db';
-        ctx.font = '32px Microsoft YaHei';
+        ctx.font = '36px Microsoft YaHei';
+        ctx.textAlign = 'left';
         ctx.shadowBlur = 0;
-        ctx.fillText(artistLine || '', W - 80, 390);
+        ctx.fillText(artistLine || '', 60, H - 40);
         ctx.restore();
 
-        // 4. 底部数据胶囊栏
-        const capsuleY = H - 140;
+        // 4. 右下角历史数据胶囊栏（白底 + 深色文字）
+        const capsuleY = H - 180;
         const capsuleWidth = 140;
-        const capsuleHeight = 80;
+        const capsuleHeight = 100;
         const gap = 20;
-        const totalCapsuleWidth = (capsuleWidth * 3) + (gap * 2);
-        const startX = W - totalCapsuleWidth - 40;
+        const startX = W - 460;
 
         const capsuleItems = [
             { label: '上月排名', value: d.lastWeekRank || '-' },
@@ -1667,46 +1678,45 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
 
         capsuleItems.forEach((item, i) => {
             const x = startX + i * (capsuleWidth + gap);
-            
+
             ctx.save();
             ctx.globalAlpha = uiAlpha * numAlpha;
-            
-            ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
+
+            ctx.fillStyle = '#FFFFFF';
             ctx.strokeStyle = '#a855f7';
             ctx.lineWidth = 2;
-            
+
             ctx.beginPath();
             ctx.roundRect(x, capsuleY, capsuleWidth, capsuleHeight, 15);
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = '#333333';
             ctx.font = 'bold 42px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(0,0,0,0.8)';
-            ctx.shadowBlur = 8;
-            ctx.fillText(item.value, x + capsuleWidth / 2, capsuleY + 35);
-
-            ctx.fillStyle = '#e5e7eb';
-            ctx.font = '16px Microsoft YaHei';
             ctx.shadowBlur = 0;
-            ctx.fillText(item.label, x + capsuleWidth / 2, capsuleY + 65);
+            ctx.fillText(item.value, x + capsuleWidth / 2, capsuleY + 44);
+
+            ctx.fillStyle = '#333333';
+            ctx.font = '16px Microsoft YaHei';
+            ctx.fillText(item.label, x + capsuleWidth / 2, capsuleY + 80);
             ctx.restore();
         });
 
-        // 5. Rate 和 总分
+        // 5. Rate 和 总分（右上角白底卡内，整体右移下移）
         ctx.save();
         ctx.globalAlpha = uiAlpha;
         ctx.fillStyle = '#a855f7';
         ctx.font = 'bold 28px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
         ctx.textAlign = 'right';
-        ctx.fillText('Rate: ' + (d.rate || '--'), W - 40, 60);
-        
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText('Rate: ' + (d.rate || '--'), W - 60, 120);
+
         const scoreStr = String(d.totalScore || '0').padStart(8, '0');
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 48px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
-        ctx.fillText(scoreStr, W - 40, 110);
+        ctx.fillStyle = '#00FF00';
+        ctx.font = 'bold 60px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+        ctx.fillText(scoreStr, W - 60, 200);
         ctx.restore();
 
         // 6. 叠加文字
@@ -1790,17 +1800,17 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             audioDestination = audioContext.createMediaStreamDestination();
-            
+
             masterGain = audioContext.createGain();
             masterGain.gain.value = MASTER_VOLUME;
-            
+
             limiter = audioContext.createDynamicsCompressor();
             limiter.threshold.value = -6;
             limiter.knee.value = 6;
             limiter.ratio.value = 20;
             limiter.attack.value = 0.003;
             limiter.release.value = 0.1;
-            
+
             masterGain.connect(limiter);
             limiter.connect(audioDestination);
         }
@@ -2673,6 +2683,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             updateSingleRankPreview();
         }
     });
-    </script>
+</script>
 </body>
 </html>
