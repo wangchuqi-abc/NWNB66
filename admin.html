@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<!-- 版本 8.0 - 双轨重构：废除批量/单个概念，原创月榜与总月榜面板分离（currentBoardPrefix 双轨隔离），上期TXT导入对比，history_data.txt 自动导出（保留 drawUI 画布UI、16:9 黑边适配与智能卡点） -->
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
+<!-- saved from url=(0032)https://nianwan.cn.mt/admin.html -->
+<html lang="zh-CN" data-immersive-translate-page-theme="light"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BliBli_week 副站管理后台</title>
     <link rel="icon" href="data:,">
@@ -727,7 +726,7 @@
                 <h2>当前播放配置</h2>
                 <div class="form-group">
                     <label>当前视频 BV号：</label>
-                    <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly>
+                    <input type="text" id="current-bv" value="BV1Z4b96sEWy" readonly="">
                 </div>
                 <div class="form-group">
                     <label>更新为新 BV号：</label>
@@ -846,7 +845,7 @@
         <h2>🎬 裁剪视频片段</h2>
         <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:20px;">选择视频的高潮片段作为月榜使用</p>
         <div class="trim-video-wrap">
-            <video id="trim-video" controls></video>
+            <video id="trim-video" controls=""></video>
         </div>
         <div class="trim-duration" id="trim-duration">视频总时长: 0.00 秒</div>
         <button id="ai-trim-btn" style="background:linear-gradient(135deg, #a8e063, #56ab2f); color:#fff; border:none; padding:10px 15px; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:10px; width:100%;">🤖 智能分析音画卡点</button>
@@ -2671,5 +2670,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
 
     // 启动程序
     window.addEventListener('DOMContentLoaded', initApp);
+</script>
 </body>
 </html>
