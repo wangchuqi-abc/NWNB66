@@ -1262,6 +1262,11 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             preview.textContent = d.chineseName || d.songName || '未填写...';
         }
         if (index === currentPreviewRank) drawPreview(index);
+        
+        // 🛡️ 新增：每次你打字修改，自动存进浏览器硬盘
+        try {
+            localStorage.setItem('voca_auto_save_data', JSON.stringify(rankData));
+        } catch(e) {}
     }
 
     function handleVideoSelect(index, input) {
@@ -1392,8 +1397,18 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const item = tempInjectData[parseInt(chk.dataset.idx)];
             if (!item) return;
             const song = item.song || {};
-            rankData[idx].songName = String(song.display_name || song.name || '').split('(')[0].trim();
-            rankData[idx].chineseName = rankData[idx].songName;
+            
+            const rawName = String(song.name || song.display_name || '').split('(')[0].trim();
+            const cnName = String(song.display_name || '').split('(')[0].trim();
+
+            // 🛡️ 新增逻辑：如果原名和中文名都有且不相同，拼接为：原名（中文名）
+            if (rawName && cnName && rawName !== cnName) {
+                rankData[idx].songName = `${rawName}（${cnName}）`;
+            } else {
+                rankData[idx].songName = rawName || cnName || '';
+            }
+
+            rankData[idx].chineseName = cnName || rawName;
             rankData[idx].producer = (song.producers || []).map(p => p.producer && p.producer.name).filter(Boolean).join(' / ');
             rankData[idx].vocalist = (song.vocalists || []).map(v => v.vocalist && v.vocalist.name).filter(Boolean).join(' / ');
             rankData[idx].totalScore = item.point || '';
@@ -1405,7 +1420,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             rankData[idx].reply = item.reply || 0;
             rankData[idx].share = item.share || 0;
             rankData[idx].changeType = item.last ? (item.last.rank > item.rank ? 'up' : 'down') : 'new';
-            // 动态计算 RATE 涨跌幅：与上月总分对比
+            
             if (item.last && item.last.point) {
                 const rateVal = ((item.point - item.last.point) / item.last.point) * 100;
                 if (!isNaN(rateVal) && rateVal !== 0) {
@@ -1418,7 +1433,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             }
         });
         closeInjectModal();
-        // 同步刷新当前激活面板的表单与预览
         if (document.getElementById('video-gen').classList.contains('active')) {
             renderRankEntries();
         }
@@ -1426,7 +1440,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             updateSingleRankPreview();
         }
         drawPreview(0);
-        showToast('填入成功，排名已重排', 'success');
+        showToast('填入成功，名字已拼接！', 'success');
     }
 
     // ============================================================
@@ -1535,7 +1549,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const t = Math.min(elapsed, UI_FADE);
         const uiAlpha = t / UI_FADE;
 
-        // 0. 左上角数据指标列（竖排：播放/收藏/投币/点赞/弹幕/评论/分享，原样数字不做格式化）
+        // 0. 左上角数据指标列
         ctx.save();
         ctx.globalAlpha = 0.75;
         ctx.fillStyle = '#FFFFFF';
@@ -1545,13 +1559,8 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.shadowColor = 'rgba(0,0,0,0.8)';
         ctx.shadowBlur = 4;
         const statLines = [
-            `播放：${d.view}`,
-            `收藏：${d.favorite}`,
-            `投币：${d.coin}`,
-            `点赞：${d.like}`,
-            `弹幕：${d.danmaku}`,
-            `评论：${d.reply}`,
-            `分享：${d.share}`
+            `播放：${d.view}`, `收藏：${d.favorite}`, `投币：${d.coin}`,
+            `点赞：${d.like}`, `弹幕：${d.danmaku}`, `评论：${d.reply}`, `分享：${d.share}`
         ];
         const statLineHeight = 42;
         statLines.forEach((line, i) => {
@@ -1587,7 +1596,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.fillText(String(d.rank), 0, 0);
         ctx.restore();
 
-        // 2. 变化标识 —— 修复拉伸
+        // 2. 变化标识
         const changeImg = getChangeImage(d.changeType);
         const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
         
@@ -1598,10 +1607,10 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         }
 
         ctx.save();
+        // 强制修正位置，防飞出屏幕
         ctx.translate(rankX + 120, rankY - 20);
         ctx.rotate(rotation);
         if (changeImg) {
-            // 关键：保持原始宽高比
             const maxW = 100, maxH = 100;
             const iw = changeImg.naturalWidth;
             const ih = changeImg.naturalHeight;
@@ -1632,11 +1641,17 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.translate(infoOffsetX, 0);
         ctx.scale(infoScale, infoScale);
 
-        const displayName = d.chineseName || d.songName || '';
+        const displayName = d.songName || d.chineseName || '';
         const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
 
+        // 🛡️ 智能字号缩放：如果名字超过 18 个字符，自动缩小字号，防止超出屏幕
+        let titleFontSize = 56;
+        if (displayName.length > 18) {
+            titleFontSize = Math.max(24, 56 - (displayName.length - 18) * 1.5);
+        }
+
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 56px Microsoft YaHei';
+        ctx.font = `bold ${titleFontSize}px Microsoft YaHei`;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'top';
         ctx.shadowColor = 'rgba(0,0,0,0.5)';
@@ -1895,14 +1910,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         const W = 1920, H = 1080;
         const FADE_DURATION = 0.5;
         const UI_FADE_DURATION = 0.3;
-        const PRE_AUDIO_LEAD = 1000; // 1秒
+        const PRE_AUDIO_LEAD = 1000; 
 
         const audioDest = initAudioMixer();
 
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, W, H);
 
-        // 关键：不指定帧率，让浏览器自适应
         const canvasStream = canvas.captureStream();
         const audioTracks = audioDest.stream.getAudioTracks();
         const combinedStream = new MediaStream();
@@ -1915,7 +1929,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
         }
 
-        // 码率保持 8Mbps 不变
         const recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 8000000 });
         const chunks = [];
         let recorderError = null;
@@ -1940,7 +1953,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
 
         recorder.start(1000);
 
-        // 预加载视频元素
         const videos = [];
         for (let i = TOTAL_RANKS - 1; i >= 0; i--) {
             const d = rankData[i];
@@ -1949,10 +1961,20 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             v.src = URL.createObjectURL(d.videoFile);
             v.playsInline = true;
             v.crossOrigin = 'anonymous';
-            await new Promise(r => { v.onloadedmetadata = r; });
+            
+            // 🛡️ 超时控制：最多等 5 秒
+            try {
+                await Promise.race([
+                    new Promise(r => { v.onloadedmetadata = r; }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('视频加载超时')), 5000))
+                ]);
+            } catch(e) {
+                console.warn('⚠️ 视频加载超时，已跳过：', d.songName);
+                continue; 
+            }
+
             v.currentTime = 0;
             await new Promise(r => { v.onseeked = r; });
-            // 预生成首帧
             const frameCanvas = document.createElement('canvas');
             frameCanvas.width = W;
             frameCanvas.height = H;
@@ -1974,7 +1996,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const endTime = d.endTime > 0 ? d.endTime : video.duration;
             const duration = Math.max(endTime - startTime, 0.5);
 
-            // 把主视频连到 masterGain
             connectVideoAudio(video);
 
             if (startTime > 0) {
@@ -1985,8 +2006,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             if (audioContext && audioContext.state === 'suspended') {
                 await audioContext.resume();
             }
-
-            // 等一帧，让视频时钟稳定
             await sleepFrame();
 
             const totalDuration = duration * 1000;
@@ -2005,12 +2024,10 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             const nextRankData = nextVideo ? nextVideo.data : null;
             const shouldPreAudio = nextRankData && nextRankData.preAudioEnabled && nextVideo;
 
-            // 预听状态
             let preAudioStarted = false;
             let preAudioGain = null;
             let preAudioSource = null;
 
-            // 关键：用 video.currentTime 驱动画面，音频走到哪，画面就画到哪
             while (!video.ended && video.currentTime < endTime - 0.03) {
                 const elapsed = (video.currentTime - startTime) * 1000;
                 const progress = Math.min(elapsed / totalDuration, 1);
@@ -2023,7 +2040,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                     videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
                 }
 
-                // ---- 未见其人先见其声：启动 ----
                 if (shouldPreAudio && !preAudioStarted && timeLeft <= PRE_AUDIO_LEAD) {
                     preAudioStarted = true;
                     try {
@@ -2035,25 +2051,18 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                             videoSourceCache.set(nextVideo.video, nextSource);
                         }
                         preAudioSource = nextSource;
-
-                        // 独立增益节点，绕过 masterGain，直接接 limiter
                         preAudioGain = audioContext.createGain();
                         preAudioGain.gain.value = 0;
                         preAudioSource.connect(preAudioGain);
                         preAudioGain.connect(limiter);
-
-                        // 关键：从下一排名的 startTime 开始播
                         const nextStart = nextRankData.startTime || 0;
                         nextVideo.video.currentTime = nextStart;
                         await nextVideo.video.play();
-                        console.log('🎧 预听启动：第' + nextRankData.rank + '名，从 ' + nextStart.toFixed(2) + 's 开始');
                     } catch(e) {
-                        console.warn('预听启动失败:', e);
                         preAudioStarted = false;
                     }
                 }
 
-                // ---- 音量控制 ----
                 if (preAudioStarted && preAudioGain) {
                     const preProgress = Math.min((elapsed - (totalDuration - PRE_AUDIO_LEAD)) / PRE_AUDIO_LEAD, 1);
                     preAudioGain.gain.value = MASTER_VOLUME * preProgress;
@@ -2107,21 +2116,17 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 await sleepFrame();
             }
 
-            // 当前视频结束
             video.pause();
+            // 🛡️ 内存释放锁：处理完一个视频立刻销毁
+            URL.revokeObjectURL(video.src);
+            video.remove();
 
-            // 清理预听
             if (preAudioStarted && preAudioGain) {
                 try { preAudioGain.disconnect(); } catch(e) {}
                 preAudioGain = null;
                 masterGain.gain.value = MASTER_VOLUME;
             }
         }
-
-        videos.forEach(({ video }) => {
-            URL.revokeObjectURL(video.src);
-            video.remove();
-        });
 
         recorder.stop();
         await recordingComplete;
@@ -2300,7 +2305,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, W, H);
 
-        // 关键：不指定帧率
         const canvasStream = canvas.captureStream();
         const audioTracks = audioDest.stream.getAudioTracks();
         const combinedStream = new MediaStream();
@@ -2313,7 +2317,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
         }
 
-        // 码率保持 8Mbps 不变
         const recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 8000000 });
         const chunks = [];
         let recorderError = null;
@@ -2348,7 +2351,18 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             v.src = URL.createObjectURL(d.videoFile);
             v.playsInline = true;
             v.crossOrigin = 'anonymous';
-            await new Promise(r => { v.onloadedmetadata = r; });
+            
+            // 🛡️ 超时控制：最多等 5 秒
+            try {
+                await Promise.race([
+                    new Promise(r => { v.onloadedmetadata = r; }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('视频加载超时')), 5000))
+                ]);
+            } catch(e) {
+                console.warn('⚠️ 视频加载超时，已跳过：', d.songName);
+                continue; 
+            }
+            
             v.currentTime = 0;
             await new Promise(r => { v.onseeked = r; });
             const frameCanvas = document.createElement('canvas');
@@ -2404,7 +2418,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             let preAudioGain = null;
             let preAudioSource = null;
 
-            // 关键：用 video.currentTime 驱动画面
             while (!video.ended && video.currentTime < endTime - 0.03) {
                 const elapsed = (video.currentTime - startTime) * 1000;
                 const progress = Math.min(elapsed / totalDuration, 1);
@@ -2435,9 +2448,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         const nextStart = nextRankData.startTime || 0;
                         nextVideo.video.currentTime = nextStart;
                         await nextVideo.video.play();
-                        console.log('🎧 预听启动：第' + nextRankData.rank + '名，从 ' + nextStart.toFixed(2) + 's 开始');
                     } catch(e) {
-                        console.warn('预听启动失败:', e);
                         preAudioStarted = false;
                     }
                 }
@@ -2496,6 +2507,9 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             }
 
             video.pause();
+            // 🛡️ 内存释放锁
+            URL.revokeObjectURL(video.src);
+            video.remove();
 
             if (preAudioStarted && preAudioGain) {
                 try { preAudioGain.disconnect(); } catch(e) {}
@@ -2503,11 +2517,6 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 masterGain.gain.value = MASTER_VOLUME;
             }
         }
-
-        videos.forEach(({ video }) => {
-            URL.revokeObjectURL(video.src);
-            video.remove();
-        });
 
         recorder.stop();
         await recordingComplete;
@@ -2662,8 +2671,25 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     // ============================================================
     // 初始化
     // ============================================================
-    window.addEventListener('DOMContentLoaded', () => {
+    function initApp() {
         setTimeout(loadAssets, 200);
+        
+        // 🛡️ 自动读档：读取上次保存的数据
+        const savedData = localStorage.getItem('voca_auto_save_data');
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                for (let i = 0; i < parsed.length; i++) {
+                    if (parsed[i] && rankData[i]) Object.assign(rankData[i], parsed[i]);
+                }
+                setTimeout(() => {
+                    if (typeof renderRankEntries === 'function') renderRankEntries();
+                    if (typeof drawPreview === 'function') drawPreview(0);
+                }, 300);
+                console.log('✅ 自动恢复了上次的数据！');
+            } catch(e) {}
+        }
+
         if (document.getElementById('video-gen').classList.contains('active')) {
             renderRankEntries();
             setTimeout(() => drawPreview(0), 300);
@@ -2672,7 +2698,9 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         if (document.getElementById('single-video-gen').classList.contains('active')) {
             updateSingleRankPreview();
         }
-    });
-</script>
+    }
+
+    // 启动程序
+    window.addEventListener('DOMContentLoaded', initApp);
 </body>
 </html>
