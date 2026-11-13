@@ -1903,7 +1903,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         }
     }
 
-    async async function generateVideo(progressWrap) {
+    async function generateVideo(progressWrap) {
         const canvas = document.getElementById('preview-canvas');
         const ctx = canvas.getContext('2d');
         const W = 1920, H = 1080;
@@ -2274,7 +2274,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         }
     }
 
-    async async async function generateSingleVideo(startRank, endRank, progressWrap) {
+    async function generateSingleVideo(startRank, endRank, progressWrap) {
         const canvas = document.getElementById('single-preview-canvas');
         const ctx = canvas.getContext('2d');
         const W = 1920, H = 1080;
