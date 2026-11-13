@@ -1904,13 +1904,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         }
     }
 
-    async function generateVideo(progressWrap) {
+    async async function generateVideo(progressWrap) {
         const canvas = document.getElementById('preview-canvas');
         const ctx = canvas.getContext('2d');
         const W = 1920, H = 1080;
         const FADE_DURATION = 0.5;
         const UI_FADE_DURATION = 0.3;
-        const PRE_AUDIO_LEAD = 1000; 
+        const PRE_AUDIO_LEAD = 2000; // 🛡️ 提前2秒播放下一首
 
         const audioDest = initAudioMixer();
 
@@ -1962,16 +1962,12 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             v.playsInline = true;
             v.crossOrigin = 'anonymous';
             
-            // 🛡️ 超时控制：最多等 5 秒
             try {
                 await Promise.race([
                     new Promise(r => { v.onloadedmetadata = r; }),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('视频加载超时')), 5000))
                 ]);
-            } catch(e) {
-                console.warn('⚠️ 视频加载超时，已跳过：', d.songName);
-                continue; 
-            }
+            } catch(e) { continue; }
 
             v.currentTime = 0;
             await new Promise(r => { v.onseeked = r; });
@@ -2003,9 +1999,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 await new Promise(r => { video.onseeked = r; });
             }
             await video.play();
-            if (audioContext && audioContext.state === 'suspended') {
-                await audioContext.resume();
-            }
+            if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
             await sleepFrame();
 
             const totalDuration = duration * 1000;
@@ -2035,14 +2029,10 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 const fadeOutType = d.fadeOutType || '1';
                 const timeLeft = totalDuration - elapsed;
 
-                let videoAlpha = 1;
-                if (isFadingOut && fadeOutType === '1') {
-                    videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
-                }
-
                 if (shouldPreAudio && !preAudioStarted && timeLeft <= PRE_AUDIO_LEAD) {
                     preAudioStarted = true;
                     try {
+                        if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
                         let nextSource;
                         if (videoSourceCache.has(nextVideo.video)) {
                             nextSource = videoSourceCache.get(nextVideo.video);
@@ -2052,27 +2042,26 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         }
                         preAudioSource = nextSource;
                         preAudioGain = audioContext.createGain();
-                        preAudioGain.gain.value = 0;
+                        preAudioGain.gain.value = MASTER_VOLUME;
                         preAudioSource.connect(preAudioGain);
                         preAudioGain.connect(limiter);
+                        
                         const nextStart = nextRankData.startTime || 0;
                         nextVideo.video.currentTime = nextStart;
                         await nextVideo.video.play();
-                    } catch(e) {
-                        preAudioStarted = false;
-                    }
+                    } catch(e) { preAudioStarted = false; }
                 }
 
                 if (preAudioStarted && preAudioGain) {
-                    const preProgress = Math.min((elapsed - (totalDuration - PRE_AUDIO_LEAD)) / PRE_AUDIO_LEAD, 1);
-                    preAudioGain.gain.value = MASTER_VOLUME * preProgress;
-                    masterGain.gain.value = MASTER_VOLUME * (1 - preProgress);
+                    preAudioGain.gain.value = MASTER_VOLUME;
+                    masterGain.gain.value = MASTER_VOLUME;
                 } else {
-                    if (isFadingOut && fadeOutType === '1') {
-                        masterGain.gain.value = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
-                    } else {
-                        masterGain.gain.value = MASTER_VOLUME;
-                    }
+                    masterGain.gain.value = MASTER_VOLUME;
+                }
+
+                let videoAlpha = 1;
+                if (isFadingOut && fadeOutType === '1') {
+                    videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
                 }
 
                 let uiAlpha = 1;
@@ -2095,9 +2084,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                     ctx.globalAlpha = 1;
                     ctx.drawImage(video, ox, oy + moveY, sw, sh);
                     if (nextVideo && nextVideo.firstFrame) {
-                        ctx.globalAlpha = 1;
-                        const revealY = (1 - moveProgress) * H;
-                        ctx.drawImage(nextVideo.firstFrame, 0, revealY, W, H);
+                        ctx.drawImage(nextVideo.firstFrame, 0, (1 - moveProgress) * H, W, H);
                     }
                 } else {
                     ctx.globalAlpha = videoAlpha;
@@ -2117,16 +2104,12 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             }
 
             video.pause();
-            // 🛡️ 内存释放锁：处理完一个视频立刻销毁
+        }
+
+        videos.forEach(({ video }) => {
             URL.revokeObjectURL(video.src);
             video.remove();
-
-            if (preAudioStarted && preAudioGain) {
-                try { preAudioGain.disconnect(); } catch(e) {}
-                preAudioGain = null;
-                masterGain.gain.value = MASTER_VOLUME;
-            }
-        }
+        });
 
         recorder.stop();
         await recordingComplete;
@@ -2292,13 +2275,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
         }
     }
 
-    async function generateSingleVideo(startRank, endRank, progressWrap) {
+    async async async function generateSingleVideo(startRank, endRank, progressWrap) {
         const canvas = document.getElementById('single-preview-canvas');
         const ctx = canvas.getContext('2d');
         const W = 1920, H = 1080;
         const FADE_DURATION = 0.5;
         const UI_FADE_DURATION = 0.3;
-        const PRE_AUDIO_LEAD = 1000;
+        const PRE_AUDIO_LEAD = 2000; // 🛡️ 提前2秒播放下一首
 
         const audioDest = initAudioMixer();
 
@@ -2352,16 +2335,12 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             v.playsInline = true;
             v.crossOrigin = 'anonymous';
             
-            // 🛡️ 超时控制：最多等 5 秒
             try {
                 await Promise.race([
                     new Promise(r => { v.onloadedmetadata = r; }),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('视频加载超时')), 5000))
                 ]);
-            } catch(e) {
-                console.warn('⚠️ 视频加载超时，已跳过：', d.songName);
-                continue; 
-            }
+            } catch(e) { continue; }
             
             v.currentTime = 0;
             await new Promise(r => { v.onseeked = r; });
@@ -2392,9 +2371,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 await new Promise(r => { video.onseeked = r; });
             }
             await video.play();
-            if (audioContext && audioContext.state === 'suspended') {
-                await audioContext.resume();
-            }
+            if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
 
             await sleepFrame();
 
@@ -2425,14 +2402,11 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                 const fadeOutType = d.fadeOutType || '1';
                 const timeLeft = totalDuration - elapsed;
 
-                let videoAlpha = 1;
-                if (isFadingOut && fadeOutType === '1') {
-                    videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
-                }
-
+                // 🎧 倒数2秒，直接启动下一首的高潮前奏
                 if (shouldPreAudio && !preAudioStarted && timeLeft <= PRE_AUDIO_LEAD) {
                     preAudioStarted = true;
                     try {
+                        if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
                         let nextSource;
                         if (videoSourceCache.has(nextVideo.video)) {
                             nextSource = videoSourceCache.get(nextVideo.video);
@@ -2442,27 +2416,27 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         }
                         preAudioSource = nextSource;
                         preAudioGain = audioContext.createGain();
-                        preAudioGain.gain.value = 0;
+                        preAudioGain.gain.value = MASTER_VOLUME;
                         preAudioSource.connect(preAudioGain);
                         preAudioGain.connect(limiter);
+                        
                         const nextStart = nextRankData.startTime || 0;
                         nextVideo.video.currentTime = nextStart;
                         await nextVideo.video.play();
-                    } catch(e) {
-                        preAudioStarted = false;
-                    }
+                    } catch(e) { preAudioStarted = false; }
                 }
 
+                // 🛡️ 音频无缝衔接：上一首不降音量，下一首满音量播放
                 if (preAudioStarted && preAudioGain) {
-                    const preProgress = Math.min((elapsed - (totalDuration - PRE_AUDIO_LEAD)) / PRE_AUDIO_LEAD, 1);
-                    preAudioGain.gain.value = MASTER_VOLUME * preProgress;
-                    masterGain.gain.value = MASTER_VOLUME * (1 - preProgress);
+                    preAudioGain.gain.value = MASTER_VOLUME;
+                    masterGain.gain.value = MASTER_VOLUME;
                 } else {
-                    if (isFadingOut && fadeOutType === '1') {
-                        masterGain.gain.value = MASTER_VOLUME * (1 - (elapsed - (totalDuration - fadeMs)) / fadeMs);
-                    } else {
-                        masterGain.gain.value = MASTER_VOLUME;
-                    }
+                    masterGain.gain.value = MASTER_VOLUME;
+                }
+
+                let videoAlpha = 1;
+                if (isFadingOut && fadeOutType === '1') {
+                    videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
                 }
 
                 let uiAlpha = 1;
@@ -2485,9 +2459,7 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                     ctx.globalAlpha = 1;
                     ctx.drawImage(video, ox, oy + moveY, sw, sh);
                     if (nextVideo && nextVideo.firstFrame) {
-                        ctx.globalAlpha = 1;
-                        const revealY = (1 - moveProgress) * H;
-                        ctx.drawImage(nextVideo.firstFrame, 0, revealY, W, H);
+                        ctx.drawImage(nextVideo.firstFrame, 0, (1 - moveProgress) * H, W, H);
                     }
                 } else {
                     ctx.globalAlpha = videoAlpha;
@@ -2507,16 +2479,13 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
             }
 
             video.pause();
-            // 🛡️ 内存释放锁
+            // 🛡️ 不清理 preAudioGain，让音频自然过渡到下一首
+        }
+
+        videos.forEach(({ video }) => {
             URL.revokeObjectURL(video.src);
             video.remove();
-
-            if (preAudioStarted && preAudioGain) {
-                try { preAudioGain.disconnect(); } catch(e) {}
-                preAudioGain = null;
-                masterGain.gain.value = MASTER_VOLUME;
-            }
-        }
+        });
 
         recorder.stop();
         await recordingComplete;
