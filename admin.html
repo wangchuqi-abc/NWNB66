@@ -1540,206 +1540,224 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
     // 绘制函数（含入场动画 - 新版UI）
     // ============================================================
     function drawUI(ctx, d, W, H, elapsed) {
-        const UI_FADE = 0.3;
-        const RANK_FADE = 0.3;
-        const INFO_SLIDE = 0.25;
-        const NUM_FADE = 0.15;
+    const UI_FADE = 0.3;
+    const RANK_FADE = 0.3;
+    const INFO_SLIDE = 0.25;
+    const NUM_FADE = 0.15;
 
-        const t = Math.min(elapsed, UI_FADE);
-        const uiAlpha = t / UI_FADE;
+    const t = Math.min(elapsed, UI_FADE);
+    const uiAlpha = t / UI_FADE;
 
-        // 0. 左上角数据指标列
-        ctx.save();
-        ctx.globalAlpha = 0.75;
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '28px Microsoft YaHei';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.shadowColor = 'rgba(0,0,0,0.8)';
-        ctx.shadowBlur = 4;
-        const statLines = [
-            `播放：${d.view}`, `收藏：${d.favorite}`, `投币：${d.coin}`,
-            `点赞：${d.like}`, `弹幕：${d.danmaku}`, `评论：${d.reply}`, `分享：${d.share}`
-        ];
-        const statLineHeight = 42;
-        statLines.forEach((line, i) => {
-            ctx.fillText(line, 40, 60 + i * statLineHeight);
-        });
-        ctx.restore();
+    // ==========================================
+    // 0. 左上角数据指标列 (更换为指定的 BiaoXiaoZhi 字体)
+    // ==========================================
+    ctx.save();
+    ctx.globalAlpha = 0.75;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '28px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 4;
+    const statLines = [
+        `播放：${d.view}`, `收藏：${d.favorite}`, `投币：${d.coin}`,
+        `点赞：${d.like}`, `弹幕：${d.danmaku}`, `评论：${d.reply}`, `分享：${d.share}`
+    ];
+    const statLineHeight = 42;
+    statLines.forEach((line, i) => {
+        ctx.fillText(line, 40, 60 + i * statLineHeight);
+    });
+    ctx.restore();
 
-        // 1. 排名大圆圈
-        const rankX = W - 200;
-        const rankY = 180;
-        
-        if (!safeDrawImage(ctx, assets.rankCircle, rankX - 100, rankY - 100, 200, 200)) {
-            ctx.beginPath();
-            ctx.arc(rankX, rankY, 100, 0, Math.PI * 2);
-            ctx.fillStyle = '#2c3e50';
-            ctx.fill();
-            ctx.strokeStyle = '#a855f7';
-            ctx.lineWidth = 6;
-            ctx.stroke();
-        }
+    // ==========================================
+    // 1. 左下角：排名大模块 (图片 + 数字)
+    // ==========================================
+    const rankX = 60;
+    const rankY = H - 320;
 
-        const rank = parseInt(d.rank);
-        const baseSize = rank <= 10 ? 110 : 90;
-        let rankScale = 0.5 + 0.5 * Math.min(elapsed / RANK_FADE, 1);
-        
-        ctx.save();
-        ctx.translate(rankX, rankY);
-        ctx.scale(rankScale, rankScale);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold ' + baseSize + 'px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+    // 1.1 排名底图
+    const circleSize = 180;
+    if (!safeDrawImage(ctx, assets.rankCircle, rankX, rankY, circleSize, circleSize)) {
+        ctx.beginPath();
+        ctx.arc(rankX + circleSize/2, rankY + circleSize/2, circleSize/2, 0, Math.PI * 2);
+        ctx.fillStyle = '#2c3e50';
+        ctx.fill();
+        ctx.strokeStyle = '#a855f7';
+        ctx.lineWidth = 6;
+        ctx.stroke();
+    }
+
+    // 1.2 排名数字
+    const rank = parseInt(d.rank);
+    const baseSize = rank <= 10 ? 100 : 80;
+    let rankScale = 0.5 + 0.5 * Math.min(elapsed / RANK_FADE, 1);
+
+    ctx.save();
+    ctx.translate(rankX + circleSize/2, rankY + circleSize/2);
+    ctx.scale(rankScale, rankScale);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold ' + baseSize + 'px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(d.rank), 0, 0);
+    ctx.restore();
+
+    // 1.3 变化标识（已移到排名圆圈左下角，并放大）
+    const changeImg = getChangeImage(d.changeType);
+    const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
+    let rotation = 0;
+    if (elapsed < 0.3) {
+        const p = elapsed / 0.3;
+        rotation = Math.PI * (1 - p);
+    }
+
+    // 变化标识的锚点：排名圆圈左下角
+    const badgeCx = rankX;
+    const badgeCy = rankY + circleSize;
+
+    ctx.save();
+    ctx.translate(badgeCx, badgeCy);
+    ctx.rotate(rotation);
+    if (changeImg) {
+        // 放大：原 80 → 120
+        const maxW = 120, maxH = 120;
+        const iw = changeImg.naturalWidth;
+        const ih = changeImg.naturalHeight;
+        const scale = Math.min(maxW / iw, maxH / ih, 1);
+        const drawW = iw * scale;
+        const drawH = ih * scale;
+        // 图片中心对准左下角锚点（可根据视觉微调 -10 / +10）
+        ctx.drawImage(changeImg, -drawW/2 - 10, -drawH/2 + 10, drawW, drawH);
+    } else {
+        ctx.fillStyle = '#a855f7';
+        ctx.font = 'bold 48px Microsoft YaHei';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(String(d.rank), 0, 0);
-        ctx.restore();
-
-        // 2. 变化标识
-        const changeImg = getChangeImage(d.changeType);
-        const changeLabels = { new: 'NEW', up: '↑', down: '↓', flat: '—', re: 'RE' };
-        
-        let rotation = 0;
-        if (elapsed < 0.3) {
-            const p = elapsed / 0.3;
-            rotation = Math.PI * (1 - p); 
-        }
-
-        ctx.save();
-        // 强制修正位置，防飞出屏幕
-        ctx.translate(rankX + 120, rankY - 20);
-        ctx.rotate(rotation);
-        if (changeImg) {
-            const maxW = 100, maxH = 100;
-            const iw = changeImg.naturalWidth;
-            const ih = changeImg.naturalHeight;
-            const scale = Math.min(maxW / iw, maxH / ih, 1);
-            const drawW = iw * scale;
-            const drawH = ih * scale;
-            ctx.drawImage(changeImg, -drawW/2, -drawH/2, drawW, drawH);
-        } else {
-            ctx.fillStyle = '#a855f7';
-            ctx.font = 'bold 36px Microsoft YaHei';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(changeLabels[d.changeType] || '', 0, 0);
-        }
-        ctx.restore();
-
-        // 3. 歌名与作者信息
-        let infoOffsetX = 0;
-        let infoScale = 1;
-        if (elapsed < INFO_SLIDE) {
-            const p = elapsed / INFO_SLIDE;
-            infoOffsetX = 40 * (1 - p);
-            infoScale = 0.8 + 0.2 * p;
-        }
-
-        ctx.save();
-        ctx.globalAlpha = uiAlpha;
-        ctx.translate(infoOffsetX, 0);
-        ctx.scale(infoScale, infoScale);
-
-        const displayName = d.songName || d.chineseName || '';
-        const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
-
-        // 🛡️ 智能字号缩放：如果名字超过 18 个字符，自动缩小字号，防止超出屏幕
-        let titleFontSize = 56;
-        if (displayName.length > 18) {
-            titleFontSize = Math.max(24, 56 - (displayName.length - 18) * 1.5);
-        }
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = `bold ${titleFontSize}px Microsoft YaHei`;
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'top';
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 10;
-        ctx.fillText(displayName, W - 80, 320);
-
-        ctx.fillStyle = '#d1d5db';
-        ctx.font = '32px Microsoft YaHei';
-        ctx.shadowBlur = 0;
-        ctx.fillText(artistLine || '', W - 80, 390);
-        ctx.restore();
-
-        // 4. 底部数据胶囊栏
-        const capsuleY = H - 140;
-        const capsuleWidth = 140;
-        const capsuleHeight = 80;
-        const gap = 20;
-        const totalCapsuleWidth = (capsuleWidth * 3) + (gap * 2);
-        const startX = W - totalCapsuleWidth - 40;
-
-        const capsuleItems = [
-            { label: '上月排名', value: d.lastWeekRank || '-' },
-            { label: '在榜月数', value: d.weeksOnChart || '-' },
-            { label: '最高排名', value: d.highestRank || '-' }
-        ];
-
-        const numAlpha = Math.min(elapsed / NUM_FADE, 1);
-
-        capsuleItems.forEach((item, i) => {
-            const x = startX + i * (capsuleWidth + gap);
-            
-            ctx.save();
-            ctx.globalAlpha = uiAlpha * numAlpha;
-            
-            ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
-            ctx.strokeStyle = '#a855f7';
-            ctx.lineWidth = 2;
-            
-            ctx.beginPath();
-            ctx.roundRect(x, capsuleY, capsuleWidth, capsuleHeight, 15);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 42px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(0,0,0,0.8)';
-            ctx.shadowBlur = 8;
-            ctx.fillText(item.value, x + capsuleWidth / 2, capsuleY + 35);
-
-            ctx.fillStyle = '#e5e7eb';
-            ctx.font = '16px Microsoft YaHei';
-            ctx.shadowBlur = 0;
-            ctx.fillText(item.label, x + capsuleWidth / 2, capsuleY + 65);
-            ctx.restore();
-        });
-
-        // 5. Rate 和 总分
-        ctx.save();
-        ctx.globalAlpha = uiAlpha;
-        ctx.fillStyle = '#a855f7';
-        ctx.font = 'bold 28px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText('Rate: ' + (d.rate || '--'), W - 40, 60);
-        
-        const scoreStr = String(d.totalScore || '0').padStart(8, '0');
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 48px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
-        ctx.fillText(scoreStr, W - 40, 110);
-        ctx.restore();
-
-        // 6. 叠加文字
-        if (d.overlayText) {
-            ctx.save();
-            ctx.globalAlpha = 0.6;
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 42px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(0,0,0,0.8)';
-            ctx.shadowBlur = 12;
-            ctx.fillText(d.overlayText, W / 2, 100);
-            ctx.restore();
-        }
-
-        ctx.globalAlpha = 1;
-        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(changeLabels[d.changeType] || '', 0, 0);
     }
+    ctx.restore();
+
+    // ==========================================
+    // 2. 左下角：歌名与作者信息
+    // ==========================================
+    let infoOffsetX = 0;
+    let infoScale = 1;
+    if (elapsed < INFO_SLIDE) {
+        const p = elapsed / INFO_SLIDE;
+        infoOffsetX = -40 * (1 - p);
+        infoScale = 0.8 + 0.2 * p;
+    }
+
+    ctx.save();
+    ctx.globalAlpha = uiAlpha;
+    ctx.translate(infoOffsetX, 0);
+    ctx.scale(infoScale, infoScale);
+
+    const displayName = d.chineseName || d.songName || '';
+    const artistLine = [d.producer, d.vocalist].filter(Boolean).join(' - ');
+
+    let titleFontSize = 52;
+    if (displayName.length > 16) {
+        titleFontSize = Math.max(24, 52 - (displayName.length - 16) * 1.5);
+    }
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${titleFontSize}px Microsoft YaHei`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 10;
+    ctx.fillText(displayName, rankX, rankY + circleSize + 20);
+
+    ctx.fillStyle = '#d1d5db';
+    ctx.font = '30px Microsoft YaHei';
+    ctx.shadowBlur = 0;
+    ctx.fillText(artistLine || '', rankX, rankY + circleSize + 85);
+    ctx.restore();
+
+    // ==========================================
+    // 3. 右上角：Rate 和 总分
+    // ==========================================
+    ctx.save();
+    ctx.globalAlpha = uiAlpha;
+    ctx.fillStyle = '#a855f7';
+    ctx.font = 'bold 28px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('Rate: ' + (d.rate || '--'), W - 40, 60);
+
+    const scoreStr = String(d.totalScore || '0').padStart(8, '0');
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 48px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+    ctx.fillText(scoreStr, W - 40, 110);
+    ctx.restore();
+
+    // ==========================================
+    // 4. 右下角：历史数据胶囊
+    // ==========================================
+    const capsuleY = H - 140;
+    const capsuleWidth = 140;
+    const capsuleHeight = 80;
+    const gap = 20;
+    const totalCapsuleWidth = (capsuleWidth * 3) + (gap * 2);
+    const startX = W - totalCapsuleWidth - 40;
+
+    const capsuleItems = [
+        { label: '上月排名', value: d.lastWeekRank || '-' },
+        { label: '在榜月数', value: d.weeksOnChart || '-' },
+        { label: '最高排名', value: d.highestRank || '-' }
+    ];
+
+    const numAlpha = Math.min(elapsed / NUM_FADE, 1);
+
+    capsuleItems.forEach((item, i) => {
+        const x = startX + i * (capsuleWidth + gap);
+
+        ctx.save();
+        ctx.globalAlpha = uiAlpha * numAlpha;
+
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
+        ctx.strokeStyle = '#a855f7';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.roundRect(x, capsuleY, capsuleWidth, capsuleHeight, 15);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 42px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 8;
+        ctx.fillText(item.value, x + capsuleWidth / 2, capsuleY + 35);
+
+        ctx.fillStyle = '#e5e7eb';
+        ctx.font = '16px Microsoft YaHei';
+        ctx.shadowBlur = 0;
+        ctx.fillText(item.label, x + capsuleWidth / 2, capsuleY + 65);
+        ctx.restore();
+    });
+
+    // ==========================================
+    // 5. 顶部居中：叠加文字
+    // ==========================================
+    if (d.overlayText) {
+        ctx.save();
+        ctx.globalAlpha = 0.6;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 42px BiaoXiaoZhi, Microsoft YaHei, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 12;
+        ctx.fillText(d.overlayText, W / 2, 100);
+        ctx.restore();
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.textBaseline = 'alphabetic';
+}
 
     function drawPreview(rankIndex) {
         const canvas = document.getElementById('preview-canvas');
@@ -2415,261 +2433,4 @@ h1{font-size:2.5rem;margin-bottom:32px;text-align:center;background:linear-gradi
                         }
                         preAudioSource = nextSource;
                         preAudioGain = audioContext.createGain();
-                        preAudioGain.gain.value = MASTER_VOLUME;
-                        preAudioSource.connect(preAudioGain);
-                        preAudioGain.connect(limiter);
-                        
-                        const nextStart = nextRankData.startTime || 0;
-                        nextVideo.video.currentTime = nextStart;
-                        await nextVideo.video.play();
-                    } catch(e) { preAudioStarted = false; }
-                }
-
-                // 🛡️ 音频无缝衔接：上一首不降音量，下一首满音量播放
-                if (preAudioStarted && preAudioGain) {
-                    preAudioGain.gain.value = MASTER_VOLUME;
-                    masterGain.gain.value = MASTER_VOLUME;
-                } else {
-                    masterGain.gain.value = MASTER_VOLUME;
-                }
-
-                let videoAlpha = 1;
-                if (isFadingOut && fadeOutType === '1') {
-                    videoAlpha = 1 - (elapsed - (totalDuration - fadeMs)) / fadeMs;
-                }
-
-                let uiAlpha = 1;
-                if (isFadingOut) {
-                    if (fadeOutType === '1') {
-                        uiAlpha = 1 - Math.min((elapsed - (totalDuration - fadeMs)) / uiFadeMs, 1);
-                    } else if (fadeOutType === '2') {
-                        uiAlpha = 0;
-                    } else if (fadeOutType === '3') {
-                        uiAlpha = 1 - Math.min((elapsed - (totalDuration - fadeMs)) / 100, 1);
-                    }
-                }
-
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, W, H);
-
-                if (fadeOutType === '3' && isFadingOut) {
-                    const moveProgress = (elapsed - (totalDuration - fadeMs)) / fadeMs;
-                    const moveY = -moveProgress * H;
-                    ctx.globalAlpha = 1;
-                    ctx.drawImage(video, ox, oy + moveY, sw, sh);
-                    if (nextVideo && nextVideo.firstFrame) {
-                        ctx.drawImage(nextVideo.firstFrame, 0, (1 - moveProgress) * H, W, H);
-                    }
-                } else {
-                    ctx.globalAlpha = videoAlpha;
-                    ctx.drawImage(video, ox, oy, sw, sh);
-                    ctx.globalAlpha = uiAlpha;
-                    if (uiAlpha > 0.01) {
-                        drawUI(ctx, d, W, H, elapsed / 1000);
-                    }
-                }
-
-                const overall = (vIdx + progress) / totalRanks * 100;
-                document.getElementById('single-progress-text').textContent = `第 ${d.rank} 名 (${processedCount}/${totalRanks})...`;
-                document.getElementById('single-progress-percent').textContent = overall.toFixed(0) + '%';
-                document.getElementById('single-progress-fill').style.width = overall.toFixed(0) + '%';
-
-                await sleepFrame();
-            }
-
-            video.pause();
-            // 🛡️ 不清理 preAudioGain，让音频自然过渡到下一首
-        }
-
-        videos.forEach(({ video }) => {
-            URL.revokeObjectURL(video.src);
-            video.remove();
-        });
-
-        recorder.stop();
-        await recordingComplete;
-    }
-
-    // ============================================================
-    // 裁剪功能
-    // ============================================================
-    let currentTrimIndex = -1;
-
-    function openVideoTrimModal(index) {
-        const data = rankData[index];
-        if (!data.videoFile) {
-            showToast('请先选择视频文件！', 'error');
-            return;
-        }
-        currentTrimIndex = index;
-        const modal = document.getElementById('trim-modal');
-        const video = document.getElementById('trim-video');
-        const url = URL.createObjectURL(data.videoFile);
-        video.src = url;
-        document.getElementById('trim-start').value = data.startTime || 0;
-        document.getElementById('trim-end').value = data.endTime || 0;
-        document.getElementById('trim-duration').textContent = '视频总时长: 0.00 秒';
-        modal.style.display = 'flex';
-        video.onloadedmetadata = () => {
-            document.getElementById('trim-duration').textContent = `视频总时长: ${video.duration.toFixed(2)} 秒`;
-            if (!data.endTime || data.endTime === 0) {
-                document.getElementById('trim-end').value = video.duration.toFixed(2);
-            }
-        };
-    }
-
-    function closeTrimModal() {
-        const modal = document.getElementById('trim-modal');
-        const video = document.getElementById('trim-video');
-        video.pause();
-        video.src = '';
-        modal.style.display = 'none';
-        currentTrimIndex = -1;
-    }
-
-    function setTrimStart() {
-        const video = document.getElementById('trim-video');
-        document.getElementById('trim-start').value = video.currentTime.toFixed(2);
-    }
-
-    function setTrimEnd() {
-        const video = document.getElementById('trim-video');
-        document.getElementById('trim-end').value = video.currentTime.toFixed(2);
-    }
-
-    function previewTrim() {
-        const video = document.getElementById('trim-video');
-        const start = parseFloat(document.getElementById('trim-start').value) || 0;
-        const end = parseFloat(document.getElementById('trim-end').value) || video.duration;
-        video.currentTime = start;
-        video.play();
-        const checkEnd = () => {
-            if (video.currentTime >= end) {
-                video.pause();
-                video.removeEventListener('timeupdate', checkEnd);
-            }
-        };
-        video.addEventListener('timeupdate', checkEnd);
-    }
-
-    function saveTrimSettings() {
-        const video = document.getElementById('trim-video');
-        const start = parseFloat(document.getElementById('trim-start').value) || 0;
-        const end = parseFloat(document.getElementById('trim-end').value) || video.duration;
-        if (start >= end) {
-            showToast('开始时间必须小于结束时间！', 'error');
-            return;
-        }
-        if (currentTrimIndex >= 0) {
-            rankData[currentTrimIndex].startTime = start;
-            rankData[currentTrimIndex].endTime = end;
-            showToast(`已保存裁剪设置: ${start.toFixed(2)}s - ${end.toFixed(2)}s`, 'success');
-        }
-        closeTrimModal();
-    }
-
-    // ============================================================
-    // 智能音画卡点：自动分析高潮片段，填入裁剪起止时间
-    // ============================================================
-    document.getElementById('ai-trim-btn').onclick = async function() {
-        const video = document.getElementById('trim-video');
-        if (!video || !video.src) return alert('请先选择视频文件');
-
-        const btn = this;
-        btn.disabled = true; btn.textContent = '⏳ 正在分析...';
-
-        try {
-            const res = await fetch(video.src);
-            const arrayBuffer = await res.arrayBuffer();
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
-
-            const duration = audioBuffer.duration, sampleRate = audioBuffer.sampleRate;
-            const channelData = audioBuffer.getChannelData(0), step = 0.5, stepsCount = Math.floor(duration / step);
-            const scoreArray = [];
-
-            for (let i = 0; i < stepsCount; i++) {
-                const start = Math.floor(i * step * sampleRate), end = Math.floor((i + 1) * step * sampleRate);
-                let sumSq = 0, zc = 0;
-                for (let j = start; j < end; j++) {
-                    sumSq += channelData[j] * channelData[j];
-                    if (j > start && channelData[j] * channelData[j-1] < 0) zc++;
-                }
-                scoreArray.push(Math.sqrt(sumSq / (end - start)) * (1 + (zc / (end - start) * 1000) * 0.5));
-            }
-
-            const safeStart = Math.floor((duration * 0.15) / step), safeEnd = Math.floor((duration * 0.85) / step);
-            let maxScore = 0, peakIndex = safeStart;
-            for (let i = safeStart; i < safeEnd; i++) { if (scoreArray[i] > maxScore) { maxScore = scoreArray[i]; peakIndex = i; } }
-
-            let startIndex = peakIndex;
-            while (startIndex > safeStart) { if (scoreArray[startIndex - 1] < maxScore * 0.3) break; startIndex--; }
-            let startTime = startIndex * step;
-
-            let bestCutTime = startTime + 20, lowestEnergy = maxScore, whiteCount = 0;
-            const minDuration = 15, maxDuration = 30;
-
-            let cvs = document.createElement('canvas'); cvs.width = 160; cvs.height = 90;
-            const ctx = cvs.getContext('2d'); video.muted = true;
-
-            for (let currentT = startTime + minDuration; currentT < Math.min(startTime + maxDuration, duration); currentT += 0.5) {
-                let idx = Math.floor(currentT / step);
-                if (scoreArray[idx] < lowestEnergy) { lowestEnergy = scoreArray[idx]; bestCutTime = currentT; }
-
-                video.currentTime = currentT;
-                await new Promise(r => { video.onseeked = r; setTimeout(r, 50); });
-
-                ctx.drawImage(video, 0, 0, cvs.width, cvs.height);
-                const imgData = ctx.getImageData(0, 0, cvs.width, cvs.height).data;
-                let isWhite = true;
-                for (let k = 0; k < imgData.length; k += 4) { if (imgData[k] < 235 || imgData[k+1] < 235 || imgData[k+2] < 235) { isWhite = false; break; } }
-
-                if (isWhite) { whiteCount++; if (whiteCount >= 2) { bestCutTime = currentT; break; } } else { whiteCount = 0; }
-            }
-
-            video.muted = false;
-            document.getElementById('trim-start').value = startTime.toFixed(2);
-            document.getElementById('trim-end').value = bestCutTime.toFixed(2);
-            video.currentTime = startTime;
-
-        } catch (err) { alert('分析失败: ' + err.message); }
-        finally { btn.disabled = false; btn.textContent = '🤖 重新分析音画卡点'; }
-    };
-
-    // ============================================================
-    // 初始化
-    // ============================================================
-    function initApp() {
-        setTimeout(loadAssets, 200);
-        
-        // 🛡️ 自动读档：读取上次保存的数据
-        const savedData = localStorage.getItem('voca_auto_save_data');
-        if (savedData) {
-            try {
-                const parsed = JSON.parse(savedData);
-                for (let i = 0; i < parsed.length; i++) {
-                    if (parsed[i] && rankData[i]) Object.assign(rankData[i], parsed[i]);
-                }
-                setTimeout(() => {
-                    if (typeof renderRankEntries === 'function') renderRankEntries();
-                    if (typeof drawPreview === 'function') drawPreview(0);
-                }, 300);
-                console.log('✅ 自动恢复了上次的数据！');
-            } catch(e) {}
-        }
-
-        if (document.getElementById('video-gen').classList.contains('active')) {
-            renderRankEntries();
-            setTimeout(() => drawPreview(0), 300);
-            window._vgInit = true;
-        }
-        if (document.getElementById('single-video-gen').classList.contains('active')) {
-            updateSingleRankPreview();
-        }
-    }
-
-    // 启动程序
-    window.addEventListener('DOMContentLoaded', initApp);
-</script>
-</body>
-</html>
+                        preAudioGain.gain.value = 
